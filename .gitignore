@@ -5,3 +5,7 @@ node_modules
 npm-debug.log*
 .DS_Store
 tsconfig.tsbuildinfo
+
+# Database exports: keep out of version control (schema.sql is the schema definition)
+*.sql
+!schema.sql
