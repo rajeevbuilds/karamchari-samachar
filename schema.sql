@@ -29,10 +29,13 @@ CREATE TABLE IF NOT EXISTS circulars (
   -- Homepage "Most Popular" sidebar — incremented on each detail-page view.
   view_count INT NOT NULL DEFAULT 0,
   category ENUM('da', 'pay', 'transfer', 'recruitment', 'pension', 'general') NOT NULL DEFAULT 'general',
+  -- Only 'published' rows appear on public pages; AIRF imports start as 'draft'.
+  status ENUM('draft', 'published') NOT NULL DEFAULT 'published',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_circulars_issue_date (issue_date),
   INDEX idx_circulars_category (category),
-  INDEX idx_circulars_section (section)
+  INDEX idx_circulars_section (section),
+  INDEX idx_circulars_status (status)
 );
 
 CREATE TABLE IF NOT EXISTS da_history (
@@ -68,3 +71,4 @@ CREATE TABLE IF NOT EXISTS da_history (
 -- ALTER TABLE circulars ADD INDEX idx_circulars_section (section);
 -- ALTER TABLE circulars ADD COLUMN is_featured BOOLEAN NOT NULL DEFAULT FALSE AFTER image_url;
 -- ALTER TABLE circulars ADD COLUMN view_count INT NOT NULL DEFAULT 0 AFTER is_featured;
+-- ALTER TABLE circulars ADD COLUMN status ENUM('draft', 'published') NOT NULL DEFAULT 'published' AFTER category, ADD INDEX idx_circulars_status (status);

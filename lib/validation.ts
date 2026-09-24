@@ -36,6 +36,8 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
   const section = b.section ? String(b.section).trim() : null;
   const isFeatured = Boolean(b.isFeatured);
   const states = Array.isArray(b.states) ? b.states.map(String).filter(Boolean) : [];
+  // Omitted status means published, matching how circulars behaved before drafts existed.
+  const status = (b.status === undefined ? 'published' : String(b.status)) as Circular['status'];
 
   if (!title) throw new Error('Title is required');
   if (!department) throw new Error('Department is required');
@@ -46,8 +48,21 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
   if (!VALID_CATEGORIES.includes(category)) throw new Error('Invalid category');
   if (section && !VALID_SECTIONS.includes(section)) throw new Error('Invalid section');
   if (states.length === 0) throw new Error('Select at least one state (or "all")');
+  if (status !== 'draft' && status !== 'published') throw new Error('Invalid status');
 
-  return { title, department, states, section, issueDate, summary, pdfUrl, imageUrl, isFeatured, category };
+  return {
+    title,
+    department,
+    states,
+    section,
+    issueDate,
+    summary,
+    pdfUrl,
+    imageUrl,
+    isFeatured,
+    category,
+    status,
+  };
 }
 
 export function parseDaInput(body: unknown): DaWriteInput {

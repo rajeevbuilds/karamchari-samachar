@@ -24,6 +24,8 @@ export type Circular = {
   isFeatured: boolean; // marks it for the homepage "Must Read" sidebar
   viewCount: number;
   category: 'da' | 'pay' | 'transfer' | 'recruitment' | 'pension' | 'general';
+  // Drafts (e.g. fresh AIRF imports) are admin-only until saved as published.
+  status: 'draft' | 'published';
 };
 
 export type DaRecord = {
@@ -51,6 +53,7 @@ type CircularRow = {
   is_featured: number | boolean;
   view_count: number;
   category: Circular['category'];
+  status: Circular['status'];
 };
 
 type DaRow = {
@@ -80,6 +83,7 @@ function mapCircular(row: CircularRow): AdminCircular {
     isFeatured: Boolean(row.is_featured),
     viewCount: Number(row.view_count) || 0,
     category: row.category,
+    status: row.status ?? 'published',
   };
 }
 
@@ -113,7 +117,9 @@ function describeDbError(err: unknown): string {
 
 export async function getAllCirculars(): Promise<Circular[]> {
   try {
-    const rows = await query<CircularRow[]>('SELECT * FROM circulars ORDER BY issue_date DESC');
+    const rows = await query<CircularRow[]>(
+      "SELECT * FROM circulars WHERE status = 'published' ORDER BY issue_date DESC"
+    );
     return rows.map(mapCircular);
   } catch (err) {
     console.error('getAllCirculars: database query failed —', describeDbError(err));
@@ -123,9 +129,10 @@ export async function getAllCirculars(): Promise<Circular[]> {
 
 export async function getCircularBySlug(slug: string): Promise<Circular | undefined> {
   try {
-    const rows = await query<CircularRow[]>('SELECT * FROM circulars WHERE slug = ? LIMIT 1', [
-      slug,
-    ]);
+    const rows = await query<CircularRow[]>(
+      "SELECT * FROM circulars WHERE slug = ? AND status = 'published' LIMIT 1",
+      [slug]
+    );
     return rows[0] ? mapCircular(rows[0]) : undefined;
   } catch (err) {
     console.error('getCircularBySlug: database query failed —', describeDbError(err));
@@ -138,10 +145,10 @@ export async function getCircularsByState(state: string): Promise<Circular[]> {
     const rows =
       state === 'central'
         ? await query<CircularRow[]>(
-            "SELECT * FROM circulars WHERE FIND_IN_SET('all', states) ORDER BY issue_date DESC"
+            "SELECT * FROM circulars WHERE status = 'published' AND FIND_IN_SET('all', states) ORDER BY issue_date DESC"
           )
         : await query<CircularRow[]>(
-            "SELECT * FROM circulars WHERE FIND_IN_SET('all', states) OR FIND_IN_SET(?, states) ORDER BY issue_date DESC",
+            "SELECT * FROM circulars WHERE status = 'published' AND (FIND_IN_SET('all', states) OR FIND_IN_SET(?, states)) ORDER BY issue_date DESC",
             [state]
           );
     return rows.map(mapCircular);
@@ -154,7 +161,7 @@ export async function getCircularsByState(state: string): Promise<Circular[]> {
 export async function getCircularsBySection(section: string): Promise<Circular[]> {
   try {
     const rows = await query<CircularRow[]>(
-      'SELECT * FROM circulars WHERE section = ? ORDER BY issue_date DESC',
+      "SELECT * FROM circulars WHERE status = 'published' AND section = ? ORDER BY issue_date DESC",
       [section]
     );
     return rows.map(mapCircular);
@@ -194,7 +201,10 @@ export async function getLatestDa(): Promise<DaRecord> {
 
 export async function getAllCircularsAdmin(): Promise<AdminCircular[]> {
   try {
-    const rows = await query<CircularRow[]>('SELECT * FROM circulars ORDER BY issue_date DESC');
+    // Drafts first, so fresh imports awaiting review sit at the top.
+    const rows = await query<CircularRow[]>(
+      "SELECT * FROM circulars ORDER BY status = 'draft' DESC, issue_date DESC"
+    );
     return rows.map(mapCircular);
   } catch (err) {
     console.error('getAllCircularsAdmin: database query failed —', describeDbError(err));
@@ -225,6 +235,7 @@ export type CircularWriteInput = {
   imageUrl: string | null;
   isFeatured: boolean;
   category: Circular['category'];
+  status: Circular['status'];
 };
 
 function slugify(title: string): string {
@@ -235,18 +246,27 @@ function slugify(title: string): string {
     .replace(/(^-+|-+$)/g, '') || 'circular';
 }
 
-export async function createCircular(input: CircularWriteInput): Promise<number> {
-  const baseSlug = slugify(input.title);
+// Checks every row, drafts included: getCircularBySlug only sees published
+// ones, but slug is UNIQUE across the whole table.
+async function uniqueSlug(title: string): Promise<string> {
+  const baseSlug = slugify(title);
   let slug = baseSlug;
   let suffix = 2;
-  while (await getCircularBySlug(slug)) {
+  while (
+    (await query<{ id: number }[]>('SELECT id FROM circulars WHERE slug = ? LIMIT 1', [slug])).length
+  ) {
     slug = `${baseSlug}-${suffix++}`;
   }
+  return slug;
+}
+
+export async function createCircular(input: CircularWriteInput): Promise<number> {
+  const slug = await uniqueSlug(input.title);
 
   const result = await query<ResultSetHeader>(
     `INSERT INTO circulars
-       (slug, title, department, states, section, ref_number, issue_date, effective_date, summary, pdf_url, image_url, is_featured, category)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (slug, title, department, states, section, ref_number, issue_date, effective_date, summary, pdf_url, image_url, is_featured, category, status)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       slug,
       input.title,
@@ -263,6 +283,7 @@ export async function createCircular(input: CircularWriteInput): Promise<number>
       input.imageUrl || null,
       input.isFeatured ? 1 : 0,
       input.category,
+      input.status,
     ]
   );
   return result.insertId;
@@ -272,7 +293,7 @@ export async function updateCircular(id: number, input: CircularWriteInput): Pro
   await query(
     `UPDATE circulars
      SET title = ?, department = ?, states = ?, section = ?, issue_date = ?,
-         summary = ?, pdf_url = ?, image_url = ?, is_featured = ?, category = ?
+         summary = ?, pdf_url = ?, image_url = ?, is_featured = ?, category = ?, status = ?
      WHERE id = ?`,
     [
       input.title,
@@ -285,6 +306,7 @@ export async function updateCircular(id: number, input: CircularWriteInput): Pro
       input.imageUrl || null,
       input.isFeatured ? 1 : 0,
       input.category,
+      input.status,
       id,
     ]
   );
@@ -292,6 +314,40 @@ export async function updateCircular(id: number, input: CircularWriteInput): Pro
 
 export async function deleteCircular(id: number): Promise<void> {
   await query('DELETE FROM circulars WHERE id = ?', [id]);
+}
+
+// ---- AIRF import (admin only) -----------------------------------------
+// Imported posts store their WordPress permalink in pdf_url, which doubles
+// as the "already imported?" key.
+
+export async function getExistingPdfUrls(urls: string[]): Promise<Set<string>> {
+  if (urls.length === 0) return new Set();
+  const rows = await query<{ pdf_url: string }[]>(
+    `SELECT pdf_url FROM circulars WHERE pdf_url IN (${urls.map(() => '?').join(', ')})`,
+    urls
+  );
+  return new Set(rows.map((r) => r.pdf_url));
+}
+
+export type ImportDraftInput = {
+  title: string;
+  issueDate: string;
+  summary: string;
+  sourceUrl: string;
+  imageUrl: string | null;
+};
+
+// Department, category, section and states are deliberately left blank —
+// the admin assigns them (the edit form requires them) before publishing.
+export async function createImportedDraft(input: ImportDraftInput): Promise<number> {
+  const slug = await uniqueSlug(input.title);
+  const result = await query<ResultSetHeader>(
+    `INSERT INTO circulars
+       (slug, title, department, states, section, ref_number, issue_date, effective_date, summary, pdf_url, image_url, is_featured, category, status)
+     VALUES (?, ?, '', '', NULL, '', ?, NULL, ?, ?, ?, 0, 'general', 'draft')`,
+    [slug, input.title, input.issueDate, input.summary, input.sourceUrl, input.imageUrl]
+  );
+  return result.insertId;
 }
 
 export type DaWriteInput = {

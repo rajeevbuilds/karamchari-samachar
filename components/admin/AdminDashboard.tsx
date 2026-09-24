@@ -29,6 +29,7 @@ const EMPTY_FORM = {
   isFeatured: false,
   states: [] as string[],
   allStates: false,
+  status: 'published' as Circular['status'],
 };
 
 const EMPTY_DA_FORM = { effectiveFrom: '', percentage: '', ordersIssued: '' };
@@ -101,6 +102,7 @@ export default function AdminDashboard({
       isFeatured: c.isFeatured,
       states: c.states.includes('all') ? [] : c.states,
       allStates: c.states.includes('all'),
+      status: c.status,
     });
     setError(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -137,6 +139,7 @@ export default function AdminDashboard({
       imageUrl: form.imageUrl || null,
       isFeatured: form.isFeatured,
       states: form.allStates ? ['all'] : form.states,
+      status: form.status,
     };
 
     try {
@@ -309,6 +312,20 @@ export default function AdminDashboard({
           </div>
 
           <div>
+            <label className="block text-xs font-mono uppercase text-ink/50 mb-1">Status</label>
+            <select
+              value={form.status}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, status: e.target.value as Circular['status'] }))
+              }
+              className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon bg-paper"
+            >
+              <option value="published">Published — visible on the site</option>
+              <option value="draft">Draft — admin only</option>
+            </select>
+          </div>
+
+          <div>
             <label className="block text-xs font-mono uppercase text-ink/50 mb-1">
               Date of Posting
             </label>
@@ -429,7 +446,14 @@ export default function AdminDashboard({
           <tbody>
             {circulars.map((c) => (
               <tr key={c.id} className="border-b border-rule/60">
-                <td className="py-2.5 pr-4">{c.title}</td>
+                <td className="py-2.5 pr-4">
+                  {c.status === 'draft' && (
+                    <span className="mr-2 font-mono text-[10px] uppercase tracking-wide text-brass border border-brass px-1.5 py-0.5 align-middle">
+                      Draft
+                    </span>
+                  )}
+                  {c.title}
+                </td>
                 <td className="py-2.5 pr-4 font-mono text-xs text-ink/60">
                   {CATEGORY_LABEL[c.category]}
                 </td>
