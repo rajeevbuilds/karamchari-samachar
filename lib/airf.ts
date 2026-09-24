@@ -81,10 +81,15 @@ function htmlToText(html: string): string {
     .trim();
 }
 
+// WordPress sometimes returns http:// media URLs; always store https so
+// images never trigger mixed-content warnings on the https site.
 function allowedImage(url: string | undefined | null): string | null {
   if (!url) return null;
   try {
-    return ALLOWED_IMAGE_HOSTS.has(new URL(url).hostname) ? url : null;
+    const parsed = new URL(url);
+    if (!ALLOWED_IMAGE_HOSTS.has(parsed.hostname)) return null;
+    parsed.protocol = 'https:';
+    return parsed.toString();
   } catch {
     return null;
   }

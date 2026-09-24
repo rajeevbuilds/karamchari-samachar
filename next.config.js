@@ -10,13 +10,23 @@ const nextConfig = {
     workerThreads: false,
   },
   images: {
+    // http is allowed too: WordPress (including AIRF imports) sometimes hands
+    // out http:// media URLs, and next/image throws on any unlisted protocol.
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'airfindia.org',
       },
       {
+        protocol: 'http',
+        hostname: 'airfindia.org',
+      },
+      {
         protocol: 'https',
+        hostname: 'www.airfindia.org',
+      },
+      {
+        protocol: 'http',
         hostname: 'www.airfindia.org',
       },
     ],
