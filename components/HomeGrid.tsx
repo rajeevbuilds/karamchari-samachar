@@ -59,9 +59,11 @@ function GridCard({ circular }: { circular: Circular }) {
         <h3 className="font-serif text-base font-semibold text-ink mt-1 leading-snug line-clamp-2 group-hover:text-maroon transition-colors">
           {circular.title}
         </h3>
-        <p className="text-xs text-ink/70 mt-1.5 leading-relaxed line-clamp-2">
-          {circular.summary}
-        </p>
+        {/* summary is pre-sanitised, inline-only preview HTML (see app/page.tsx) */}
+        <p
+          className="text-xs text-ink/70 mt-1.5 leading-relaxed line-clamp-2"
+          dangerouslySetInnerHTML={{ __html: circular.summary }}
+        />
       </div>
     </Link>
   );

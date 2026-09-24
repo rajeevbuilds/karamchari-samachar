@@ -7,6 +7,7 @@
 
 import { createHmac, timingSafeEqual } from 'crypto';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 export const ADMIN_COOKIE_NAME = 'admin_session';
 export const ADMIN_COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days, in seconds
@@ -60,4 +61,13 @@ export function isValidSessionToken(token: string | undefined | null): boolean {
 export async function isAdminAuthenticated(): Promise<boolean> {
   const cookieStore = await cookies();
   return isValidSessionToken(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+}
+
+// For admin pages: bounce to the login form when not signed in. Each page
+// calls this itself (not just the layout), since layouts aren't re-run on
+// client-side navigation between pages.
+export async function requireAdmin(): Promise<void> {
+  if (!(await isAdminAuthenticated())) {
+    redirect('/admin/login');
+  }
 }

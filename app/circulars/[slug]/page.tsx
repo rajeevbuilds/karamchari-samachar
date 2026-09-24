@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { getCircularBySlug, incrementViewCount } from '@/lib/data';
+import { summaryHtml } from '@/lib/sanitize';
 
 // Render on every request: this page reads from the database, and a
 // build-time snapshot would freeze whatever the DB held during `next build`
@@ -62,7 +63,10 @@ export default async function CircularDetailPage({
           </div>
         </dl>
 
-        <p className="text-ink/80 leading-relaxed mb-6">{circular.summary}</p>
+        <div
+          className="rich-text text-ink/80 leading-relaxed mb-6"
+          dangerouslySetInnerHTML={{ __html: summaryHtml(circular.summary) }}
+        />
 
         <a
           href={circular.pdfUrl}

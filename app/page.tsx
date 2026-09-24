@@ -1,5 +1,6 @@
 import HomeGrid from '@/components/HomeGrid';
 import { getAllCirculars, getLatestDa, getDaHistory } from '@/lib/data';
+import { summaryPreviewHtml } from '@/lib/sanitize';
 
 // Render on every request: this page reads from the database, and a
 // build-time snapshot would freeze whatever the DB held during `next build`
@@ -16,7 +17,7 @@ export default async function HomePage() {
 
   return (
     <HomeGrid
-      circulars={circulars}
+      circulars={circulars.map((c) => ({ ...c, summary: summaryPreviewHtml(c.summary) }))}
       daPercentage={latestDa.percentage}
       previousDaPercentage={previousDa.percentage}
       daEffectiveFrom={latestDa.effectiveFrom}

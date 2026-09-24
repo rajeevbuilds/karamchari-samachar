@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { AirfCategory, AirfPost } from '@/lib/airf';
+import { apiFetch } from './apiFetch';
 
 type ListedPost = AirfPost & { alreadyImported: boolean };
 
@@ -11,16 +12,6 @@ type ImportResult = {
   skipped: { wpId: number; title: string }[];
   missing: number[];
 };
-
-// Same behaviour as AdminDashboard's helper: bounce to login if the session expired.
-async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
-  const res = await fetch(url, options);
-  if (res.status === 401) {
-    window.location.href = '/admin/login';
-    throw new Error('Unauthorized');
-  }
-  return res;
-}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -141,9 +132,9 @@ export default function AirfImport() {
           </p>
           {result.imported.length > 0 && (
             <p className="text-ink/70 mt-1">
-              Review them on the{' '}
-              <Link href="/admin" className="text-maroon underline">
-                dashboard
+              Review them in{' '}
+              <Link href="/admin/posts" className="text-maroon underline">
+                Posts
               </Link>{' '}
               (drafts are listed first), then fill in department, category, section and states, and save as
               Published.

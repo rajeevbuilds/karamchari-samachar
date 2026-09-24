@@ -4,6 +4,12 @@
 
 import type { Circular, CircularWriteInput, DaWriteInput } from './data';
 import { SECTION_OPTIONS } from './constants';
+import { sanitizeSummaryForStorage, summaryText } from './sanitize';
+
+// Public pages render image_url through next/image, which throws on hosts not
+// listed in next.config.js — so only accept our own uploads or AIRF images.
+const IMAGE_URL_PATTERN =
+  /^(\/assets\/uploads\/[a-z0-9-]+\.(jpg|png|webp)|https?:\/\/(www\.)?airfindia\.org\/\S+)$/i;
 
 const VALID_CATEGORIES: Circular['category'][] = [
   'da',
@@ -29,7 +35,7 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
   const title = String(b.title ?? '').trim();
   const department = String(b.department ?? '').trim();
   const issueDate = String(b.issueDate ?? '').trim();
-  const summary = String(b.summary ?? '').trim();
+  const summary = sanitizeSummaryForStorage(String(b.summary ?? '').trim());
   const pdfUrl = String(b.pdfUrl ?? '').trim();
   const imageUrl = b.imageUrl ? String(b.imageUrl).trim() : null;
   const category = String(b.category ?? '') as Circular['category'];
@@ -43,7 +49,9 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
   if (!department) throw new Error('Department is required');
   if (!issueDate || Number.isNaN(Date.parse(issueDate)))
     throw new Error('A valid date of posting is required');
-  if (!summary) throw new Error('Summary is required');
+  if (!summaryText(summary)) throw new Error('Summary is required');
+  if (imageUrl && !IMAGE_URL_PATTERN.test(imageUrl))
+    throw new Error('Image must be an uploaded image (/assets/uploads/…) or an airfindia.org image URL');
   if (!pdfUrl) throw new Error('PDF URL is required');
   if (!VALID_CATEGORIES.includes(category)) throw new Error('Invalid category');
   if (section && !VALID_SECTIONS.includes(section)) throw new Error('Invalid section');

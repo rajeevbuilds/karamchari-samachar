@@ -9,3 +9,7 @@ tsconfig.tsbuildinfo
 # Database exports: keep out of version control (schema.sql is the schema definition)
 *.sql
 !schema.sql
+
+# Admin image uploads live on the server, not in git
+public/assets/uploads/*
+!public/assets/uploads/.gitkeep

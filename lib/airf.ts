@@ -1,5 +1,6 @@
 // Server-side client for the airfindia.org WordPress REST API, used by the
-// admin "Import from AIRF" feature. Only called from admin API routes.
+// admin Import (posts) and Media (image search) features. Only called from
+// admin API routes.
 //
 // Featured images come back inline via `_embed=wp:featuredmedia`
 // (`_embedded['wp:featuredmedia'][0].source_url`), so there's no per-post
@@ -161,4 +162,47 @@ export async function fetchAirfPostsByIds(ids: number[]): Promise<AirfPost[]> {
     `/posts?include=${ids.join(',')}&per_page=${ids.length}&${POST_QUERY}`
   );
   return Promise.all(data.map(toAirfPost));
+}
+
+export type AirfMediaItem = {
+  id: number;
+  title: string;
+  date: string; // YYYY-MM-DD
+  url: string; // full size, https
+  thumbUrl: string;
+};
+
+type WpMediaItem = WpMedia & { id: number; date: string; title: { rendered: string } };
+
+// Searches AIRF's WordPress media library (images only), newest first.
+export async function searchAirfMedia(
+  search: string,
+  page: number,
+  perPage = 24
+): Promise<{ items: AirfMediaItem[]; totalPages: number }> {
+  const q = new URLSearchParams({
+    media_type: 'image',
+    per_page: String(perPage),
+    page: String(page),
+    orderby: 'date',
+    order: 'desc',
+    _fields: 'id,date,title,source_url,media_details',
+  });
+  if (search.trim()) q.set('search', search.trim());
+
+  const { data, totalPages } = await wpFetch<WpMediaItem[]>(`/media?${q}`);
+  const items: AirfMediaItem[] = [];
+  for (const m of data) {
+    const url = allowedImage(m.source_url);
+    if (!url) continue;
+    const sizes = m.media_details?.sizes;
+    items.push({
+      id: m.id,
+      title: htmlToText(m.title.rendered),
+      date: m.date.slice(0, 10),
+      url,
+      thumbUrl: allowedImage(sizes?.medium?.source_url) ?? allowedImage(sizes?.thumbnail?.source_url) ?? url,
+    });
+  }
+  return { items, totalPages };
 }

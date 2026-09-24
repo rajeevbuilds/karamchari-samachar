@@ -25,7 +25,7 @@ export async function loginAction(formData: FormData) {
     maxAge: ADMIN_COOKIE_MAX_AGE,
   });
 
-  redirect('/admin');
+  redirect('/admin/posts');
 }
 
 export async function logoutAction() {
