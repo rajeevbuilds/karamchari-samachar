@@ -1,5 +1,10 @@
 import { getDaHistory } from '@/lib/data';
 
+// Render on every request: this page reads from the database, and a
+// build-time snapshot would freeze whatever the DB held during `next build`
+// (often nothing), so newly published content would never appear.
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'DA & Pay Commission Tracker — Karamchari Samachar',
 };

@@ -1,11 +1,12 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { getAllCirculars, getCircularBySlug, incrementViewCount } from '@/lib/data';
+import { getCircularBySlug, incrementViewCount } from '@/lib/data';
 
-export async function generateStaticParams() {
-  const circulars = await getAllCirculars();
-  return circulars.map((c) => ({ slug: c.slug }));
-}
+// Render on every request: this page reads from the database, and a
+// build-time snapshot would freeze whatever the DB held during `next build`
+// (often nothing), so edits would never appear and view counts
+// would never increment.
+export const dynamic = 'force-dynamic';
 
 export default async function CircularDetailPage({
   params,
