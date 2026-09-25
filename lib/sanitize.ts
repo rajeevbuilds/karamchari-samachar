@@ -32,8 +32,9 @@ export function summaryHtml(summary: string): string {
   return sanitizeHtml(toHtml(summary ?? ''), FULL);
 }
 
-// Plain-text list preview: every list surface (home grid, CircularCard,
-// section/state pages, /circulars) renders this instead of the full summary,
+// Plain-text list preview: every list surface (home grid, section/state
+// pages, /circulars — all rendered via CircularGridCard) renders this
+// instead of the full summary,
 // so a raw import with no real excerpt (or any oversized stored summary)
 // can never blow out a card — regardless of how long the stored HTML is.
 export function summaryPreviewText(summary: string, maxLength = 220): string {

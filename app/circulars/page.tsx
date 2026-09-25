@@ -1,5 +1,6 @@
-import CircularCard from '@/components/CircularCard';
+import CircularGridCard from '@/components/CircularGridCard';
 import { getAllCirculars } from '@/lib/data';
+import { summaryPreviewText } from '@/lib/sanitize';
 
 // Render on every request: this page reads from the database, and a
 // build-time snapshot would freeze whatever the DB held during `next build`
@@ -19,9 +20,12 @@ export default async function CircularsPage() {
       <p className="text-sm text-ink/60 mb-8">
         {circulars.length} notifications, ordered by issue date
       </p>
-      <div className="space-y-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {circulars.map((circular) => (
-          <CircularCard key={circular.slug} circular={circular} />
+          <CircularGridCard
+            key={circular.slug}
+            circular={{ ...circular, summary: summaryPreviewText(circular.summary) }}
+          />
         ))}
       </div>
     </div>

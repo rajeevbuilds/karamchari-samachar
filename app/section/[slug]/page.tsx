@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
-import CircularCard from '@/components/CircularCard';
+import CircularGridCard from '@/components/CircularGridCard';
 import { getCircularsBySection } from '@/lib/data';
 import { SECTION_OPTIONS } from '@/lib/constants';
+import { summaryPreviewText } from '@/lib/sanitize';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -29,9 +30,12 @@ export default async function SectionPage({
       {circulars.length === 0 ? (
         <p className="text-sm text-ink/60">No circulars under {section.label} yet.</p>
       ) : (
-        <div className="space-y-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {circulars.map((circular) => (
-            <CircularCard key={circular.slug} circular={circular} />
+            <CircularGridCard
+              key={circular.slug}
+              circular={{ ...circular, summary: summaryPreviewText(circular.summary) }}
+            />
           ))}
         </div>
       )}

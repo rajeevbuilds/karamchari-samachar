@@ -4,60 +4,7 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Circular } from '@/lib/data';
-
-const CATEGORY_LABEL: Record<Circular['category'], string> = {
-  da: 'Dearness Allowance',
-  pay: 'Pay Commission',
-  transfer: 'Transfer & Posting',
-  recruitment: 'Recruitment',
-  pension: 'Pension & Medical',
-  general: 'General',
-};
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
-
-// Main-grid item: thumbnail, category, title, 2-line summary, date.
-function GridCard({ circular }: { circular: Circular }) {
-  return (
-    <Link
-      href={`/circulars/${circular.slug}`}
-      className="group block border border-rule hover:border-maroon transition-colors"
-    >
-      {circular.imageUrl && (
-        <div className="relative w-full aspect-[16/9] overflow-hidden bg-rule/20">
-          <Image
-            src={circular.imageUrl}
-            alt={circular.title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, 400px"
-          />
-        </div>
-      )}
-      <div className="p-3.5">
-        <div className="flex items-baseline justify-between gap-2 flex-wrap">
-          <span className="font-mono text-[11px] uppercase tracking-wide text-maroon">
-            {CATEGORY_LABEL[circular.category]}
-          </span>
-          <span className="font-mono text-[11px] text-ink/50">{formatDate(circular.issueDate)}</span>
-        </div>
-        <h3 className="font-serif text-base font-semibold text-ink mt-1 leading-snug line-clamp-2 group-hover:text-maroon transition-colors">
-          {circular.title}
-        </h3>
-        {/* summary is pre-truncated plain text (see app/page.tsx) */}
-        <p className="text-xs text-ink/70 mt-1.5 leading-relaxed line-clamp-2">
-          {circular.summary}
-        </p>
-      </div>
-    </Link>
-  );
-}
+import CircularGridCard from './CircularGridCard';
 
 // "Must Read" sidebar item: small thumbnail + title only.
 function MustReadItem({ circular }: { circular: Circular }) {
@@ -100,7 +47,7 @@ export default function HomeGrid({ circulars }: { circulars: Circular[] }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {latest10.map((circular) => (
-              <GridCard key={circular.slug} circular={circular} />
+              <CircularGridCard key={circular.slug} circular={circular} />
             ))}
             {latest10.length === 0 && (
               <p className="text-sm text-ink/50 sm:col-span-2">No circulars yet.</p>
