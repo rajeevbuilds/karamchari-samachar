@@ -82,6 +82,19 @@ function htmlToText(html: string): string {
     .trim();
 }
 
+// WordPress falls back to the full post body as the "excerpt" when the
+// original post never had a manual excerpt set. A genuine excerpt is a
+// couple of sentences; anything this long is really the article, so cut it
+// down to a real short excerpt before it ever reaches the database.
+const MAX_EXCERPT_CHARS = 300;
+const EXCERPT_WORD_COUNT = 45;
+
+function shortenExcerpt(text: string): string {
+  if (text.length <= MAX_EXCERPT_CHARS) return text;
+  const words = text.split(/\s+/).slice(0, EXCERPT_WORD_COUNT);
+  return `${words.join(' ')}…`;
+}
+
 // WordPress sometimes returns http:// media URLs; always store https so
 // images never trigger mixed-content warnings on the https site.
 function allowedImage(url: string | undefined | null): string | null {
@@ -117,7 +130,7 @@ async function toAirfPost(post: WpPost): Promise<AirfPost> {
     title: htmlToText(post.title.rendered),
     date: post.date.slice(0, 10),
     link: post.link,
-    excerpt: htmlToText(post.excerpt.rendered),
+    excerpt: shortenExcerpt(htmlToText(post.excerpt.rendered)),
     imageUrl,
     thumbUrl: imageUrl && (allowedImage(sizes?.medium?.source_url) ?? allowedImage(sizes?.thumbnail?.source_url) ?? imageUrl),
   };

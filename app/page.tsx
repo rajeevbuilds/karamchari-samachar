@@ -1,6 +1,6 @@
 import HomeGrid from '@/components/HomeGrid';
-import { getAllCirculars, getLatestDa, getDaHistory } from '@/lib/data';
-import { summaryPreviewHtml } from '@/lib/sanitize';
+import { getAllCirculars } from '@/lib/data';
+import { summaryPreviewText } from '@/lib/sanitize';
 
 // Render on every request: this page reads from the database, and a
 // build-time snapshot would freeze whatever the DB held during `next build`
@@ -8,19 +8,9 @@ import { summaryPreviewHtml } from '@/lib/sanitize';
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [circulars, latestDa, daHistory] = await Promise.all([
-    getAllCirculars(),
-    getLatestDa(),
-    getDaHistory(),
-  ]);
-  const previousDa = daHistory[1] ?? { percentage: latestDa.percentage };
+  const circulars = await getAllCirculars();
 
   return (
-    <HomeGrid
-      circulars={circulars.map((c) => ({ ...c, summary: summaryPreviewHtml(c.summary) }))}
-      daPercentage={latestDa.percentage}
-      previousDaPercentage={previousDa.percentage}
-      daEffectiveFrom={latestDa.effectiveFrom}
-    />
+    <HomeGrid circulars={circulars.map((c) => ({ ...c, summary: summaryPreviewText(c.summary) }))} />
   );
 }

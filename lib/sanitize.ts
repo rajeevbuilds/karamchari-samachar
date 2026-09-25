@@ -23,26 +23,26 @@ const FULL: sanitizeHtml.IOptions = {
   },
 };
 
-// For previews inside a card that is itself one big link: no nested <a>,
-// no block elements (they'd break line-clamp), just inline emphasis.
-const PREVIEW: sanitizeHtml.IOptions = {
-  allowedTags: ['strong', 'b', 'em', 'i'],
-  allowedAttributes: {},
-};
-
 function toHtml(summary: string): string {
   return looksLikeHtml(summary) ? summary : textToHtml(summary);
 }
 
-// Full summary: detail page and CircularCard lists.
+// Full summary: only the circular's own detail page renders this.
 export function summaryHtml(summary: string): string {
   return sanitizeHtml(toHtml(summary ?? ''), FULL);
 }
 
-// One-line-ish preview: block boundaries become spaces so words don't merge.
-export function summaryPreviewHtml(summary: string): string {
+// Plain-text list preview: every list surface (home grid, CircularCard,
+// section/state pages, /circulars) renders this instead of the full summary,
+// so a raw import with no real excerpt (or any oversized stored summary)
+// can never blow out a card — regardless of how long the stored HTML is.
+export function summaryPreviewText(summary: string, maxLength = 220): string {
   const spaced = toHtml(summary ?? '').replace(/<\/(p|li|ul|ol)>|<br\s*\/?>/gi, ' ');
-  return sanitizeHtml(spaced, PREVIEW).replace(/\s+/g, ' ').trim();
+  const text = summaryText(spaced).replace(/\s+/g, ' ').trim();
+  if (text.length <= maxLength) return text;
+  const truncated = text.slice(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(' ');
+  return `${(lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated).trim()}…`;
 }
 
 // Used when saving: store only markup we'd render anyway.

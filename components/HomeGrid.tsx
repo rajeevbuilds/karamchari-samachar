@@ -1,18 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Circular } from '@/lib/data';
-
-const CATEGORIES: { key: 'all' | Circular['category']; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'da', label: 'Dearness Allowance' },
-  { key: 'pay', label: 'Pay Commission' },
-  { key: 'transfer', label: 'Transfer & Posting' },
-  { key: 'recruitment', label: 'Recruitment' },
-  { key: 'pension', label: 'Pension & Medical' },
-];
 
 const CATEGORY_LABEL: Record<Circular['category'], string> = {
   da: 'Dearness Allowance',
@@ -59,11 +50,10 @@ function GridCard({ circular }: { circular: Circular }) {
         <h3 className="font-serif text-base font-semibold text-ink mt-1 leading-snug line-clamp-2 group-hover:text-maroon transition-colors">
           {circular.title}
         </h3>
-        {/* summary is pre-sanitised, inline-only preview HTML (see app/page.tsx) */}
-        <p
-          className="text-xs text-ink/70 mt-1.5 leading-relaxed line-clamp-2"
-          dangerouslySetInnerHTML={{ __html: circular.summary }}
-        />
+        {/* summary is pre-truncated plain text (see app/page.tsx) */}
+        <p className="text-xs text-ink/70 mt-1.5 leading-relaxed line-clamp-2">
+          {circular.summary}
+        </p>
       </div>
     </Link>
   );
@@ -85,27 +75,10 @@ function MustReadItem({ circular }: { circular: Circular }) {
   );
 }
 
-export default function HomeGrid({
-  circulars,
-  daPercentage,
-  previousDaPercentage,
-  daEffectiveFrom,
-}: {
-  circulars: Circular[];
-  daPercentage: number;
-  previousDaPercentage: number;
-  daEffectiveFrom: string;
-}) {
-  const [category, setCategory] = useState<'all' | Circular['category']>('all');
+export default function HomeGrid({ circulars }: { circulars: Circular[] }) {
+  // circulars is already ordered most-recent-first.
+  const latest10 = circulars.slice(0, 10);
 
-  const filtered = useMemo(
-    () => (category === 'all' ? circulars : circulars.filter((c) => c.category === category)),
-    [category, circulars]
-  );
-  const latest10 = filtered.slice(0, 10);
-
-  // circulars is already ordered most-recent-first, so filtering preserves
-  // that order — no separate sort needed.
   const mustRead = useMemo(() => circulars.filter((c) => c.isFeatured).slice(0, 4), [circulars]);
 
   const mostPopular = useMemo(
@@ -113,42 +86,10 @@ export default function HomeGrid({
     [circulars]
   );
 
-  const change = daPercentage - previousDaPercentage;
-
   return (
     <div className="mx-auto max-w-[1200px] px-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
       {/* Main column */}
       <div>
-        <section className="py-10 border-b border-rule">
-          <p className="font-mono text-xs uppercase tracking-wide text-maroon mb-3">
-            Latest Dearness Allowance
-          </p>
-          <div className="flex items-end gap-6 flex-wrap">
-            <span className="font-serif text-[clamp(56px,8vw,88px)] font-semibold text-ink leading-none">
-              {daPercentage}%
-            </span>
-            <div className="pb-2">
-              <p className="text-leaf font-medium">
-                Up {change} points from {previousDaPercentage}%
-              </p>
-              <p className="text-sm text-ink/60 mt-0.5">
-                Effective{' '}
-                {new Date(daEffectiveFrom).toLocaleDateString('en-IN', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/da-cpc-tracker"
-            className="inline-block mt-5 text-sm text-maroon border-b border-maroon/40 hover:border-maroon transition-colors"
-          >
-            See full DA history and pay commission tracker
-          </Link>
-        </section>
-
         <section className="py-10">
           <div className="flex items-baseline justify-between mb-5 flex-wrap gap-4">
             <h2 className="font-serif text-2xl font-semibold text-ink">Latest Circulars</h2>
@@ -157,32 +98,12 @@ export default function HomeGrid({
             </Link>
           </div>
 
-          {/* Category filter — horizontal scrollable strip */}
-          <div className="flex flex-row gap-1 overflow-x-auto pb-2 -mx-4 px-4 mb-6">
-            {CATEGORIES.map((cat) => {
-              const active = category === cat.key;
-              return (
-                <button
-                  key={cat.key}
-                  onClick={() => setCategory(cat.key)}
-                  className={`shrink-0 font-mono text-xs uppercase tracking-wide px-3 py-2 border-b-2 transition-colors whitespace-nowrap ${
-                    active
-                      ? 'border-maroon text-maroon'
-                      : 'border-transparent text-ink/70 hover:text-maroon'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              );
-            })}
-          </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {latest10.map((circular) => (
               <GridCard key={circular.slug} circular={circular} />
             ))}
             {latest10.length === 0 && (
-              <p className="text-sm text-ink/50 sm:col-span-2">No circulars in this category yet.</p>
+              <p className="text-sm text-ink/50 sm:col-span-2">No circulars yet.</p>
             )}
           </div>
         </section>

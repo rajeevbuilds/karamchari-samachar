@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Circular } from '@/lib/data';
-import { summaryHtml } from '@/lib/sanitize';
+import { summaryPreviewText } from '@/lib/sanitize';
 
 const CATEGORY_LABEL: Record<Circular['category'], string> = {
   da: 'Dearness Allowance',
@@ -47,10 +47,9 @@ export default function CircularCard({ circular }: { circular: Circular }) {
           {circular.title}
         </Link>
       </h3>
-      <div
-        className="rich-text text-sm text-ink/70 mt-1.5 leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: summaryHtml(circular.summary) }}
-      />
+      <p className="text-sm text-ink/70 mt-1.5 leading-relaxed">
+        {summaryPreviewText(circular.summary)}
+      </p>
       <div className="mt-2 flex items-center gap-4 text-xs text-ink/50 font-mono">
         <span>{circular.department}</span>
       </div>
