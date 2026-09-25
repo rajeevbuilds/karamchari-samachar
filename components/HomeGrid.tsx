@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Circular } from '@/lib/data';
 import CircularGridCard from './CircularGridCard';
+import FeaturedCircularCard from './FeaturedCircularCard';
 
 // "Must Read" sidebar item: small thumbnail + title only.
 function MustReadItem({ circular }: { circular: Circular }) {
@@ -25,6 +26,7 @@ function MustReadItem({ circular }: { circular: Circular }) {
 export default function HomeGrid({ circulars }: { circulars: Circular[] }) {
   // circulars is already ordered most-recent-first.
   const latest10 = circulars.slice(0, 10);
+  const [featured, ...rest] = latest10;
 
   const mustRead = useMemo(() => circulars.filter((c) => c.isFeatured).slice(0, 4), [circulars]);
 
@@ -45,8 +47,14 @@ export default function HomeGrid({ circulars }: { circulars: Circular[] }) {
             </Link>
           </div>
 
+          {featured && (
+            <div className="mb-5">
+              <FeaturedCircularCard circular={featured} />
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {latest10.map((circular) => (
+            {rest.map((circular) => (
               <CircularGridCard key={circular.slug} circular={circular} />
             ))}
             {latest10.length === 0 && (
