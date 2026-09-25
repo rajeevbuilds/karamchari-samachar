@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS circulars (
   id INT AUTO_INCREMENT PRIMARY KEY,
   slug VARCHAR(255) NOT NULL UNIQUE,
   title VARCHAR(500) NOT NULL,
+  -- Retained for existing rows but no longer collected via the admin form.
   department VARCHAR(255) NOT NULL,
   -- Comma-separated: "all" for pan-India, or state slugs e.g. "punjab,haryana"
   states TEXT NOT NULL,
@@ -22,7 +23,8 @@ CREATE TABLE IF NOT EXISTS circulars (
   issue_date DATE NOT NULL,
   effective_date DATE NULL,
   summary TEXT NOT NULL,
-  pdf_url VARCHAR(1000) NOT NULL,
+  -- Optional as of the admin form change that dropped the required PDF URL.
+  pdf_url VARCHAR(1000) NULL,
   image_url VARCHAR(1000) NULL,
   -- Homepage "Must Read" sidebar — hand-picked via the admin form.
   is_featured BOOLEAN NOT NULL DEFAULT FALSE,
@@ -72,3 +74,4 @@ CREATE TABLE IF NOT EXISTS da_history (
 -- ALTER TABLE circulars ADD COLUMN is_featured BOOLEAN NOT NULL DEFAULT FALSE AFTER image_url;
 -- ALTER TABLE circulars ADD COLUMN view_count INT NOT NULL DEFAULT 0 AFTER is_featured;
 -- ALTER TABLE circulars ADD COLUMN status ENUM('draft', 'published') NOT NULL DEFAULT 'published' AFTER category, ADD INDEX idx_circulars_status (status);
+-- ALTER TABLE circulars MODIFY COLUMN pdf_url VARCHAR(1000) NULL;

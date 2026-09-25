@@ -19,7 +19,7 @@ export type Circular = {
   issueDate: string; // ISO date — "Date of Posting"
   effectiveDate?: string;
   summary: string;
-  pdfUrl: string;
+  pdfUrl: string | null;
   imageUrl: string | null;
   isFeatured: boolean; // marks it for the homepage "Must Read" sidebar
   viewCount: number;
@@ -48,7 +48,7 @@ type CircularRow = {
   issue_date: string;
   effective_date: string | null;
   summary: string;
-  pdf_url: string;
+  pdf_url: string | null;
   image_url: string | null;
   is_featured: number | boolean;
   view_count: number;
@@ -226,9 +226,8 @@ export async function getAllDaHistoryAdmin(): Promise<AdminDaRecord[]> {
 
 export type CircularWriteInput = {
   title: string;
-  department: string;
   states: string[];
-  section: string | null;
+  section: string;
   issueDate: string;
   summary: string;
   pdfUrl: string;
@@ -270,16 +269,18 @@ export async function createCircular(input: CircularWriteInput): Promise<number>
     [
       slug,
       input.title,
-      input.department,
+      // department is no longer collected from the admin form; the column
+      // is kept for existing rows but new ones just get ''.
+      '',
       input.states.join(','),
-      input.section || null,
+      input.section,
       // ref_number/effective_date are retained in the schema for existing
       // rows but are no longer collected from the admin form.
       '',
       input.issueDate,
       null,
       input.summary,
-      input.pdfUrl,
+      input.pdfUrl || null,
       input.imageUrl || null,
       input.isFeatured ? 1 : 0,
       input.category,
@@ -290,19 +291,21 @@ export async function createCircular(input: CircularWriteInput): Promise<number>
 }
 
 export async function updateCircular(id: number, input: CircularWriteInput): Promise<void> {
+  // department is deliberately left out of the SET list — the admin form no
+  // longer collects it, and leaving it out (rather than writing '') keeps
+  // whatever value an existing row already had.
   await query(
     `UPDATE circulars
-     SET title = ?, department = ?, states = ?, section = ?, issue_date = ?,
+     SET title = ?, states = ?, section = ?, issue_date = ?,
          summary = ?, pdf_url = ?, image_url = ?, is_featured = ?, category = ?, status = ?
      WHERE id = ?`,
     [
       input.title,
-      input.department,
       input.states.join(','),
-      input.section || null,
+      input.section,
       input.issueDate,
       input.summary,
-      input.pdfUrl,
+      input.pdfUrl || null,
       input.imageUrl || null,
       input.isFeatured ? 1 : 0,
       input.category,

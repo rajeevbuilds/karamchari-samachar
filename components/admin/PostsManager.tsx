@@ -23,7 +23,6 @@ const CATEGORY_LABEL: Record<Circular['category'], string> = Object.fromEntries(
 
 const EMPTY_FORM = {
   title: '',
-  department: '',
   category: 'general' as Circular['category'],
   section: '',
   issueDate: '',
@@ -68,12 +67,11 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
     setEditingId(c.id);
     setForm({
       title: c.title,
-      department: c.department,
       category: c.category,
       section: c.section ?? '',
       issueDate: c.issueDate,
       summary: summaryToEditorHtml(c.summary),
-      pdfUrl: c.pdfUrl,
+      pdfUrl: c.pdfUrl ?? '',
       imageUrl: c.imageUrl ?? '',
       isFeatured: c.isFeatured,
       states: c.states.includes('all') ? [] : c.states,
@@ -108,9 +106,8 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
     const wasEditing = editingId !== null;
     const payload = {
       title: form.title,
-      department: form.department,
       category: form.category,
-      section: form.section || null,
+      section: form.section,
       issueDate: form.issueDate,
       summary: form.summary,
       pdfUrl: form.pdfUrl,
@@ -182,16 +179,6 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
           </div>
 
           <div>
-            <label className="block text-xs font-mono uppercase text-ink/50 mb-1">Department</label>
-            <input
-              required
-              value={form.department}
-              onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))}
-              className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon"
-            />
-          </div>
-
-          <div>
             <label className="block text-xs font-mono uppercase text-ink/50 mb-1">Category</label>
             <select
               value={form.category}
@@ -209,15 +196,16 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
           </div>
 
           <div>
-            <label className="block text-xs font-mono uppercase text-ink/50 mb-1">
-              Section (optional)
-            </label>
+            <label className="block text-xs font-mono uppercase text-ink/50 mb-1">Section</label>
             <select
+              required
               value={form.section}
               onChange={(e) => setForm((f) => ({ ...f, section: e.target.value }))}
               className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon bg-paper"
             >
-              <option value="">— None —</option>
+              <option value="" disabled>
+                — Select a section —
+              </option>
               {SECTION_OPTIONS.map((s) => (
                 <option key={s.value} value={s.value}>
                   {s.label}
@@ -263,9 +251,10 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
           </div>
 
           <div className="sm:col-span-2">
-            <label className="block text-xs font-mono uppercase text-ink/50 mb-1">PDF URL</label>
+            <label className="block text-xs font-mono uppercase text-ink/50 mb-1">
+              PDF URL (optional)
+            </label>
             <input
-              required
               type="url"
               value={form.pdfUrl}
               onChange={(e) => setForm((f) => ({ ...f, pdfUrl: e.target.value }))}
@@ -332,7 +321,7 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
                 checked={form.allStates}
                 onChange={(e) => setForm((f) => ({ ...f, allStates: e.target.checked }))}
               />
-              All states (central circular)
+              Central Circular
             </label>
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               {STATE_OPTIONS.map((s) => (

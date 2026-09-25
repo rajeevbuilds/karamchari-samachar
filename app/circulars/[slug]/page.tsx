@@ -37,9 +37,11 @@ export default async function CircularDetailPage({
           </div>
         )}
 
-        <span className="font-mono text-xs uppercase tracking-wide text-maroon">
-          {circular.department}
-        </span>
+        {circular.department && (
+          <span className="font-mono text-xs uppercase tracking-wide text-maroon">
+            {circular.department}
+          </span>
+        )}
         <h1 className="font-serif text-3xl font-semibold text-ink mt-2 mb-4">
           {circular.title}
         </h1>
@@ -68,14 +70,16 @@ export default async function CircularDetailPage({
           dangerouslySetInnerHTML={{ __html: summaryHtml(circular.summary) }}
         />
 
-        <a
-          href={circular.pdfUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block text-sm font-medium text-paper bg-ink px-4 py-2 hover:bg-maroon transition-colors"
-        >
-          View original order (PDF) →
-        </a>
+        {circular.pdfUrl && (
+          <a
+            href={circular.pdfUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-sm font-medium text-paper bg-ink px-4 py-2 hover:bg-maroon transition-colors"
+          >
+            View original order (PDF) →
+          </a>
+        )}
       </div>
     </div>
   );

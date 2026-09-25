@@ -33,34 +33,31 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
   const b = asRecord(body);
 
   const title = String(b.title ?? '').trim();
-  const department = String(b.department ?? '').trim();
   const issueDate = String(b.issueDate ?? '').trim();
   const summary = sanitizeSummaryForStorage(String(b.summary ?? '').trim());
   const pdfUrl = String(b.pdfUrl ?? '').trim();
   const imageUrl = b.imageUrl ? String(b.imageUrl).trim() : null;
   const category = String(b.category ?? '') as Circular['category'];
-  const section = b.section ? String(b.section).trim() : null;
+  const section = String(b.section ?? '').trim();
   const isFeatured = Boolean(b.isFeatured);
   const states = Array.isArray(b.states) ? b.states.map(String).filter(Boolean) : [];
   // Omitted status means published, matching how circulars behaved before drafts existed.
   const status = (b.status === undefined ? 'published' : String(b.status)) as Circular['status'];
 
   if (!title) throw new Error('Title is required');
-  if (!department) throw new Error('Department is required');
   if (!issueDate || Number.isNaN(Date.parse(issueDate)))
     throw new Error('A valid date of posting is required');
   if (!summaryText(summary)) throw new Error('Summary is required');
   if (imageUrl && !IMAGE_URL_PATTERN.test(imageUrl))
     throw new Error('Image must be an uploaded image (/assets/uploads/…) or an airfindia.org image URL');
-  if (!pdfUrl) throw new Error('PDF URL is required');
   if (!VALID_CATEGORIES.includes(category)) throw new Error('Invalid category');
-  if (section && !VALID_SECTIONS.includes(section)) throw new Error('Invalid section');
+  if (!section) throw new Error('Section is required');
+  if (!VALID_SECTIONS.includes(section)) throw new Error('Invalid section');
   if (states.length === 0) throw new Error('Select at least one state (or "all")');
   if (status !== 'draft' && status !== 'published') throw new Error('Invalid status');
 
   return {
     title,
-    department,
     states,
     section,
     issueDate,
