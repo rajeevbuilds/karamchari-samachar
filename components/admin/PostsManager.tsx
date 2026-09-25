@@ -103,7 +103,7 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
     setError(null);
     setSuccessMessage(null);
 
-    const wasEditing = editingId !== null;
+    const isPublished = form.status === 'published';
     const payload = {
       title: form.title,
       category: form.category,
@@ -133,7 +133,7 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
       }
       await refreshCirculars();
       resetForm();
-      setSuccessMessage(wasEditing ? 'Circular updated successfully' : 'Circular added successfully');
+      setSuccessMessage(isPublished ? 'Circular published successfully' : 'Saved as draft');
     } catch {
       setError('Network error — please try again');
     } finally {
