@@ -22,6 +22,7 @@ export const SECTION_OPTIONS = [
   { value: 'railway-board', label: 'Railway Board Circulars' },
   { value: 'dopt', label: 'DOPT Circular' },
   { value: 'fin-min', label: 'Fin Min Circular' },
+  { value: 'defence', label: 'Defence' },
   { value: 'nps', label: 'NPS' },
   { value: 'cghs', label: 'CGHS' },
   { value: 'ups', label: 'UPS' },

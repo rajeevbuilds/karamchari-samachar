@@ -6,6 +6,7 @@ const NAV = [
   { href: '/section/railway-board', label: 'Railway Board Circulars' },
   { href: '/section/dopt', label: 'DOPT Circular' },
   { href: '/section/fin-min', label: 'Fin Min Circular' },
+  { href: '/section/defence', label: 'Defence' },
   { href: '/da-cpc-tracker', label: '8th Pay Commission' },
   { href: '/section/nps', label: 'NPS' },
   { href: '/section/cghs', label: 'CGHS' },
