@@ -60,6 +60,15 @@ CREATE TABLE IF NOT EXISTS uploads (
   uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Small key/value store for admin-configured settings — currently the raw
+-- AdSense embed code for each ad slot (key_name: ad_sidebar_1, ad_sidebar_2,
+-- ad_in_article).
+CREATE TABLE IF NOT EXISTS settings (
+  key_name VARCHAR(80) PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- Optional: seed with the same sample data the site previously shipped
 -- statically, so the admin panel has something to show right away.
 --
@@ -88,3 +97,4 @@ CREATE TABLE IF NOT EXISTS uploads (
 -- ALTER TABLE circulars ADD COLUMN status ENUM('draft', 'published') NOT NULL DEFAULT 'published' AFTER category, ADD INDEX idx_circulars_status (status);
 -- ALTER TABLE circulars MODIFY COLUMN pdf_url VARCHAR(1000) NULL;
 -- CREATE TABLE IF NOT EXISTS uploads (name VARCHAR(80) PRIMARY KEY, mime VARCHAR(20) NOT NULL, size INT NOT NULL, data LONGBLOB NOT NULL, uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);
+-- CREATE TABLE IF NOT EXISTS settings (key_name VARCHAR(80) PRIMARY KEY, value TEXT NOT NULL, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);

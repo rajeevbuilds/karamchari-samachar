@@ -194,6 +194,34 @@ export async function incrementViewCount(slug: string): Promise<void> {
   }
 }
 
+// ---- Settings (ad slot embed codes; read by the public detail page,
+// written only via the admin settings API) --------------------------------
+
+export const AD_SETTING_KEYS = ['ad_sidebar_1', 'ad_sidebar_2', 'ad_in_article'] as const;
+export type AdSettingKey = (typeof AD_SETTING_KEYS)[number];
+
+export async function getAllSettings(): Promise<Record<AdSettingKey, string>> {
+  const empty = Object.fromEntries(AD_SETTING_KEYS.map((k) => [k, ''])) as Record<AdSettingKey, string>;
+  try {
+    const rows = await query<{ key_name: string; value: string }[]>('SELECT key_name, value FROM settings');
+    const byKey = new Map(rows.map((r) => [r.key_name, r.value]));
+    for (const key of AD_SETTING_KEYS) {
+      empty[key] = byKey.get(key) ?? '';
+    }
+    return empty;
+  } catch (err) {
+    console.error('getAllSettings: database query failed —', describeDbError(err));
+    return empty;
+  }
+}
+
+export async function setSetting(key: AdSettingKey, value: string): Promise<void> {
+  await query(
+    'INSERT INTO settings (key_name, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)',
+    [key, value]
+  );
+}
+
 export async function getDaHistory(): Promise<DaRecord[]> {
   try {
     const rows = await query<DaRow[]>('SELECT * FROM da_history ORDER BY effective_from DESC');

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getCircularBySlug, getCircularIdBySlug, incrementViewCount } from '@/lib/data';
+import { getAllSettings, getCircularBySlug, getCircularIdBySlug, incrementViewCount } from '@/lib/data';
 import { summaryHtml } from '@/lib/sanitize';
 import { isAdminAuthenticated } from '@/lib/auth';
 import AdSlot from '@/components/AdSlot';
@@ -26,6 +26,7 @@ export default async function CircularDetailPage({
 
   const isAdmin = await isAdminAuthenticated();
   const editId = isAdmin ? await getCircularIdBySlug(slug) : null;
+  const settings = await getAllSettings();
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-10 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
@@ -96,10 +97,15 @@ export default async function CircularDetailPage({
             View original order (PDF) →
           </a>
         )}
+
+        <div className="mt-8">
+          <AdSlot code={settings.ad_in_article} slot="in_article" />
+        </div>
       </div>
 
-      <aside>
-        <AdSlot />
+      <aside className="lg:sticky lg:top-6 flex flex-col gap-8">
+        <AdSlot code={settings.ad_sidebar_1} slot="sidebar_1" />
+        <AdSlot code={settings.ad_sidebar_2} slot="sidebar_2" />
       </aside>
     </div>
   );
