@@ -1,7 +1,10 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { getCircularBySlug, incrementViewCount } from '@/lib/data';
+import Link from 'next/link';
+import { getCircularBySlug, getCircularIdBySlug, incrementViewCount } from '@/lib/data';
 import { summaryHtml } from '@/lib/sanitize';
+import { isAdminAuthenticated } from '@/lib/auth';
+import AdSlot from '@/components/AdSlot';
 
 // Render on every request: this page reads from the database, and a
 // build-time snapshot would freeze whatever the DB held during `next build`
@@ -21,8 +24,11 @@ export default async function CircularDetailPage({
   // Fire-and-forget: don't hold up rendering the page on this write.
   void incrementViewCount(slug);
 
+  const isAdmin = await isAdminAuthenticated();
+  const editId = isAdmin ? await getCircularIdBySlug(slug) : null;
+
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
+    <div className="mx-auto max-w-[1200px] px-4 py-10 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
       <div className="max-w-prose">
         {circular.imageUrl && (
           <div className="relative w-full aspect-[16/9] mb-6 overflow-hidden bg-rule/20">
@@ -37,11 +43,21 @@ export default async function CircularDetailPage({
           </div>
         )}
 
-        {circular.department && (
-          <span className="font-mono text-xs uppercase tracking-wide text-maroon">
-            {circular.department}
-          </span>
-        )}
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          {circular.department && (
+            <span className="font-mono text-xs uppercase tracking-wide text-maroon">
+              {circular.department}
+            </span>
+          )}
+          {editId && (
+            <Link
+              href={`/admin/posts?edit=${editId}`}
+              className="font-mono text-xs uppercase tracking-wide text-ink/60 border border-rule px-2 py-1 hover:border-maroon hover:text-maroon transition-colors"
+            >
+              Edit
+            </Link>
+          )}
+        </div>
         <h1 className="font-serif text-3xl font-semibold text-ink mt-2 mb-4">
           {circular.title}
         </h1>
@@ -81,6 +97,10 @@ export default async function CircularDetailPage({
           </a>
         )}
       </div>
+
+      <aside>
+        <AdSlot />
+      </aside>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import TextAlign from '@tiptap/extension-text-align';
 
 // Minimal WYSIWYG for circular summaries: bold, italic, links, bullet lists.
 // Everything else StarterKit offers is switched off so the editor can only
@@ -36,6 +37,10 @@ export default function RichTextEditor({
           protocols: ['http', 'https', 'mailto'],
         },
       }),
+      TextAlign.configure({
+        types: ['paragraph', 'heading'],
+        alignments: ['left', 'center', 'right'],
+      }),
     ],
     content: initialHtml,
     immediatelyRender: false, // avoid SSR hydration mismatch
@@ -57,6 +62,9 @@ export default function RichTextEditor({
             italic: editor.isActive('italic'),
             link: editor.isActive('link'),
             bulletList: editor.isActive('bulletList'),
+            alignLeft: editor.isActive({ textAlign: 'left' }),
+            alignCenter: editor.isActive({ textAlign: 'center' }),
+            alignRight: editor.isActive({ textAlign: 'right' }),
           }
         : null,
   });
@@ -83,6 +91,9 @@ export default function RichTextEditor({
           { label: 'I', title: 'Italic', className: 'italic', isActive: active?.italic, onClick: () => editor.chain().focus().toggleItalic().run() },
           { label: active?.link ? 'Unlink' : 'Link', title: active?.link ? 'Remove link' : 'Add link', isActive: active?.link, onClick: toggleLink },
           { label: '• List', title: 'Bullet list', isActive: active?.bulletList, onClick: () => editor.chain().focus().toggleBulletList().run() },
+          { label: '⇤', title: 'Align left', isActive: active?.alignLeft, onClick: () => editor.chain().focus().setTextAlign('left').run() },
+          { label: '⇔', title: 'Align center', isActive: active?.alignCenter, onClick: () => editor.chain().focus().setTextAlign('center').run() },
+          { label: '⇥', title: 'Align right', isActive: active?.alignRight, onClick: () => editor.chain().focus().setTextAlign('right').run() },
         ]
       : [];
 

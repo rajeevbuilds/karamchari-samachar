@@ -9,12 +9,18 @@ import { looksLikeHtml, textToHtml } from './summary';
 // Editors leave empty paragraphs behind (e.g. a trailing "<p></p>").
 const dropEmptyParagraphs = (frame: sanitizeHtml.IFrame) => frame.tag === 'p' && !frame.text.trim();
 
+// Only the left/center/right alignment the editor's toolbar can produce is
+// kept — anything else in a `style` attribute (including from AIRF imports)
+// is stripped.
+const ALLOWED_TEXT_ALIGN = { 'text-align': [/^left$/, /^center$/, /^right$/] };
+
 const FULL: sanitizeHtml.IOptions = {
   allowedTags: ['p', 'br', 'strong', 'b', 'em', 'i', 'a', 'ul', 'ol', 'li'],
   exclusiveFilter: dropEmptyParagraphs,
   // target/rel are listed so the values forced below survive; any
   // incoming target/rel is overwritten by the transform.
-  allowedAttributes: { a: ['href', 'target', 'rel'] },
+  allowedAttributes: { a: ['href', 'target', 'rel'], p: ['style'], li: ['style'] },
+  allowedStyles: { p: ALLOWED_TEXT_ALIGN, li: ALLOWED_TEXT_ALIGN },
   allowedSchemes: ['http', 'https', 'mailto'],
   allowProtocolRelative: false,
   transformTags: {
@@ -50,7 +56,8 @@ export function summaryPreviewText(summary: string, maxLength = 220): string {
 export function sanitizeSummaryForStorage(html: string): string {
   return sanitizeHtml(html, {
     allowedTags: FULL.allowedTags,
-    allowedAttributes: { a: ['href'] },
+    allowedAttributes: { a: ['href'], p: ['style'], li: ['style'] },
+    allowedStyles: { p: ALLOWED_TEXT_ALIGN, li: ALLOWED_TEXT_ALIGN },
     allowedSchemes: FULL.allowedSchemes,
     allowProtocolRelative: false,
     exclusiveFilter: dropEmptyParagraphs,

@@ -158,6 +158,18 @@ export async function getCircularsByState(state: string): Promise<Circular[]> {
   }
 }
 
+// Used only to build the admin "Edit" link on the public detail page —
+// callers must check isAdminAuthenticated() themselves before using this.
+export async function getCircularIdBySlug(slug: string): Promise<number | null> {
+  try {
+    const rows = await query<{ id: number }[]>('SELECT id FROM circulars WHERE slug = ? LIMIT 1', [slug]);
+    return rows[0]?.id ?? null;
+  } catch (err) {
+    console.error('getCircularIdBySlug: database query failed —', describeDbError(err));
+    return null;
+  }
+}
+
 export async function getCircularsBySection(section: string): Promise<Circular[]> {
   try {
     const rows = await query<CircularRow[]>(

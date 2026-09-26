@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
+import { useSearchParams } from 'next/navigation';
 import type { AdminCircular, Circular } from '@/lib/data';
 import { STATE_OPTIONS, SECTION_OPTIONS } from '@/lib/constants';
 import { summaryToEditorHtml } from '@/lib/summary';
@@ -37,6 +38,7 @@ const EMPTY_FORM = {
 
 // Posts section of the admin panel: add/edit form + list of circulars.
 export default function PostsManager({ initialCirculars }: { initialCirculars: AdminCircular[] }) {
+  const searchParams = useSearchParams();
   const [circulars, setCirculars] = useState(initialCirculars);
   // Bumped whenever the form loads different content, to remount the
   // (uncontrolled) rich-text editor with it.
@@ -54,6 +56,16 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
     const timer = window.setTimeout(() => setSuccessMessage(null), 4000);
     return () => window.clearTimeout(timer);
   }, [successMessage]);
+
+  // Opened via a "?edit=<id>" link, e.g. the Edit button on a circular's
+  // public detail page.
+  useEffect(() => {
+    const editParam = searchParams.get('edit');
+    if (!editParam) return;
+    const match = circulars.find((c) => c.id === Number(editParam));
+    if (match) startEdit(match);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   async function refreshCirculars() {
     const res = await apiFetch('/api/admin/circulars');
