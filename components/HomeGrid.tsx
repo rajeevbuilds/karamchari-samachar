@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Circular } from '@/lib/data';
-import CircularGridCard from './CircularGridCard';
+import CompactCircularRow from './CompactCircularRow';
 import FeaturedCircularCard from './FeaturedCircularCard';
 
 // "Must Read" sidebar item: small thumbnail + title only.
@@ -53,9 +53,11 @@ export default function HomeGrid({ circulars }: { circulars: Circular[] }) {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
             {rest.map((circular) => (
-              <CircularGridCard key={circular.slug} circular={circular} />
+              <div key={circular.slug} className="border-b border-rule last:border-b-0">
+                <CompactCircularRow circular={circular} />
+              </div>
             ))}
             {latest10.length === 0 && (
               <p className="text-sm text-ink/50 sm:col-span-2">No circulars yet.</p>
