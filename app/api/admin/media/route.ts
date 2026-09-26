@@ -10,7 +10,8 @@ export async function GET() {
     return NextResponse.json({ uploads: await listUploads() });
   } catch (err) {
     console.error('GET /api/admin/media failed', err);
-    return NextResponse.json({ error: 'Could not list uploads' }, { status: 500 });
+    const detail = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: `Could not list uploads: ${detail}` }, { status: 500 });
   }
 }
 
@@ -33,6 +34,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: err.message }, { status: 400 });
     }
     console.error('POST /api/admin/media failed', err);
-    return NextResponse.json({ error: 'Could not save the upload' }, { status: 500 });
+    const detail = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: `Could not save the upload: ${detail}` }, { status: 500 });
   }
 }
