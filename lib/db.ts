@@ -41,7 +41,7 @@ function getPool(): mysql.Pool {
 
 export async function query<T>(
   sql: string,
-  params?: Array<string | number | null>
+  params?: Array<string | number | null | Buffer>
 ): Promise<T> {
   const [rows] = await getPool().execute(sql, params);
   return rows as T;

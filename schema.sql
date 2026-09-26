@@ -48,6 +48,18 @@ CREATE TABLE IF NOT EXISTS da_history (
   INDEX idx_da_history_effective_from (effective_from)
 );
 
+-- Admin image uploads, stored as blobs rather than on disk: GitHub-sync
+-- deploys reset the app's working tree, which was silently wiping
+-- uploaded files that only ever lived on the server's local filesystem.
+-- The database survives redeploys, so images do too.
+CREATE TABLE IF NOT EXISTS uploads (
+  name VARCHAR(80) PRIMARY KEY,
+  mime VARCHAR(20) NOT NULL,
+  size INT NOT NULL,
+  data LONGBLOB NOT NULL,
+  uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Optional: seed with the same sample data the site previously shipped
 -- statically, so the admin panel has something to show right away.
 --
@@ -75,3 +87,4 @@ CREATE TABLE IF NOT EXISTS da_history (
 -- ALTER TABLE circulars ADD COLUMN view_count INT NOT NULL DEFAULT 0 AFTER is_featured;
 -- ALTER TABLE circulars ADD COLUMN status ENUM('draft', 'published') NOT NULL DEFAULT 'published' AFTER category, ADD INDEX idx_circulars_status (status);
 -- ALTER TABLE circulars MODIFY COLUMN pdf_url VARCHAR(1000) NULL;
+-- CREATE TABLE IF NOT EXISTS uploads (name VARCHAR(80) PRIMARY KEY, mime VARCHAR(20) NOT NULL, size INT NOT NULL, data LONGBLOB NOT NULL, uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);

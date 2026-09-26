@@ -1,20 +1,20 @@
-// Admin image uploads, stored on disk in public/assets/uploads/ (the one
-// directory that persists across deploys on the hosting platform).
+// Admin image uploads, stored as blobs in MySQL rather than on disk.
 //
-// `next start` only serves files that were in public/ at build time, so
-// uploads are served by app/assets/uploads/[file]/route.ts instead, at the
-// same /assets/uploads/<name> URL.
+// They used to live in public/assets/uploads/, served at runtime by
+// app/assets/uploads/[file]/route.ts (since `next start` only serves public/
+// files that existed at build time). But GitHub-sync deploys reset the
+// app's working tree on each pull, which silently wiped any files that had
+// only ever been uploaded to the live server's local disk. The database
+// isn't touched by a redeploy, so storing the bytes there instead makes
+// uploads durable across deploys.
 
-import { promises as fs } from 'fs';
-import path from 'path';
 import { randomBytes } from 'crypto';
+import { query } from './db';
 
-export const UPLOAD_DIR = path.join(process.cwd(), 'public', 'assets', 'uploads');
 export const UPLOAD_URL_PREFIX = '/assets/uploads/';
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
-// Anything we'll read back from disk must match this — blocks path
-// traversal and serving non-image files that happen to be in the folder.
+// Blocks path traversal and non-image names.
 export const UPLOAD_NAME_PATTERN = /^[a-z0-9-]+\.(jpg|png|webp)$/;
 
 type ImageType = { ext: 'jpg' | 'png' | 'webp'; mime: string };
@@ -55,6 +55,8 @@ export type UploadedImage = { name: string; url: string; size: number; uploadedA
 
 export class UploadError extends Error {}
 
+type UploadRow = { name: string; mime: string; size: number; uploaded_at: string };
+
 export async function saveUpload(file: File): Promise<UploadedImage> {
   if (file.size === 0) throw new UploadError('The file is empty');
   if (file.size > MAX_UPLOAD_BYTES) throw new UploadError('Images must be 5 MB or smaller');
@@ -64,38 +66,31 @@ export async function saveUpload(file: File): Promise<UploadedImage> {
   if (!type) throw new UploadError('Only JPG, PNG and WebP images are allowed');
 
   const name = `${baseName(file.name)}-${Date.now().toString(36)}${randomBytes(3).toString('hex')}.${type.ext}`;
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
-  // 'wx' refuses to overwrite, should a name ever collide.
-  await fs.writeFile(path.join(UPLOAD_DIR, name), buf, { flag: 'wx' });
+  await query(
+    'INSERT INTO uploads (name, mime, size, data) VALUES (?, ?, ?, ?)',
+    [name, type.mime, buf.length, buf]
+  );
 
   return { name, url: UPLOAD_URL_PREFIX + name, size: buf.length, uploadedAt: new Date().toISOString() };
 }
 
 export async function listUploads(): Promise<UploadedImage[]> {
-  let names: string[];
-  try {
-    names = await fs.readdir(UPLOAD_DIR);
-  } catch {
-    return []; // folder not created yet
-  }
-  const images = await Promise.all(
-    names
-      .filter((n) => UPLOAD_NAME_PATTERN.test(n))
-      .map(async (name) => {
-        const stat = await fs.stat(path.join(UPLOAD_DIR, name));
-        return { name, url: UPLOAD_URL_PREFIX + name, size: stat.size, uploadedAt: stat.mtime.toISOString() };
-      })
+  const rows = await query<UploadRow[]>(
+    'SELECT name, mime, size, uploaded_at FROM uploads ORDER BY uploaded_at DESC'
   );
-  return images.sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt));
+  return rows.map((row) => ({
+    name: row.name,
+    url: UPLOAD_URL_PREFIX + row.name,
+    size: row.size,
+    uploadedAt: new Date(row.uploaded_at).toISOString(),
+  }));
 }
 
 export async function readUpload(name: string): Promise<{ data: Buffer; mime: string } | null> {
   if (!UPLOAD_NAME_PATTERN.test(name)) return null;
-  try {
-    const data = await fs.readFile(path.join(UPLOAD_DIR, name));
-    const ext = name.split('.').pop() as ImageType['ext'];
-    return { data, mime: MIME_BY_EXT[ext] };
-  } catch {
-    return null;
-  }
+  const rows = await query<Array<{ data: Buffer; mime: string }>>(
+    'SELECT data, mime FROM uploads WHERE name = ?',
+    [name]
+  );
+  return rows[0] ?? null;
 }
