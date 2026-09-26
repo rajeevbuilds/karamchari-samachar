@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
-import CircularGridCard from '@/components/CircularGridCard';
-import { getCircularsBySection } from '@/lib/data';
+import CircularsShowcase from '@/components/CircularsShowcase';
+import SidebarWidgets from '@/components/SidebarWidgets';
+import { getAllCirculars, getCircularsBySection } from '@/lib/data';
 import { SECTION_OPTIONS } from '@/lib/constants';
 import { summaryPreviewText } from '@/lib/sanitize';
 
@@ -19,26 +20,20 @@ export default async function SectionPage({
   const section = SECTION_OPTIONS.find((s) => s.value === slug);
   if (!section) notFound();
 
-  const circulars = await getCircularsBySection(slug);
+  const [sectionCirculars, allCirculars] = await Promise.all([
+    getCircularsBySection(slug),
+    getAllCirculars(),
+  ]);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="font-serif text-3xl font-semibold text-ink mb-8 pb-4 border-b border-rule">
-        {section.label}
-      </h1>
-
-      {circulars.length === 0 ? (
-        <p className="text-sm text-ink/60">No circulars under {section.label} yet.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {circulars.map((circular) => (
-            <CircularGridCard
-              key={circular.slug}
-              circular={{ ...circular, summary: summaryPreviewText(circular.summary) }}
-            />
-          ))}
-        </div>
-      )}
+    <div className="mx-auto max-w-[1200px] px-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
+      <div>
+        <CircularsShowcase
+          circulars={sectionCirculars.map((c) => ({ ...c, summary: summaryPreviewText(c.summary) }))}
+          heading={section.label}
+        />
+      </div>
+      <SidebarWidgets circulars={allCirculars} />
     </div>
   );
 }
