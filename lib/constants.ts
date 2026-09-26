@@ -27,6 +27,7 @@ export const SECTION_OPTIONS = [
   { value: 'cghs', label: 'CGHS' },
   { value: 'ups', label: 'UPS' },
   { value: 'news-paper-reports', label: 'News Paper Reports' },
+  { value: 'pay-commission', label: '8th Pay Commission' },
 ] as const;
 
 export type SectionSlug = (typeof SECTION_OPTIONS)[number]['value'];

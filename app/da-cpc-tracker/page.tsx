@@ -1,4 +1,6 @@
-import { getDaHistory } from '@/lib/data';
+import CircularGridCard from '@/components/CircularGridCard';
+import { getCircularsBySection, getDaHistory } from '@/lib/data';
+import { summaryPreviewText } from '@/lib/sanitize';
 
 // Render on every request: this page reads from the database, and a
 // build-time snapshot would freeze whatever the DB held during `next build`
@@ -11,6 +13,7 @@ export const metadata = {
 
 export default async function DaTrackerPage() {
   const daHistory = await getDaHistory();
+  const relatedCirculars = await getCircularsBySection('pay-commission');
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -70,6 +73,20 @@ export default async function DaTrackerPage() {
           cabinet approval.
         </p>
       </section>
+
+      {relatedCirculars.length > 0 && (
+        <section className="mt-12 pt-8 border-t border-rule">
+          <h2 className="font-serif text-2xl font-semibold text-ink mb-5">Related Circulars</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {relatedCirculars.map((circular) => (
+              <CircularGridCard
+                key={circular.slug}
+                circular={{ ...circular, summary: summaryPreviewText(circular.summary) }}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
