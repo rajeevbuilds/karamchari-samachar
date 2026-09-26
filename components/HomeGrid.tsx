@@ -27,6 +27,8 @@ export default function HomeGrid({ circulars }: { circulars: Circular[] }) {
   // circulars is already ordered most-recent-first.
   const latest10 = circulars.slice(0, 10);
   const [featured, ...rest] = latest10;
+  const leftRest = rest.slice(0, 3);
+  const rightList = rest.slice(3, 9);
 
   const mustRead = useMemo(() => circulars.filter((c) => c.isFeatured).slice(0, 4), [circulars]);
 
@@ -47,21 +49,31 @@ export default function HomeGrid({ circulars }: { circulars: Circular[] }) {
             </Link>
           </div>
 
-          {featured && (
-            <div className="mb-5">
-              <FeaturedCircularCard circular={featured} />
-            </div>
-          )}
+          {latest10.length === 0 && <p className="text-sm text-ink/50">No circulars yet.</p>}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-            {rest.map((circular) => (
-              <div key={circular.slug} className="border-b border-rule last:border-b-0">
-                <CompactCircularRow circular={circular} />
-              </div>
-            ))}
-            {latest10.length === 0 && (
-              <p className="text-sm text-ink/50 sm:col-span-2">No circulars yet.</p>
-            )}
+          <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-x-8">
+            {/* Left: hero + next 3, stacked */}
+            <div>
+              {featured && (
+                <div className="mb-5">
+                  <FeaturedCircularCard circular={featured} />
+                </div>
+              )}
+              {leftRest.map((circular) => (
+                <div key={circular.slug} className="border-b border-rule last:border-b-0">
+                  <CompactCircularRow circular={circular} />
+                </div>
+              ))}
+            </div>
+
+            {/* Right: next 6, independent stacked list */}
+            <div className="mt-5 lg:mt-0 lg:border-l border-rule lg:pl-8">
+              {rightList.map((circular) => (
+                <div key={circular.slug} className="border-b border-rule last:border-b-0">
+                  <CompactCircularRow circular={circular} />
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </div>
