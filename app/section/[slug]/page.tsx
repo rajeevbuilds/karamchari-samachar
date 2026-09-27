@@ -4,14 +4,12 @@ import CircularsShowcase from '@/components/CircularsShowcase';
 import SidebarWidgets from '@/components/SidebarWidgets';
 import { getAllCirculars, getCircularsBySection } from '@/lib/data';
 import { SECTION_OPTIONS } from '@/lib/constants';
+import { SECTION_TOOLS } from '@/lib/calculators';
 import { summaryPreviewText } from '@/lib/sanitize';
 
-// Interactive tools filed under a section, shown above that section's
-// circular listing so visitors browsing e.g. /section/calculators find the
-// actual tool, not just articles about it. Add future calculators
-// (Gratuity, Commutation, ...) here as they ship.
-const SECTION_TOOLS: Record<string, { href: string; label: string }[]> = {
-  calculators: [{ href: '/calculators/pension-ops', label: 'OPS Pension Calculator' }],
+const SECTION_TOOLS_INTRO: Record<string, string> = {
+  calculators:
+    'Free calculators for central government employees — estimate your pension, gratuity, and other retirement benefits in seconds.',
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -40,15 +38,19 @@ export default async function SectionPage({
       <div>
         {tools.length > 0 && (
           <div className="border border-rule p-5 mb-6">
-            <h2 className="font-serif text-lg font-semibold text-ink mb-3">Available Calculators</h2>
-            <ul className="flex flex-col gap-2">
+            <h2 className="font-serif text-lg font-semibold text-ink mb-2">Available Calculators</h2>
+            {SECTION_TOOLS_INTRO[slug] && (
+              <p className="text-sm text-ink/70 mb-4 max-w-prose">{SECTION_TOOLS_INTRO[slug]}</p>
+            )}
+            <ul className="flex flex-col gap-4">
               {tools.map((tool) => (
                 <li key={tool.href}>
+                  <p className="text-sm text-ink/70 mb-2 max-w-prose">{tool.description}</p>
                   <Link
                     href={tool.href}
                     className="inline-block text-sm font-medium text-paper bg-ink px-3.5 py-2 hover:bg-maroon transition-colors"
                   >
-                    {tool.label} →
+                    {tool.title} →
                   </Link>
                 </li>
               ))}
