@@ -3,6 +3,10 @@
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableHeader } from '@tiptap/extension-table-header';
+import { TableCell } from '@tiptap/extension-table-cell';
 
 // Minimal WYSIWYG for circular summaries: bold, italic, links, bullet lists.
 // Everything else StarterKit offers is switched off so the editor can only
@@ -41,6 +45,10 @@ export default function RichTextEditor({
         types: ['paragraph', 'heading'],
         alignments: ['left', 'center', 'right'],
       }),
+      Table.configure({ resizable: false }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content: initialHtml,
     immediatelyRender: false, // avoid SSR hydration mismatch
@@ -62,6 +70,7 @@ export default function RichTextEditor({
             italic: editor.isActive('italic'),
             link: editor.isActive('link'),
             bulletList: editor.isActive('bulletList'),
+            table: editor.isActive('table'),
             alignLeft: editor.isActive({ textAlign: 'left' }),
             alignCenter: editor.isActive({ textAlign: 'center' }),
             alignRight: editor.isActive({ textAlign: 'right' }),
@@ -94,6 +103,20 @@ export default function RichTextEditor({
           { label: '⇤', title: 'Align left', isActive: active?.alignLeft, onClick: () => editor.chain().focus().setTextAlign('left').run() },
           { label: '⇔', title: 'Align center', isActive: active?.alignCenter, onClick: () => editor.chain().focus().setTextAlign('center').run() },
           { label: '⇥', title: 'Align right', isActive: active?.alignRight, onClick: () => editor.chain().focus().setTextAlign('right').run() },
+          {
+            label: 'Table',
+            title: 'Insert table',
+            onClick: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+          },
+          ...(active?.table
+            ? [
+                { label: '+Row', title: 'Add row', onClick: () => editor.chain().focus().addRowAfter().run() },
+                { label: '-Row', title: 'Delete row', onClick: () => editor.chain().focus().deleteRow().run() },
+                { label: '+Col', title: 'Add column', onClick: () => editor.chain().focus().addColumnAfter().run() },
+                { label: '-Col', title: 'Delete column', onClick: () => editor.chain().focus().deleteColumn().run() },
+                { label: 'Del Table', title: 'Delete table', onClick: () => editor.chain().focus().deleteTable().run() },
+              ]
+            : []),
         ]
       : [];
 

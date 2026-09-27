@@ -47,6 +47,22 @@ body {
 .rich-text b {
   font-weight: 600;
 }
+.rich-text {
+  overflow-x: auto;
+}
+.rich-text table {
+  border-collapse: collapse;
+  margin-top: 0.75em;
+}
+.rich-text th,
+.rich-text td {
+  border: 1px solid #D8D0BC;
+  padding: 0.4em 0.6em;
+}
+.rich-text th {
+  font-weight: 600;
+  text-align: left;
+}
 
 @media (prefers-reduced-motion: reduce) {
   * {

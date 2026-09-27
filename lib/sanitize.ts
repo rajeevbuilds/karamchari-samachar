@@ -15,7 +15,7 @@ const dropEmptyParagraphs = (frame: sanitizeHtml.IFrame) => frame.tag === 'p' &&
 const ALLOWED_TEXT_ALIGN = { 'text-align': [/^left$/, /^center$/, /^right$/] };
 
 const FULL: sanitizeHtml.IOptions = {
-  allowedTags: ['p', 'br', 'strong', 'b', 'em', 'i', 'a', 'ul', 'ol', 'li'],
+  allowedTags: ['p', 'br', 'strong', 'b', 'em', 'i', 'a', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
   exclusiveFilter: dropEmptyParagraphs,
   // target/rel are listed so the values forced below survive; any
   // incoming target/rel is overwritten by the transform.
@@ -44,7 +44,7 @@ export function summaryHtml(summary: string): string {
 // so a raw import with no real excerpt (or any oversized stored summary)
 // can never blow out a card — regardless of how long the stored HTML is.
 export function summaryPreviewText(summary: string, maxLength = 220): string {
-  const spaced = toHtml(summary ?? '').replace(/<\/(p|li|ul|ol)>|<br\s*\/?>/gi, ' ');
+  const spaced = toHtml(summary ?? '').replace(/<\/(p|li|ul|ol|tr|td|th)>|<br\s*\/?>/gi, ' ');
   const text = summaryText(spaced).replace(/\s+/g, ' ').trim();
   if (text.length <= maxLength) return text;
   const truncated = text.slice(0, maxLength);
