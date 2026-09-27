@@ -12,6 +12,8 @@ const NAV = [
   { href: '/section/cghs', label: 'CGHS' },
   { href: '/section/ups', label: 'UPS' },
   { href: '/section/news-paper-reports', label: 'News Paper Reports' },
+  { href: '/section/analysis', label: 'Analysis' },
+  { href: '/section/calculators', label: 'Calculators' },
   { href: '/states/punjab', label: 'By State' },
 ];
 

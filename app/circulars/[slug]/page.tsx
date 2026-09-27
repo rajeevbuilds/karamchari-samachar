@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getAllSettings, getCircularBySlug, getCircularIdBySlug, incrementViewCount } from '@/lib/data';
-import { summaryHtml } from '@/lib/sanitize';
+import { summaryHtml, summaryPreviewText } from '@/lib/sanitize';
 import { isAdminAuthenticated } from '@/lib/auth';
 import AdSlot from '@/components/AdSlot';
 
@@ -11,6 +11,46 @@ import AdSlot from '@/components/AdSlot';
 // (often nothing), so edits would never appear and view counts
 // would never increment.
 export const dynamic = 'force-dynamic';
+
+const SITE_URL = 'https://sarkarikaramchari.com';
+
+// Facebook/WhatsApp/Twitter unfurl a page's own og:image rather than
+// inferring one, so each circular needs its own absolute image URL —
+// falling back to the site banner only when it truly has no image.
+function absoluteImageUrl(imageUrl: string | null): string {
+  if (!imageUrl) return `${SITE_URL}/header-banner.png`;
+  return /^https?:\/\//i.test(imageUrl) ? imageUrl : `${SITE_URL}${imageUrl}`;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const circular = await getCircularBySlug(slug);
+  if (!circular) return {};
+
+  const title = circular.title;
+  const description = summaryPreviewText(circular.summary, 200);
+  const image = absoluteImageUrl(circular.imageUrl);
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [{ url: image }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [image],
+    },
+  };
+}
 
 export default async function CircularDetailPage({
   params,
