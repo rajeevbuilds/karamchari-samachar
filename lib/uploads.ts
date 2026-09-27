@@ -9,10 +9,16 @@
 // uploads durable across deploys.
 
 import { randomBytes } from 'crypto';
+import sharp from 'sharp';
 import { query } from './db';
 
 export const UPLOAD_URL_PREFIX = '/assets/uploads/';
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+
+// Facebook/Twitter's standard og:image ratio.
+const OG_WIDTH = 1200;
+const OG_HEIGHT = 630;
+const OG_RATIO = OG_WIDTH / OG_HEIGHT;
 
 // Blocks path traversal and non-image names.
 export const UPLOAD_NAME_PATTERN = /^[a-z0-9-]+\.(jpg|png|webp)$/;
@@ -51,11 +57,46 @@ function baseName(originalName: string): string {
   );
 }
 
-export type UploadedImage = { name: string; url: string; size: number; uploadedAt: string };
+export type UploadedImage = {
+  name: string;
+  url: string;
+  size: number;
+  uploadedAt: string;
+  ogUrl: string | null;
+};
 
 export class UploadError extends Error {}
 
 type UploadRow = { name: string; mime: string; size: number; uploaded_at: string };
+
+// Derives the social-variant's stored name from the original's, e.g.
+// "foo-abc123.jpg" -> "foo-abc123-og.jpg". Deterministic so callers that
+// only know the original's URL (e.g. og:image metadata) can look the
+// variant up without a schema change linking the two.
+function ogName(name: string): string {
+  return name.replace(/\.(jpg|png|webp)$/, '-og.$1');
+}
+
+// Center-crops `buf` to the 1200x630 og:image ratio and resizes to exactly
+// that size. Returns null (never upscales) when the source, once cropped
+// to the right ratio, would already be smaller than 1200x630 — the
+// original is used as the og:image fallback in that case.
+async function makeOgVariant(buf: Buffer): Promise<Buffer | null> {
+  const image = sharp(buf);
+  const metadata = await image.metadata();
+  const width = metadata.width;
+  const height = metadata.height;
+  if (!width || !height) return null;
+
+  const ratio = width / height;
+  const croppedWidth = ratio > OG_RATIO ? height * OG_RATIO : width;
+  const croppedHeight = ratio > OG_RATIO ? height : width / OG_RATIO;
+  if (croppedWidth < OG_WIDTH || croppedHeight < OG_HEIGHT) return null;
+
+  return image
+    .resize(OG_WIDTH, OG_HEIGHT, { fit: 'cover', position: 'centre' })
+    .toBuffer();
+}
 
 export async function saveUpload(file: File): Promise<UploadedImage> {
   if (file.size === 0) throw new UploadError('The file is empty');
@@ -71,19 +112,66 @@ export async function saveUpload(file: File): Promise<UploadedImage> {
     [name, type.mime, buf.length, buf]
   );
 
-  return { name, url: UPLOAD_URL_PREFIX + name, size: buf.length, uploadedAt: new Date().toISOString() };
+  let ogUrl: string | null = null;
+  try {
+    const variant = await makeOgVariant(buf);
+    if (variant) {
+      const variantName = ogName(name);
+      await query(
+        'INSERT INTO uploads (name, mime, size, data) VALUES (?, ?, ?, ?)',
+        [variantName, type.mime, variant.length, variant]
+      );
+      ogUrl = UPLOAD_URL_PREFIX + variantName;
+    }
+  } catch (err) {
+    // The original upload already succeeded; a broken/corrupt image or an
+    // unsupported edge case here shouldn't fail the whole upload — og:image
+    // metadata falls back to the original when this stays null.
+    console.error(`Failed to generate og:image variant for ${name}`, err);
+  }
+
+  return {
+    name,
+    url: UPLOAD_URL_PREFIX + name,
+    size: buf.length,
+    uploadedAt: new Date().toISOString(),
+    ogUrl,
+  };
+}
+
+// Looks up the -og variant for an upload URL (e.g. from a circular's
+// image_url), for use as og:image/twitter:image. Returns null for
+// externally-hosted images (AIRF imports etc.) or uploads with no variant
+// (skipped as too small, or predating this feature) — callers fall back
+// to the original image_url in that case.
+export async function resolveOgImageUrl(imageUrl: string | null): Promise<string | null> {
+  if (!imageUrl || !imageUrl.startsWith(UPLOAD_URL_PREFIX)) return null;
+  const name = imageUrl.slice(UPLOAD_URL_PREFIX.length);
+  if (!UPLOAD_NAME_PATTERN.test(name)) return null;
+
+  const variantName = ogName(name);
+  const rows = await query<Array<{ name: string }>>(
+    'SELECT name FROM uploads WHERE name = ?',
+    [variantName]
+  );
+  return rows[0] ? UPLOAD_URL_PREFIX + variantName : null;
 }
 
 export async function listUploads(): Promise<UploadedImage[]> {
   const rows = await query<UploadRow[]>(
     'SELECT name, mime, size, uploaded_at FROM uploads ORDER BY uploaded_at DESC'
   );
-  return rows.map((row) => ({
-    name: row.name,
-    url: UPLOAD_URL_PREFIX + row.name,
-    size: row.size,
-    uploadedAt: new Date(row.uploaded_at).toISOString(),
-  }));
+  return rows
+    // og:image variants are an internal detail, not a real upload of their
+    // own — hide them from the media picker so editors can't select one.
+    .filter((row) => !row.name.match(/-og\.(jpg|png|webp)$/))
+    .map((row) => ({
+      name: row.name,
+      url: UPLOAD_URL_PREFIX + row.name,
+      size: row.size,
+      uploadedAt: new Date(row.uploaded_at).toISOString(),
+      ogUrl: null,
+    }));
 }
 
 export async function readUpload(name: string): Promise<{ data: Buffer; mime: string } | null> {

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { getAllSettings, getCircularBySlug, getCircularIdBySlug, incrementViewCount } from '@/lib/data';
 import { summaryHtml, summaryPreviewText } from '@/lib/sanitize';
 import { isAdminAuthenticated } from '@/lib/auth';
+import { resolveOgImageUrl } from '@/lib/uploads';
 import AdSlot from '@/components/AdSlot';
 
 // Render on every request: this page reads from the database, and a
@@ -33,7 +34,11 @@ export async function generateMetadata({
 
   const title = circular.title;
   const description = summaryPreviewText(circular.summary, 200);
-  const image = absoluteImageUrl(circular.imageUrl);
+  // The 1200x630 social-share crop is only used here, for the link-preview
+  // image — everywhere else on the site (grid thumbnails, hero, the inline
+  // image above) keeps using the original, uncropped upload.
+  const ogVariantUrl = await resolveOgImageUrl(circular.imageUrl);
+  const image = absoluteImageUrl(ogVariantUrl ?? circular.imageUrl);
 
   return {
     title,
