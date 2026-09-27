@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\" && next build",
+    "prestart": "npm run build",
     "start": "next start",
     "lint": "next lint"
   },
