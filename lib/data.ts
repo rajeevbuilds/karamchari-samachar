@@ -183,14 +183,38 @@ export async function getCircularsBySection(section: string): Promise<Circular[]
   }
 }
 
-// Fire-and-forget view tracking, called from the circular detail page.
+// Fire-and-forget view tracking, called from the circular detail page for
+// real (non-admin) visitors only — callers must check isAdminAuthenticated()
+// themselves before calling this, so the admin's own preview views while
+// editing/testing don't inflate the counts.
 // Swallows its own errors so a slow/unreachable database never breaks the
 // page — the caller doesn't need to (and shouldn't) await/catch this.
 export async function incrementViewCount(slug: string): Promise<void> {
   try {
     await query('UPDATE circulars SET view_count = view_count + 1 WHERE slug = ?', [slug]);
+    await query(
+      `INSERT INTO settings (key_name, value) VALUES (?, '1')
+       ON DUPLICATE KEY UPDATE value = CAST(value AS UNSIGNED) + 1`,
+      [TOTAL_SITE_VIEWS_KEY]
+    );
   } catch (err) {
     console.error('incrementViewCount: database query failed —', describeDbError(err));
+  }
+}
+
+// Top N most-viewed circulars, for the admin "Overview" panel.
+export async function getTopViewedCirculars(limit = 10): Promise<AdminCircular[]> {
+  try {
+    // LIMIT is a server-controlled integer (never user input), interpolated
+    // directly — mysql2's prepared-statement protocol is finicky about
+    // binding LIMIT/OFFSET as a placeholder.
+    const rows = await query<CircularRow[]>(
+      `SELECT * FROM circulars WHERE status = 'published' ORDER BY view_count DESC LIMIT ${Number(limit) || 10}`
+    );
+    return rows.map(mapCircular);
+  } catch (err) {
+    console.error('getTopViewedCirculars: database query failed —', describeDbError(err));
+    return [];
   }
 }
 
@@ -220,6 +244,25 @@ export async function setSetting(key: AdSettingKey, value: string): Promise<void
     'INSERT INTO settings (key_name, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)',
     [key, value]
   );
+}
+
+// Site-wide view counter — a single settings row, incremented alongside
+// each circular's own view_count in incrementViewCount(). Reuses the
+// settings table rather than a dedicated one, since this is exactly the
+// small persistent counter it's for.
+const TOTAL_SITE_VIEWS_KEY = 'total_site_views';
+
+export async function getTotalSiteViews(): Promise<number> {
+  try {
+    const rows = await query<{ value: string }[]>(
+      'SELECT value FROM settings WHERE key_name = ?',
+      [TOTAL_SITE_VIEWS_KEY]
+    );
+    return rows[0] ? Number(rows[0].value) || 0 : 0;
+  } catch (err) {
+    console.error('getTotalSiteViews: database query failed —', describeDbError(err));
+    return 0;
+  }
 }
 
 export async function getDaHistory(): Promise<DaRecord[]> {

@@ -66,10 +66,12 @@ export default async function CircularDetailPage({
   const circular = await getCircularBySlug(slug);
   if (!circular) notFound();
 
-  // Fire-and-forget: don't hold up rendering the page on this write.
-  void incrementViewCount(slug);
-
   const isAdmin = await isAdminAuthenticated();
+
+  // Fire-and-forget: don't hold up rendering the page on this write. Skipped
+  // for admins so testing/editing in the admin panel doesn't inflate counts.
+  if (!isAdmin) void incrementViewCount(slug);
+
   const editId = isAdmin ? await getCircularIdBySlug(slug) : null;
   const settings = await getAllSettings();
 
