@@ -14,7 +14,6 @@ const NAV = [
   { href: '/section/news-paper-reports', label: 'News Paper Reports' },
   { href: '/section/analysis', label: 'Analysis' },
   { href: '/section/calculators', label: 'Calculators' },
-  { href: '/calculators/pension-ops', label: 'Pension Calculator' },
   { href: '/states/punjab', label: 'By State' },
 ];
 
