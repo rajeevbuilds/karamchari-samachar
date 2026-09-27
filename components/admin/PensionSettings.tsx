@@ -4,15 +4,23 @@ import { useState } from 'react';
 import type { SettingKey } from '@/lib/data';
 import { apiFetch } from './apiFetch';
 
-const FIELDS: { key: SettingKey; label: string }[] = [
-  { key: 'ad_sidebar_1', label: 'Sidebar slot 1' },
-  { key: 'ad_sidebar_2', label: 'Sidebar slot 2' },
-  { key: 'ad_in_article', label: 'In-article slot' },
+const FIELDS: { key: SettingKey; label: string; hint: string }[] = [
+  {
+    key: 'pension_min_floor',
+    label: 'Minimum pension floor (₹/month)',
+    hint: 'Applied to the OPS calculator when the computed pension is lower.',
+  },
+  {
+    key: 'pension_default_dr_percent',
+    label: 'Default DR rate (%)',
+    hint: 'Prefilled on the OPS calculator; changes twice yearly (Jan/Jul DR revisions) — update here, no redeploy needed.',
+  },
 ];
 
-// Settings section of the admin panel: raw AdSense embed code per slot,
-// rendered on the public circular page by components/AdSlot.tsx.
-export default function AdSettings({ initialSettings }: { initialSettings: Record<SettingKey, string> }) {
+// Constants read by /calculators/pension-ops. Kept in the shared settings
+// table (same one the ad slots use) so DR revisions and floor changes take
+// effect immediately, without a code change or redeploy.
+export default function PensionSettings({ initialSettings }: { initialSettings: Record<SettingKey, string> }) {
   const [values, setValues] = useState(initialSettings);
   const [savingKey, setSavingKey] = useState<SettingKey | null>(null);
   const [savedKey, setSavedKey] = useState<SettingKey | null>(null);
@@ -40,22 +48,21 @@ export default function AdSettings({ initialSettings }: { initialSettings: Recor
 
   return (
     <section>
-      <h2 className="font-serif text-xl font-semibold text-ink mb-1">Ad Slots</h2>
+      <h2 className="font-serif text-xl font-semibold text-ink mb-1">Pension Calculator</h2>
       <p className="text-sm text-ink/60 mb-4">
-        Paste the raw AdSense embed code (script + ins tags) for each slot. Leave a field empty to show
-        the placeholder box on the site instead.
+        Constants used by the OPS pension calculator at /calculators/pension-ops.
       </p>
       <div className="flex flex-col gap-5">
-        {FIELDS.map(({ key, label }) => (
-          <div key={key} className="border border-rule p-5">
+        {FIELDS.map(({ key, label, hint }) => (
+          <div key={key} className="border border-rule p-5 max-w-sm">
             <label className="block text-xs font-mono uppercase text-ink/50 mb-1">{label}</label>
-            <textarea
+            <input
+              type="number"
               value={values[key]}
               onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
-              rows={5}
-              placeholder="<script ...></script><ins class=&quot;adsbygoogle&quot; ...></ins>"
-              className="w-full border border-rule px-3 py-2 text-xs font-mono focus:outline-none focus:border-maroon"
+              className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon"
             />
+            <p className="text-xs text-ink/50 mt-1">{hint}</p>
             <div className="flex items-center gap-3 mt-2">
               <button
                 type="button"

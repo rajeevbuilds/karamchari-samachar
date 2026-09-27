@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdminAuthenticated } from '@/lib/auth';
-import { AD_SETTING_KEYS, getAllSettings, setSetting, type AdSettingKey } from '@/lib/data';
+import { SETTINGS_KEYS, getAllSettings, setSetting, type SettingKey } from '@/lib/data';
 
 export async function GET() {
   if (!(await isAdminAuthenticated())) {
@@ -14,17 +14,17 @@ export async function GET() {
   }
 }
 
-// Body: { key: 'ad_sidebar_1' | 'ad_sidebar_2' | 'ad_in_article', value: string }
+// Body: { key: SettingKey, value: string }
 export async function PUT(request: NextRequest) {
   if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const body = await request.json().catch(() => null);
-  const key = body?.key as AdSettingKey | undefined;
+  const key = body?.key as SettingKey | undefined;
   const value = body?.value;
 
-  if (!key || !AD_SETTING_KEYS.includes(key)) {
+  if (!key || !SETTINGS_KEYS.includes(key)) {
     return NextResponse.json({ error: 'Unknown setting key' }, { status: 400 });
   }
   if (typeof value !== 'string') {

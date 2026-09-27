@@ -218,28 +218,45 @@ export async function getTopViewedCirculars(limit = 10): Promise<AdminCircular[]
   }
 }
 
-// ---- Settings (ad slot embed codes; read by the public detail page,
-// written only via the admin settings API) --------------------------------
+// ---- Settings (ad slot embed codes + pension-calculator constants; read
+// by public pages, written only via the admin settings API) ---------------
 
-export const AD_SETTING_KEYS = ['ad_sidebar_1', 'ad_sidebar_2', 'ad_in_article'] as const;
-export type AdSettingKey = (typeof AD_SETTING_KEYS)[number];
+export const SETTINGS_KEYS = [
+  'ad_sidebar_1',
+  'ad_sidebar_2',
+  'ad_in_article',
+  // Pension calculator (/calculators/pension-ops) constants — these change
+  // periodically (DR twice yearly) without a redeploy, hence living here
+  // rather than as a hardcoded value.
+  'pension_min_floor',
+  'pension_default_dr_percent',
+] as const;
+export type SettingKey = (typeof SETTINGS_KEYS)[number];
 
-export async function getAllSettings(): Promise<Record<AdSettingKey, string>> {
-  const empty = Object.fromEntries(AD_SETTING_KEYS.map((k) => [k, ''])) as Record<AdSettingKey, string>;
+const SETTINGS_DEFAULTS: Record<SettingKey, string> = {
+  ad_sidebar_1: '',
+  ad_sidebar_2: '',
+  ad_in_article: '',
+  pension_min_floor: '9000',
+  pension_default_dr_percent: '60',
+};
+
+export async function getAllSettings(): Promise<Record<SettingKey, string>> {
+  const result = { ...SETTINGS_DEFAULTS };
   try {
     const rows = await query<{ key_name: string; value: string }[]>('SELECT key_name, value FROM settings');
     const byKey = new Map(rows.map((r) => [r.key_name, r.value]));
-    for (const key of AD_SETTING_KEYS) {
-      empty[key] = byKey.get(key) ?? '';
+    for (const key of SETTINGS_KEYS) {
+      result[key] = byKey.get(key) ?? SETTINGS_DEFAULTS[key];
     }
-    return empty;
+    return result;
   } catch (err) {
     console.error('getAllSettings: database query failed —', describeDbError(err));
-    return empty;
+    return result;
   }
 }
 
-export async function setSetting(key: AdSettingKey, value: string): Promise<void> {
+export async function setSetting(key: SettingKey, value: string): Promise<void> {
   await query(
     'INSERT INTO settings (key_name, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)',
     [key, value]
