@@ -33,7 +33,15 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
   const b = asRecord(body);
 
   const title = String(b.title ?? '').trim();
-  const issueDate = String(b.issueDate ?? '').trim();
+  // postedAt comes from a <input type="datetime-local"> — "YYYY-MM-DDTHH:mm"
+  // (no timezone; the value is already the IST wall-clock time the admin
+  // picked/confirmed). issueDate (DATE column used for sorting/queries) is
+  // derived from it here rather than collected separately.
+  const postedAtRaw = String(b.postedAt ?? '').trim();
+  if (!postedAtRaw || Number.isNaN(Date.parse(postedAtRaw)))
+    throw new Error('A valid date and time of posting is required');
+  const issueDate = postedAtRaw.slice(0, 10);
+  const postedAt = `${postedAtRaw.slice(0, 10)} ${postedAtRaw.slice(11, 16)}:00`;
   const summary = sanitizeSummaryForStorage(String(b.summary ?? '').trim());
   const pdfUrl = String(b.pdfUrl ?? '').trim();
   const imageUrl = b.imageUrl ? String(b.imageUrl).trim() : null;
@@ -45,8 +53,6 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
   const status = (b.status === undefined ? 'published' : String(b.status)) as Circular['status'];
 
   if (!title) throw new Error('Title is required');
-  if (!issueDate || Number.isNaN(Date.parse(issueDate)))
-    throw new Error('A valid date of posting is required');
   if (!summaryText(summary)) throw new Error('Summary is required');
   if (imageUrl && !IMAGE_URL_PATTERN.test(imageUrl))
     throw new Error('Image must be an uploaded image (/assets/uploads/…) or an airfindia.org image URL');
@@ -61,6 +67,7 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
     states,
     section,
     issueDate,
+    postedAt,
     summary,
     pdfUrl,
     imageUrl,

@@ -21,6 +21,11 @@ CREATE TABLE IF NOT EXISTS circulars (
   -- Retained for existing rows but no longer collected via the admin form.
   ref_number VARCHAR(255) NOT NULL,
   issue_date DATE NOT NULL,
+  -- Full date+time of posting, in IST wall-clock terms (e.g. "2026-09-28
+  -- 14:30:00"). issue_date (above) is kept in sync with this on every save
+  -- for existing sorting/queries; NULL on rows created before this column
+  -- existed — left unbackfilled on purpose.
+  posted_at DATETIME NULL,
   effective_date DATE NULL,
   summary TEXT NOT NULL,
   -- Optional as of the admin form change that dropped the required PDF URL.
@@ -96,5 +101,6 @@ CREATE TABLE IF NOT EXISTS settings (
 -- ALTER TABLE circulars ADD COLUMN view_count INT NOT NULL DEFAULT 0 AFTER is_featured;
 -- ALTER TABLE circulars ADD COLUMN status ENUM('draft', 'published') NOT NULL DEFAULT 'published' AFTER category, ADD INDEX idx_circulars_status (status);
 -- ALTER TABLE circulars MODIFY COLUMN pdf_url VARCHAR(1000) NULL;
+-- ALTER TABLE circulars ADD COLUMN posted_at DATETIME NULL AFTER issue_date;
 -- CREATE TABLE IF NOT EXISTS uploads (name VARCHAR(80) PRIMARY KEY, mime VARCHAR(20) NOT NULL, size INT NOT NULL, data LONGBLOB NOT NULL, uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);
 -- CREATE TABLE IF NOT EXISTS settings (key_name VARCHAR(80) PRIMARY KEY, value TEXT NOT NULL, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);

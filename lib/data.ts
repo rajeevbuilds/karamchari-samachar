@@ -16,7 +16,8 @@ export type Circular = {
   states: string[]; // ["all"] for pan-India, or specific state slugs
   section: string | null; // one of SECTION_OPTIONS, or null for none
   refNumber: string;
-  issueDate: string; // ISO date — "Date of Posting"
+  issueDate: string; // ISO date — kept in sync with postedAt's date part, used for sorting
+  postedAt?: string; // full date+time of posting (IST wall-clock), "Date of Posting" — undefined on rows saved before this column existed
   effectiveDate?: string;
   summary: string;
   pdfUrl: string | null;
@@ -46,6 +47,7 @@ type CircularRow = {
   section: string | null;
   ref_number: string;
   issue_date: string;
+  posted_at: string | null;
   effective_date: string | null;
   summary: string;
   pdf_url: string | null;
@@ -76,6 +78,7 @@ function mapCircular(row: CircularRow): AdminCircular {
     section: row.section ?? null,
     refNumber: row.ref_number,
     issueDate: row.issue_date,
+    postedAt: row.posted_at ?? undefined,
     effectiveDate: row.effective_date ?? undefined,
     summary: row.summary,
     pdfUrl: row.pdf_url,
@@ -329,6 +332,7 @@ export type CircularWriteInput = {
   states: string[];
   section: string;
   issueDate: string;
+  postedAt: string;
   summary: string;
   pdfUrl: string;
   imageUrl: string | null;
@@ -364,8 +368,8 @@ export async function createCircular(input: CircularWriteInput): Promise<number>
 
   const result = await query<ResultSetHeader>(
     `INSERT INTO circulars
-       (slug, title, department, states, section, ref_number, issue_date, effective_date, summary, pdf_url, image_url, is_featured, category, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (slug, title, department, states, section, ref_number, issue_date, posted_at, effective_date, summary, pdf_url, image_url, is_featured, category, status)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       slug,
       input.title,
@@ -378,6 +382,7 @@ export async function createCircular(input: CircularWriteInput): Promise<number>
       // rows but are no longer collected from the admin form.
       '',
       input.issueDate,
+      input.postedAt,
       null,
       input.summary,
       input.pdfUrl || null,
@@ -396,7 +401,7 @@ export async function updateCircular(id: number, input: CircularWriteInput): Pro
   // whatever value an existing row already had.
   await query(
     `UPDATE circulars
-     SET title = ?, states = ?, section = ?, issue_date = ?,
+     SET title = ?, states = ?, section = ?, issue_date = ?, posted_at = ?,
          summary = ?, pdf_url = ?, image_url = ?, is_featured = ?, category = ?, status = ?
      WHERE id = ?`,
     [
@@ -404,6 +409,7 @@ export async function updateCircular(id: number, input: CircularWriteInput): Pro
       input.states.join(','),
       input.section,
       input.issueDate,
+      input.postedAt,
       input.summary,
       input.pdfUrl || null,
       input.imageUrl || null,

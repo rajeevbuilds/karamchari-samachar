@@ -22,19 +22,32 @@ const CATEGORY_LABEL: Record<Circular['category'], string> = Object.fromEntries(
   CATEGORY_OPTIONS.map((c) => [c.value, c.label])
 ) as Record<Circular['category'], string>;
 
-const EMPTY_FORM = {
-  title: '',
-  category: 'general' as Circular['category'],
-  section: '',
-  issueDate: '',
-  summary: '',
-  pdfUrl: '',
-  imageUrl: '',
-  isFeatured: false,
-  states: [] as string[],
-  allStates: false,
-  status: 'published' as Circular['status'],
-};
+// Current date+time in IST ("YYYY-MM-DDTHH:mm", for a datetime-local input),
+// computed from the browser's clock — never the server's, since GoDaddy's
+// server clock runs on the wrong timezone/hour.
+function currentIstDatetimeLocal(): string {
+  const now = new Date();
+  const IST_OFFSET_MINUTES = 5 * 60 + 30;
+  const ist = new Date(now.getTime() + (IST_OFFSET_MINUTES + now.getTimezoneOffset()) * 60 * 1000);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${ist.getFullYear()}-${pad(ist.getMonth() + 1)}-${pad(ist.getDate())}T${pad(ist.getHours())}:${pad(ist.getMinutes())}`;
+}
+
+function makeEmptyForm() {
+  return {
+    title: '',
+    category: 'general' as Circular['category'],
+    section: '',
+    postedAt: currentIstDatetimeLocal(),
+    summary: '',
+    pdfUrl: '',
+    imageUrl: '',
+    isFeatured: false,
+    states: [] as string[],
+    allStates: false,
+    status: 'published' as Circular['status'],
+  };
+}
 
 // Posts section of the admin panel: add/edit form + list of circulars.
 export default function PostsManager({ initialCirculars }: { initialCirculars: AdminCircular[] }) {
@@ -45,7 +58,7 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
   const [editorKey, setEditorKey] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(makeEmptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -81,7 +94,9 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
       title: c.title,
       category: c.category,
       section: c.section ?? '',
-      issueDate: c.issueDate,
+      // Rows saved before posted_at existed fall back to issueDate at
+      // midnight — editable, but left alone unless the admin changes it.
+      postedAt: c.postedAt ? c.postedAt.slice(0, 16).replace(' ', 'T') : `${c.issueDate}T00:00`,
       summary: summaryToEditorHtml(c.summary),
       pdfUrl: c.pdfUrl ?? '',
       imageUrl: c.imageUrl ?? '',
@@ -97,7 +112,7 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
 
   function resetForm() {
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    setForm(makeEmptyForm());
     setEditorKey((k) => k + 1);
     setError(null);
   }
@@ -120,7 +135,7 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
       title: form.title,
       category: form.category,
       section: form.section,
-      issueDate: form.issueDate,
+      postedAt: form.postedAt,
       summary: form.summary,
       pdfUrl: form.pdfUrl,
       imageUrl: form.imageUrl || null,
@@ -246,9 +261,9 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
             </label>
             <input
               required
-              type="date"
-              value={form.issueDate}
-              onChange={(e) => setForm((f) => ({ ...f, issueDate: e.target.value }))}
+              type="datetime-local"
+              value={form.postedAt}
+              onChange={(e) => setForm((f) => ({ ...f, postedAt: e.target.value }))}
               className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon"
             />
           </div>
