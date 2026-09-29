@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSwipeSlideStyle } from './mobile/SwipeSlideContext';
+import { SWIPE_TRANSITION_MS } from './mobile/swipeConstants';
 
 export const PRIMARY_NAV = [
   { href: '/', label: 'Home' },
@@ -41,11 +41,41 @@ function linkClassName(active: boolean): string {
   }`;
 }
 
+const MOBILE_MEDIA_QUERY = '(max-width: 767px)';
+
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+// Animates scrollLeft over `duration` ms instead of jumping instantly, so it
+// reads as one motion alongside the page-content slide (SwipeTransition).
+function animateScrollTo(el: HTMLElement, target: number, duration: number) {
+  const start = el.scrollLeft;
+  const change = target - start;
+  if (Math.abs(change) < 1) return () => {};
+
+  let raf = 0;
+  let startTime: number | null = null;
+
+  function step(timestamp: number) {
+    if (startTime === null) startTime = timestamp;
+    const elapsed = timestamp - startTime;
+    const progress = Math.min(1, elapsed / duration);
+    el.scrollLeft = start + change * easeOutCubic(progress);
+    if (progress < 1) {
+      raf = requestAnimationFrame(step);
+    }
+  }
+
+  raf = requestAnimationFrame(step);
+  return () => cancelAnimationFrame(raf);
+}
+
 export default function MainNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const slideStyle = useSwipeSlideStyle();
+  const listRef = useRef<HTMLUListElement>(null);
 
   const moreActive = MORE_NAV.some((item) => isActive(pathname, item.href));
 
@@ -65,8 +95,30 @@ export default function MainNav() {
     setOpen(false);
   }, [pathname]);
 
+  // Whenever the active top-nav item changes - via a swipe or a normal tap -
+  // smoothly scroll the strip so that item is centered (or as close to
+  // centered as the scrollable range allows). Timed to roughly match the
+  // page-content slide in SwipeTransition, so both read as one motion.
+  useEffect(() => {
+    if (!window.matchMedia(MOBILE_MEDIA_QUERY).matches) return;
+    const ul = listRef.current;
+    if (!ul) return;
+
+    const activeIndex = PRIMARY_NAV.findIndex((item) => isActive(pathname, item.href));
+    if (activeIndex === -1) return;
+    const activeLi = ul.children[activeIndex] as HTMLElement | undefined;
+    if (!activeLi) return;
+
+    const target = activeLi.offsetLeft + activeLi.offsetWidth / 2 - ul.clientWidth / 2;
+    const maxScroll = ul.scrollWidth - ul.clientWidth;
+    const clamped = Math.max(0, Math.min(target, maxScroll));
+
+    const cancel = animateScrollTo(ul, clamped, SWIPE_TRANSITION_MS);
+    return cancel;
+  }, [pathname]);
+
   return (
-    <nav className="border-t border-rule" style={slideStyle}>
+    <nav className="border-t border-rule">
       <div className="mx-auto max-w-[1200px] px-4 flex items-center gap-x-6">
         {/* Only the primary items scroll horizontally on narrow screens.
             "More" and its dropdown live outside this container: setting
@@ -74,7 +126,10 @@ export default function MainNav() {
             (per the CSS spec), which was clipping the dropdown panel down
             to nothing since it used to be a descendant of this same
             scrolling list. */}
-        <ul className="flex flex-nowrap items-center gap-x-6 gap-y-1 text-sm py-2.5 overflow-x-auto min-w-0 touch-pan-x">
+        <ul
+          ref={listRef}
+          className="flex flex-nowrap items-center gap-x-6 gap-y-1 text-sm py-2.5 overflow-x-auto min-w-0 touch-pan-x"
+        >
           {PRIMARY_NAV.map((item) => (
             <li key={item.href} className="shrink-0">
               <Link href={item.href} className={linkClassName(isActive(pathname, item.href))}>

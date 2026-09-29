@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { PRIMARY_NAV } from '../MainNav';
-import { useSwipeSlideStyle, useSwipeSlideControls, SWIPE_TRANSITION_MS } from './SwipeSlideContext';
+import { SWIPE_TRANSITION_MS } from './swipeConstants';
 
-// Category pages eligible for swipe navigation, in top-nav order. Home is
-// excluded - swiping only moves between the category pages themselves.
-const CATEGORY_PAGES = PRIMARY_NAV.filter((item) => item.href !== '/').map((item) => item.href);
+// Pages eligible for swipe navigation, in top-nav order (Home included as
+// the first stop, so swiping right off Railway Board Circular lands there).
+const CATEGORY_PAGES = PRIMARY_NAV.map((item) => item.href);
 
 const SWIPE_THRESHOLD = 60;
 const MOBILE_MEDIA_QUERY = '(max-width: 767px)';
@@ -15,17 +15,18 @@ const MOBILE_MEDIA_QUERY = '(max-width: 767px)';
 // Wraps the page content in <main>. Listeners are attached to this element
 // only - the top nav strip lives outside it (in the header), so its own
 // overflow-x-auto scroll is never in the gesture's path and never has to be
-// special-cased. On a valid horizontal swipe on a category page, the shared
-// slide position (see SwipeSlideContext) is driven so <main> and the nav
-// strip move together, then the next/previous page slides in from that side.
+// special-cased. On a valid horizontal swipe, the current content slides out
+// and the next/previous page slides in from that side. The nav strip's own
+// active-tab centering (see MainNav) reacts to the same route change and
+// runs independently, timed to roughly match this transition.
 export default function SwipeTransition({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const containerRef = useRef<HTMLElement>(null);
   const navigatingRef = useRef(false);
   const pendingEnterFromRef = useRef<number | null>(null);
-  const style = useSwipeSlideStyle();
-  const { beginExit, applyEnterStart, applyEnterAnimate, settle } = useSwipeSlideControls();
+  const [translate, setTranslate] = useState(0);
+  const [transitionOn, setTransitionOn] = useState(false);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -66,7 +67,8 @@ export default function SwipeTransition({ children }: { children: React.ReactNod
       navigatingRef.current = true;
       const exitTo = dx < 0 ? -100 : 100;
       pendingEnterFromRef.current = dx < 0 ? 100 : -100;
-      beginExit(exitTo);
+      setTransitionOn(true);
+      setTranslate(exitTo);
 
       window.setTimeout(() => {
         router.push(nextHref as string);
@@ -79,23 +81,26 @@ export default function SwipeTransition({ children }: { children: React.ReactNod
       el.removeEventListener('touchstart', onTouchStart);
       el.removeEventListener('touchend', onTouchEnd);
     };
-  }, [pathname, router, beginExit]);
+  }, [pathname, router]);
 
   // Runs whenever the route actually changes. If that change was triggered
-  // by our own swipe, animate the new content (and nav strip, via the shared
-  // context) in from the matching side; otherwise stay settled at rest.
+  // by our own swipe, animate the new content in from the matching side;
+  // otherwise (normal link/back navigation) stay settled at rest.
   useEffect(() => {
     const enterFrom = pendingEnterFromRef.current;
     if (enterFrom === null) {
-      settle();
+      setTransitionOn(false);
+      setTranslate(0);
       return;
     }
     pendingEnterFromRef.current = null;
-    applyEnterStart(enterFrom);
+    setTransitionOn(false);
+    setTranslate(enterFrom);
     let raf2 = 0;
     const raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => {
-        applyEnterAnimate();
+        setTransitionOn(true);
+        setTranslate(0);
         navigatingRef.current = false;
       });
     });
@@ -107,7 +112,17 @@ export default function SwipeTransition({ children }: { children: React.ReactNod
   }, [pathname]);
 
   return (
-    <main ref={containerRef} style={style}>
+    <main
+      ref={containerRef}
+      style={
+        translate === 0
+          ? undefined
+          : {
+              transform: `translateX(${translate}%)`,
+              transition: transitionOn ? `transform ${SWIPE_TRANSITION_MS}ms ease` : 'none',
+            }
+      }
+    >
       {children}
     </main>
   );
