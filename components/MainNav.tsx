@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSwipeSlideStyle } from './mobile/SwipeSlideContext';
 
 export const PRIMARY_NAV = [
   { href: '/', label: 'Home' },
@@ -44,6 +45,7 @@ export default function MainNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const slideStyle = useSwipeSlideStyle();
 
   const moreActive = MORE_NAV.some((item) => isActive(pathname, item.href));
 
@@ -64,7 +66,7 @@ export default function MainNav() {
   }, [pathname]);
 
   return (
-    <nav className="border-t border-rule">
+    <nav className="border-t border-rule" style={slideStyle}>
       <div className="mx-auto max-w-[1200px] px-4 flex items-center gap-x-6">
         {/* Only the primary items scroll horizontally on narrow screens.
             "More" and its dropdown live outside this container: setting

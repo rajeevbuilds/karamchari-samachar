@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BottomNav from '@/components/mobile/BottomNav';
 import SwipeTransition from '@/components/mobile/SwipeTransition';
+import { SwipeSlideProvider } from '@/components/mobile/SwipeSlideContext';
 import RegisterServiceWorker from '@/components/RegisterServiceWorker';
 
 export const viewport: Viewport = {
@@ -45,8 +46,10 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans antialiased pb-16 md:pb-0">
         <RegisterServiceWorker />
-        <Header />
-        <SwipeTransition>{children}</SwipeTransition>
+        <SwipeSlideProvider>
+          <Header />
+          <SwipeTransition>{children}</SwipeTransition>
+        </SwipeSlideProvider>
         <Footer />
         <BottomNav />
       </body>
