@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const PRIMARY_NAV = [
+export const PRIMARY_NAV = [
   { href: '/', label: 'Home' },
   { href: '/section/railway-board', label: 'Railway Board Circular' },
   { href: '/section/dopt', label: 'DOPT Circular' },
@@ -17,7 +17,7 @@ const PRIMARY_NAV = [
 
 // Less-trafficked sections and tools, tucked under "More" so the primary
 // bar doesn't get cluttered.
-const MORE_NAV = [
+export const MORE_NAV = [
   { href: '/section/nps', label: 'NPS' },
   { href: '/section/cghs', label: 'CGHS' },
   { href: '/section/ups', label: 'UPS' },
@@ -27,7 +27,7 @@ const MORE_NAV = [
   { href: '/states/punjab', label: 'By State' },
 ];
 
-function isActive(pathname: string, href: string): boolean {
+export function isActive(pathname: string, href: string): boolean {
   if (href === '/') return pathname === '/';
   return pathname === href || pathname.startsWith(href + '/');
 }

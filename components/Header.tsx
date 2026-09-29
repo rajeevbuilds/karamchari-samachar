@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import MainNav from './MainNav';
+import HamburgerMenu from './mobile/HamburgerMenu';
 
 function todayFormatted() {
   return new Date().toLocaleDateString('en-IN', {
@@ -31,7 +32,8 @@ export default function Header() {
           sizes="(max-width: 1200px) 100vw, 1200px"
         />
       </div>
-      <div className="mx-auto max-w-[1200px] px-4 py-5">
+      <div className="relative mx-auto max-w-[1200px] pl-14 pr-4 py-5 md:px-4">
+        <HamburgerMenu />
         <Link href="/" className="block">
           <h1 className="font-serif text-[clamp(28px,5vw,40px)] font-semibold text-ink tracking-tight">
             Sarkari Karamchari Samachar
