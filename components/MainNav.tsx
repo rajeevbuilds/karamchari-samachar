@@ -72,7 +72,7 @@ export default function MainNav() {
             (per the CSS spec), which was clipping the dropdown panel down
             to nothing since it used to be a descendant of this same
             scrolling list. */}
-        <ul className="flex flex-nowrap items-center gap-x-6 gap-y-1 text-sm py-2.5 overflow-x-auto min-w-0">
+        <ul className="flex flex-nowrap items-center gap-x-6 gap-y-1 text-sm py-2.5 overflow-x-auto min-w-0 touch-pan-x">
           {PRIMARY_NAV.map((item) => (
             <li key={item.href} className="shrink-0">
               <Link href={item.href} className={linkClassName(isActive(pathname, item.href))}>

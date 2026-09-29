@@ -3,7 +3,7 @@ import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BottomNav from '@/components/mobile/BottomNav';
-import SwipeNav from '@/components/mobile/SwipeNav';
+import SwipeTransition from '@/components/mobile/SwipeTransition';
 import RegisterServiceWorker from '@/components/RegisterServiceWorker';
 
 export const viewport: Viewport = {
@@ -45,9 +45,8 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans antialiased pb-16 md:pb-0">
         <RegisterServiceWorker />
-        <SwipeNav />
         <Header />
-        <main>{children}</main>
+        <SwipeTransition>{children}</SwipeTransition>
         <Footer />
         <BottomNav />
       </body>

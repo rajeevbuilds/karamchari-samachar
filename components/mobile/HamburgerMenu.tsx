@@ -3,7 +3,43 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import {
+  Home,
+  TrainFront,
+  FileText,
+  IndianRupee,
+  Shield,
+  LineChart,
+  Newspaper,
+  Calculator,
+  PiggyBank,
+  HeartPulse,
+  Landmark,
+  PieChart,
+  Scale,
+  Wallet,
+  MapPin,
+  type LucideIcon,
+} from 'lucide-react';
 import { PRIMARY_NAV, MORE_NAV, isActive } from '../MainNav';
+
+const ICONS: Record<string, LucideIcon> = {
+  '/': Home,
+  '/section/railway-board': TrainFront,
+  '/section/dopt': FileText,
+  '/section/fin-min': IndianRupee,
+  '/section/defence': Shield,
+  '/da-cpc-tracker': LineChart,
+  '/section/news-paper-reports': Newspaper,
+  '/section/calculators': Calculator,
+  '/section/nps': PiggyBank,
+  '/section/cghs': HeartPulse,
+  '/section/ups': Landmark,
+  '/section/analysis': PieChart,
+  '/section/pay-commission': Scale,
+  '/calculators/pension-ops': Wallet,
+  '/states/punjab': MapPin,
+};
 
 const ALL_ITEMS = [...PRIMARY_NAV, ...MORE_NAV];
 
@@ -62,18 +98,23 @@ export default function HamburgerMenu() {
               </button>
             </div>
             <ul className="py-2">
-              {ALL_ITEMS.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`block px-4 py-3 text-sm font-bold border-b border-rule/60 ${
-                      isActive(pathname, item.href) ? 'text-maroon' : 'text-ink/80'
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
+              {ALL_ITEMS.map((item) => {
+                const Icon = ICONS[item.href];
+                const active = isActive(pathname, item.href);
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={`flex items-center gap-3 px-4 py-3 text-sm font-bold border-b border-rule/60 ${
+                        active ? 'text-maroon' : 'text-ink/80'
+                      }`}
+                    >
+                      {Icon && <Icon size={18} strokeWidth={2} className="shrink-0" aria-hidden="true" />}
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
