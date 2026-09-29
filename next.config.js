@@ -31,6 +31,22 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        // GoDaddy's hosting layer applies a blanket long-lived cache to
+        // static-looking file extensions, which caught sw.js along with
+        // regular content-hashed JS chunks. Unlike those, the service
+        // worker script's own freshness is what lets browsers notice a
+        // new deploy at all - an open tab can otherwise keep running
+        // whatever JS it already loaded for as long as this cache holds,
+        // even though the server has moved on. Force revalidation on
+        // every request so a reload always picks up the latest version.
+        source: '/sw.js',
+        headers: [{ key: 'Cache-Control', value: 'no-cache' }],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
