@@ -14,7 +14,7 @@ export type Circular = {
   title: string;
   department: string;
   states: string[]; // ["all"] for pan-India, or specific state slugs
-  section: string | null; // one of SECTION_OPTIONS, or null for none
+  sections: string[]; // zero or more of SECTION_OPTIONS
   refNumber: string;
   issueDate: string; // ISO date — kept in sync with postedAt's date part, used for sorting
   postedAt?: string; // full date+time of posting (IST wall-clock), "Date of Posting" — undefined on rows saved before this column existed
@@ -44,7 +44,7 @@ type CircularRow = {
   title: string;
   department: string;
   states: string;
-  section: string | null;
+  sections: string | null;
   ref_number: string;
   issue_date: string;
   posted_at: string | null;
@@ -75,7 +75,12 @@ function mapCircular(row: CircularRow): AdminCircular {
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean),
-    section: row.section ?? null,
+    sections: row.sections
+      ? row.sections
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [],
     refNumber: row.ref_number,
     issueDate: row.issue_date,
     postedAt: row.posted_at ?? undefined,
@@ -176,7 +181,7 @@ export async function getCircularIdBySlug(slug: string): Promise<number | null> 
 export async function getCircularsBySection(section: string): Promise<Circular[]> {
   try {
     const rows = await query<CircularRow[]>(
-      "SELECT * FROM circulars WHERE status = 'published' AND section = ? ORDER BY issue_date DESC",
+      "SELECT * FROM circulars WHERE status = 'published' AND FIND_IN_SET(?, sections) ORDER BY issue_date DESC",
       [section]
     );
     return rows.map(mapCircular);
@@ -330,7 +335,7 @@ export async function getAllDaHistoryAdmin(): Promise<AdminDaRecord[]> {
 export type CircularWriteInput = {
   title: string;
   states: string[];
-  section: string;
+  sections: string[];
   issueDate: string;
   postedAt: string;
   summary: string;
@@ -368,7 +373,7 @@ export async function createCircular(input: CircularWriteInput): Promise<number>
 
   const result = await query<ResultSetHeader>(
     `INSERT INTO circulars
-       (slug, title, department, states, section, ref_number, issue_date, posted_at, effective_date, summary, pdf_url, image_url, is_featured, category, status)
+       (slug, title, department, states, sections, ref_number, issue_date, posted_at, effective_date, summary, pdf_url, image_url, is_featured, category, status)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       slug,
@@ -377,7 +382,7 @@ export async function createCircular(input: CircularWriteInput): Promise<number>
       // is kept for existing rows but new ones just get ''.
       '',
       input.states.join(','),
-      input.section,
+      input.sections.join(','),
       // ref_number/effective_date are retained in the schema for existing
       // rows but are no longer collected from the admin form.
       '',
@@ -401,13 +406,13 @@ export async function updateCircular(id: number, input: CircularWriteInput): Pro
   // whatever value an existing row already had.
   await query(
     `UPDATE circulars
-     SET title = ?, states = ?, section = ?, issue_date = ?, posted_at = ?,
+     SET title = ?, states = ?, sections = ?, issue_date = ?, posted_at = ?,
          summary = ?, pdf_url = ?, image_url = ?, is_featured = ?, category = ?, status = ?
      WHERE id = ?`,
     [
       input.title,
       input.states.join(','),
-      input.section,
+      input.sections.join(','),
       input.issueDate,
       input.postedAt,
       input.summary,
@@ -452,7 +457,7 @@ export async function createImportedDraft(input: ImportDraftInput): Promise<numb
   const slug = await uniqueSlug(input.title);
   const result = await query<ResultSetHeader>(
     `INSERT INTO circulars
-       (slug, title, department, states, section, ref_number, issue_date, effective_date, summary, pdf_url, image_url, is_featured, category, status)
+       (slug, title, department, states, sections, ref_number, issue_date, effective_date, summary, pdf_url, image_url, is_featured, category, status)
      VALUES (?, ?, '', '', NULL, '', ?, NULL, ?, ?, ?, 0, 'general', 'draft')`,
     [slug, input.title, input.issueDate, input.summary, input.sourceUrl, input.imageUrl]
   );

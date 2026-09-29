@@ -37,7 +37,7 @@ function makeEmptyForm() {
   return {
     title: '',
     category: 'general' as Circular['category'],
-    section: '',
+    sections: [] as string[],
     postedAt: currentIstDatetimeLocal(),
     summary: '',
     pdfUrl: '',
@@ -93,7 +93,7 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
     setForm({
       title: c.title,
       category: c.category,
-      section: c.section ?? '',
+      sections: c.sections,
       // Rows saved before posted_at existed fall back to issueDate at
       // midnight — editable, but left alone unless the admin changes it.
       postedAt: c.postedAt ? c.postedAt.slice(0, 16).replace(' ', 'T') : `${c.issueDate}T00:00`,
@@ -124,6 +124,22 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
     }));
   }
 
+  function toggleSection(section: string) {
+    setForm((f) => ({
+      ...f,
+      sections: f.sections.includes(section)
+        ? f.sections.filter((s) => s !== section)
+        : [...f.sections, section],
+    }));
+  }
+
+  function toggleAllSections(checked: boolean) {
+    setForm((f) => ({
+      ...f,
+      sections: checked ? SECTION_OPTIONS.map((s) => s.value) : [],
+    }));
+  }
+
   async function submitCircular(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -134,7 +150,7 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
     const payload = {
       title: form.title,
       category: form.category,
-      section: form.section,
+      sections: form.sections,
       postedAt: form.postedAt,
       summary: form.summary,
       pdfUrl: form.pdfUrl,
@@ -223,25 +239,6 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
           </div>
 
           <div>
-            <label className="block text-xs font-mono uppercase text-ink/50 mb-1">Section</label>
-            <select
-              required
-              value={form.section}
-              onChange={(e) => setForm((f) => ({ ...f, section: e.target.value }))}
-              className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon bg-paper"
-            >
-              <option value="" disabled>
-                — Select a section —
-              </option>
-              {SECTION_OPTIONS.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
             <label className="block text-xs font-mono uppercase text-ink/50 mb-1">Status</label>
             <select
               value={form.status}
@@ -253,6 +250,30 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
               <option value="published">Published — visible on the site</option>
               <option value="draft">Draft — admin only</option>
             </select>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-mono uppercase text-ink/50 mb-2">Sections</label>
+            <label className="flex items-center gap-2 text-sm mb-2 font-medium">
+              <input
+                type="checkbox"
+                checked={SECTION_OPTIONS.every((s) => form.sections.includes(s.value))}
+                onChange={(e) => toggleAllSections(e.target.checked)}
+              />
+              All Circulars
+            </label>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              {SECTION_OPTIONS.map((s) => (
+                <label key={s.value} className="flex items-center gap-1.5 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={form.sections.includes(s.value)}
+                    onChange={() => toggleSection(s.value)}
+                  />
+                  {s.label}
+                </label>
+              ))}
+            </div>
           </div>
 
           <div>

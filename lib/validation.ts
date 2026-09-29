@@ -46,7 +46,7 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
   const pdfUrl = String(b.pdfUrl ?? '').trim();
   const imageUrl = b.imageUrl ? String(b.imageUrl).trim() : null;
   const category = String(b.category ?? '') as Circular['category'];
-  const section = String(b.section ?? '').trim();
+  const sections = Array.isArray(b.sections) ? b.sections.map(String).filter(Boolean) : [];
   const isFeatured = Boolean(b.isFeatured);
   const states = Array.isArray(b.states) ? b.states.map(String).filter(Boolean) : [];
   // Omitted status means published, matching how circulars behaved before drafts existed.
@@ -57,15 +57,15 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
   if (imageUrl && !IMAGE_URL_PATTERN.test(imageUrl))
     throw new Error('Image must be an uploaded image (/assets/uploads/…) or an airfindia.org image URL');
   if (!VALID_CATEGORIES.includes(category)) throw new Error('Invalid category');
-  if (!section) throw new Error('Section is required');
-  if (!VALID_SECTIONS.includes(section)) throw new Error('Invalid section');
+  if (sections.length === 0) throw new Error('Select at least one section');
+  if (sections.some((s) => !VALID_SECTIONS.includes(s))) throw new Error('Invalid section');
   if (states.length === 0) throw new Error('Select at least one state (or "all")');
   if (status !== 'draft' && status !== 'published') throw new Error('Invalid status');
 
   return {
     title,
     states,
-    section,
+    sections,
     issueDate,
     postedAt,
     summary,

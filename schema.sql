@@ -15,9 +15,13 @@ CREATE TABLE IF NOT EXISTS circulars (
   department VARCHAR(255) NOT NULL,
   -- Comma-separated: "all" for pan-India, or state slugs e.g. "punjab,haryana"
   states TEXT NOT NULL,
-  -- Top-nav taxonomy, e.g. "railway-board", "dopt" — see SECTION_OPTIONS in
-  -- lib/constants.ts. NULL when a circular isn't filed under any section.
+  -- Deprecated: superseded by `sections` below (kept for existing rows;
+  -- no longer read or written by the app).
   section VARCHAR(50) NULL,
+  -- Top-nav taxonomy, comma-separated (like `states` above) so a circular
+  -- can be filed under more than one section, e.g. "railway-board,pay-commission".
+  -- NULL/empty when a circular isn't filed under any section.
+  sections TEXT NULL,
   -- Retained for existing rows but no longer collected via the admin form.
   ref_number VARCHAR(255) NOT NULL,
   issue_date DATE NOT NULL,
@@ -102,5 +106,7 @@ CREATE TABLE IF NOT EXISTS settings (
 -- ALTER TABLE circulars ADD COLUMN status ENUM('draft', 'published') NOT NULL DEFAULT 'published' AFTER category, ADD INDEX idx_circulars_status (status);
 -- ALTER TABLE circulars MODIFY COLUMN pdf_url VARCHAR(1000) NULL;
 -- ALTER TABLE circulars ADD COLUMN posted_at DATETIME NULL AFTER issue_date;
+-- ALTER TABLE circulars ADD COLUMN sections TEXT NULL AFTER section;
+-- UPDATE circulars SET sections = section WHERE section IS NOT NULL AND section <> '' AND (sections IS NULL OR sections = '');
 -- CREATE TABLE IF NOT EXISTS uploads (name VARCHAR(80) PRIMARY KEY, mime VARCHAR(20) NOT NULL, size INT NOT NULL, data LONGBLOB NOT NULL, uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);
 -- CREATE TABLE IF NOT EXISTS settings (key_name VARCHAR(80) PRIMARY KEY, value TEXT NOT NULL, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);
