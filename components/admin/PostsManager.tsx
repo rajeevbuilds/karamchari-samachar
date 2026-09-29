@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { AdminCircular, Circular } from '@/lib/data';
 import { STATE_OPTIONS, SECTION_OPTIONS } from '@/lib/constants';
@@ -71,20 +71,47 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
   }, [successMessage]);
 
   // Opened via a "?edit=<id>" link, e.g. the Edit button on a circular's
-  // public detail page.
+  // public detail page. Guarded against re-firing for the same id (e.g. if
+  // useSearchParams() ever hands back a new object reference for the same
+  // URL) so this can never re-trigger startEdit in a loop.
+  const lastEditParamRef = useRef<string | null>(null);
   useEffect(() => {
     const editParam = searchParams.get('edit');
-    if (!editParam) return;
+    if (!editParam || editParam === lastEditParamRef.current) return;
+    lastEditParamRef.current = editParam;
     const match = circulars.find((c) => c.id === Number(editParam));
     if (match) startEdit(match);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  // Hard rate-limit: refreshCirculars is only ever meant to run once right
+  // after a save/delete, but this guard makes a runaway loop structurally
+  // impossible regardless of what triggers it, and logs a stack trace for
+  // any call that gets suppressed so a repeat of this is diagnosable from
+  // the browser console alone.
+  const refreshInFlightRef = useRef(false);
+  const lastRefreshAtRef = useRef(0);
+  const MIN_REFRESH_INTERVAL_MS = 1000;
+
   async function refreshCirculars() {
-    const res = await apiFetch('/api/admin/circulars');
-    if (res.ok) {
-      const data = await res.json();
-      setCirculars(data.circulars);
+    const now = Date.now();
+    if (refreshInFlightRef.current || now - lastRefreshAtRef.current < MIN_REFRESH_INTERVAL_MS) {
+      console.warn(
+        '[PostsManager] refreshCirculars() call suppressed by rate limit — this should never fire from normal use. Stack:',
+        new Error().stack
+      );
+      return;
+    }
+    refreshInFlightRef.current = true;
+    lastRefreshAtRef.current = now;
+    try {
+      const res = await apiFetch('/api/admin/circulars');
+      if (res.ok) {
+        const data = await res.json();
+        setCirculars(data.circulars);
+      }
+    } finally {
+      refreshInFlightRef.current = false;
     }
   }
 
