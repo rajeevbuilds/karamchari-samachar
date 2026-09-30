@@ -18,7 +18,14 @@ export const PENSION_OPS_TOOL: CalculatorTool = {
     'Estimate your monthly pension under the Old Pension Scheme (CCS Pension Rules, 1972). Enter your last drawn Basic Pay and qualifying service to get an instant estimate.',
 };
 
-// Add future calculators (Gratuity, Commutation, ...) here as they ship.
+export const GRATUITY_TOOL: CalculatorTool = {
+  href: '/calculators/gratuity',
+  title: 'Gratuity Calculator',
+  description:
+    'Estimate your retirement gratuity or death gratuity for central government service (CCS Pension Rules, 2021). Enter Basic Pay, DA and qualifying service to get an instant estimate, including the ₹25 lakh ceiling.',
+};
+
+// Add future calculators (Commutation, ...) here as they ship.
 export const SECTION_TOOLS: Record<string, CalculatorTool[]> = {
-  calculators: [PENSION_OPS_TOOL],
+  calculators: [PENSION_OPS_TOOL, GRATUITY_TOOL],
 };

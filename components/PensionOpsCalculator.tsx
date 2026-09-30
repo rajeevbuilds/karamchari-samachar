@@ -129,8 +129,11 @@ export default function PensionOpsCalculator({
       {result !== null && !result.eligible && (
         <div className="border border-rule px-5 py-4 mb-8 text-sm text-ink/80 leading-relaxed">
           No pension applies under OPS at this qualifying service length ({(result.roundedHalfYears / 2).toFixed(1)}{' '}
-          years, rounded) — a minimum of 10 years is required. Only gratuity would be payable; see the
-          gratuity calculator (coming soon) for that estimate.
+          years, rounded) — a minimum of 10 years is required. Only gratuity would be payable; see the{' '}
+          <Link href="/calculators/gratuity" className="underline hover:text-maroon">
+            gratuity calculator
+          </Link>{' '}
+          for that estimate.
         </div>
       )}
 

@@ -238,6 +238,9 @@ export const SETTINGS_KEYS = [
   // rather than as a hardcoded value.
   'pension_min_floor',
   'pension_default_dr_percent',
+  // Gratuity calculator (/calculators/gratuity): maximum retirement / death
+  // gratuity in ₹ — revised by the government when DA crosses a threshold.
+  'gratuity_ceiling',
 ] as const;
 export type SettingKey = (typeof SETTINGS_KEYS)[number];
 
@@ -247,6 +250,7 @@ const SETTINGS_DEFAULTS: Record<SettingKey, string> = {
   ad_in_article: '',
   pension_min_floor: '9000',
   pension_default_dr_percent: '60',
+  gratuity_ceiling: '2500000',
 };
 
 export async function getAllSettings(): Promise<Record<SettingKey, string>> {

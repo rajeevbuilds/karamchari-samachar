@@ -15,6 +15,11 @@ const FIELDS: { key: SettingKey; label: string; hint: string }[] = [
     label: 'Default DR rate (%)',
     hint: 'Prefilled on the OPS calculator; changes twice yearly (Jan/Jul DR revisions) — update here, no redeploy needed.',
   },
+  {
+    key: 'gratuity_ceiling',
+    label: 'Gratuity ceiling (₹)',
+    hint: 'Maximum retirement / death gratuity used by the Gratuity calculator (₹25,00,000 = 2500000 since 1 Jan 2024). Update here if the government revises it.',
+  },
 ];
 
 // Constants read by /calculators/pension-ops. Kept in the shared settings
@@ -48,9 +53,9 @@ export default function PensionSettings({ initialSettings }: { initialSettings: 
 
   return (
     <section>
-      <h2 className="font-serif text-xl font-semibold text-ink mb-1">Pension Calculator</h2>
+      <h2 className="font-serif text-xl font-semibold text-ink mb-1">Pension &amp; Gratuity Calculators</h2>
       <p className="text-sm text-ink/60 mb-4">
-        Constants used by the OPS pension calculator at /calculators/pension-ops.
+        Constants used by the OPS pension calculator (/calculators/pension-ops) and the gratuity calculator (/calculators/gratuity). The gratuity calculator's default DA comes from the DA history above.
       </p>
       <div className="flex flex-col gap-5">
         {FIELDS.map(({ key, label, hint }) => (
