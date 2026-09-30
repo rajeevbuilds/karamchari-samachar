@@ -59,7 +59,7 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
   if (!VALID_CATEGORIES.includes(category)) throw new Error('Invalid category');
   if (sections.length === 0) throw new Error('Select at least one section');
   if (sections.some((s) => !VALID_SECTIONS.includes(s))) throw new Error('Invalid section');
-  if (states.length === 0) throw new Error('Select at least one state (or "all")');
+  if (states.length === 0) throw new Error('Select Central, at least one state, or Others');
   if (status !== 'draft' && status !== 'published') throw new Error('Invalid status');
 
   return {

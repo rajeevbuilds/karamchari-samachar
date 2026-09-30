@@ -33,6 +33,8 @@ function makeEmptyForm() {
     isFeatured: false,
     states: [] as string[],
     allStates: false,
+    // "Others": not tied to any state or Central (news reports, analysis, calculators…).
+    others: false,
     status: 'published' as Circular['status'],
   };
 }
@@ -49,8 +51,9 @@ function formFromCircular(c: AdminCircular) {
     pdfUrl: c.pdfUrl ?? '',
     imageUrl: c.imageUrl ?? '',
     isFeatured: c.isFeatured,
-    states: c.states.includes('all') ? [] : c.states,
+    states: c.states.includes('all') || c.states.includes('others') ? [] : c.states,
     allStates: c.states.includes('all'),
+    others: c.states.includes('others'),
     status: c.status,
   };
 }
@@ -88,6 +91,7 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
   function toggleState(state: string) {
     setForm((f) => ({
       ...f,
+      others: false,
       states: f.states.includes(state) ? f.states.filter((s) => s !== state) : [...f.states, state],
     }));
   }
@@ -124,7 +128,7 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
       pdfUrl: form.pdfUrl,
       imageUrl: form.imageUrl || null,
       isFeatured: form.isFeatured,
-      states: form.allStates ? ['all'] : form.states,
+      states: form.others ? ['others'] : form.allStates ? ['all'] : form.states,
       status: form.status,
     };
 
@@ -323,9 +327,26 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
               <input
                 type="checkbox"
                 checked={form.allStates}
-                onChange={(e) => setForm((f) => ({ ...f, allStates: e.target.checked }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, allStates: e.target.checked, others: e.target.checked ? false : f.others }))
+                }
               />
               Central Circular
+            </label>
+            <label className="flex items-center gap-2 text-sm mb-2">
+              <input
+                type="checkbox"
+                checked={form.others}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    others: e.target.checked,
+                    allStates: e.target.checked ? false : f.allStates,
+                    states: e.target.checked ? [] : f.states,
+                  }))
+                }
+              />
+              Others (news report, analysis, calculator — not state-specific)
             </label>
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               {STATE_OPTIONS.map((s) => (

@@ -121,12 +121,14 @@ export default async function CircularDetailPage({
               })}
             </dd>
           </div>
-          <div>
-            <dt className="text-ink/50">Applies to</dt>
-            <dd className="text-ink">
-              {circular.states.includes('all') ? 'All states' : circular.states.join(', ')}
-            </dd>
-          </div>
+          {!circular.states.includes('others') && (
+            <div>
+              <dt className="text-ink/50">Applies to</dt>
+              <dd className="text-ink">
+                {circular.states.includes('all') ? 'All states' : circular.states.join(', ')}
+              </dd>
+            </div>
+          )}
         </dl>
 
         <div
