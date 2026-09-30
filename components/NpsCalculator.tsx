@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { projectNps, type NpsInput, type NpsResult } from '@/lib/nps';
+import { projectNps, toTodaysRupees, type NpsInput, type NpsResult } from '@/lib/nps';
 
 function formatRupees(amount: number): string {
   return `₹${Math.round(amount).toLocaleString('en-IN')}`;
@@ -33,6 +33,11 @@ type Computed = {
   base: Extract<NpsResult, { ok: true }>;
   scenarios: { label: string; returnPercent: number; corpus: number; pension: number }[];
   input: NpsInput;
+  inflationPercent: number;
+  // Corpus with the pay commission uplift switched off, and how much of the
+  // corpus is just today's corpus compounding — the "what drives this" note.
+  corpusWithoutUplift: number;
+  presentCorpusShare: number;
 };
 
 export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: number }) {
@@ -44,7 +49,8 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
   const [commissionReflected, setCommissionReflected] = useState(false);
 
   // Assumptions: sensible defaults, editable.
-  const [annualReturn, setAnnualReturn] = useState('9');
+  const [annualReturn, setAnnualReturn] = useState('8');
+  const [inflation, setInflation] = useState('5');
   const [increment, setIncrement] = useState('3');
   const [daRise, setDaRise] = useState('2');
   const [uplift, setUplift] = useState('15');
@@ -103,8 +109,19 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
       };
     });
 
+    const noUplift = projectNps({ ...input, commissionUpliftPercent: 0 }, asOf);
+    const presentGrown =
+      input.presentCorpus * Math.pow(1 + input.annualReturnPercent / 100, base.monthsToRetirement / 12);
+
     setError(null);
-    setComputed({ base, scenarios, input });
+    setComputed({
+      base,
+      scenarios,
+      input,
+      inflationPercent: Number(inflation) || 0,
+      corpusWithoutUplift: noUplift.ok ? noUplift.corpus : base.corpus,
+      presentCorpusShare: base.corpus > 0 ? presentGrown / base.corpus : 0,
+    });
   }
 
   function fail(message: string) {
@@ -113,6 +130,8 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
   }
 
   const r = computed?.base;
+  const today = (amount: number) =>
+    computed && r ? toTodaysRupees(amount, r.monthsToRetirement, computed.inflationPercent) : amount;
 
   return (
     <div>
@@ -120,7 +139,7 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
         <strong className="text-ink">Disclaimer:</strong> NPS returns are market-linked and not guaranteed.
         This is a projection built from the assumptions below (returns, DA, pay commission outcomes and
         annuity rates are all estimates) and is for planning only. Your actual corpus and pension will
-        differ. Figures are in future (nominal) rupees, not today&apos;s purchasing power.
+        differ. The main figures are in future (nominal) rupees; a line below each shows roughly what it is worth in today&apos;s purchasing power.
       </div>
 
       <form onSubmit={calculate} className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-rule p-5 mb-8">
@@ -193,6 +212,10 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
               <input type="number" min="0" step="0.1" value={annualReturn} onChange={(e) => edit(setAnnualReturn)(e.target.value)} className={inputClass} />
             </div>
             <div>
+              <label className={labelClass}>Inflation (% a year, for today&apos;s-rupees figures)</label>
+              <input type="number" min="0" step="0.1" value={inflation} onChange={(e) => edit(setInflation)(e.target.value)} className={inputClass} />
+            </div>
+            <div>
               <label className={labelClass}>Annual increment (%, each 1 July)</label>
               <input type="number" min="0" step="0.1" value={increment} onChange={(e) => edit(setIncrement)(e.target.value)} className={inputClass} />
             </div>
@@ -250,11 +273,13 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
                 <dt className="text-ink/50 mb-1">Corpus at retirement</dt>
                 <dd className="font-serif text-xl text-maroon">{formatRupees(r.corpus)}</dd>
                 <dd className="text-xs text-ink/50">{formatShort(r.corpus)}</dd>
+                <dd className="text-xs text-ink/70 mt-1">≈ {formatShort(today(r.corpus))} in today&apos;s rupees</dd>
               </div>
               <div>
                 <dt className="text-ink/50 mb-1">Lump sum ({100 - computed.input.annuityPercent}%, tax-free)</dt>
                 <dd className="font-serif text-xl text-ink">{formatRupees(r.lumpSum)}</dd>
                 <dd className="text-xs text-ink/50">{formatShort(r.lumpSum)}</dd>
+                <dd className="text-xs text-ink/70 mt-1">≈ {formatShort(today(r.lumpSum))} in today&apos;s rupees</dd>
               </div>
               <div>
                 <dt className="text-ink/50 mb-1">Monthly pension (annuity)</dt>
@@ -262,6 +287,7 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
                 <dd className="text-xs text-ink/50">
                   {formatShort(r.annuityCorpus)} annuity at {computed.input.annuityRatePercent}%
                 </dd>
+                <dd className="text-xs text-ink/70 mt-1">≈ {formatRupees(today(r.monthlyPension))} a month in today&apos;s rupees</dd>
               </div>
             </dl>
             <p className="text-xs text-ink/50">
@@ -273,7 +299,35 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
             </p>
           </div>
 
-          <div className="mb-8">
+          <div className="border border-rule bg-rule/10 p-5 mb-8 text-sm text-ink/80 leading-relaxed">
+            <h2 className="font-serif text-lg font-semibold text-ink mb-2">What drives this number</h2>
+            <ol className="list-decimal pl-5 flex flex-col gap-1.5">
+              <li>
+                <strong className="text-ink">Market return ({computed.input.annualReturnPercent}% a year).</strong>{' '}
+                Not guaranteed — a 2-point lower return gives{' '}
+                {formatShort(computed.scenarios[0].corpus)} instead (see the{' '}
+                <a href="#scenarios" className="underline text-maroon">
+                  scenario table
+                </a>
+                ).
+              </li>
+              <li>
+                <strong className="text-ink">Pay growth.</strong> Increments, DA rises and the pay commissions
+                push your pay from{' '}
+                {formatRupees(computed.input.basicPay * (1 + computed.input.daPercent / 100))} to about{' '}
+                {formatRupees(r.finalTotalPay)} a month. Without the {computed.input.commissionUpliftPercent}%
+                pay commission rise the corpus would be {formatShort(computed.corpusWithoutUplift)}.
+              </li>
+              <li>
+                <strong className="text-ink">Your present corpus.</strong> Today&apos;s{' '}
+                {formatShort(computed.input.presentCorpus)} growing on its own is about{' '}
+                {(computed.presentCorpusShare * 100).toFixed(0)}% of the result; the rest comes from future
+                contributions and their growth.
+              </li>
+            </ol>
+          </div>
+
+          <div id="scenarios" className="mb-8 scroll-mt-6">
             <h2 className="font-serif text-lg font-semibold text-ink mb-3">If returns differ</h2>
             <table className="w-full text-sm border-t border-rule">
               <thead>

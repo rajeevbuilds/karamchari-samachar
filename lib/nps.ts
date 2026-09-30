@@ -193,3 +193,9 @@ export function projectNps(input: NpsInput, asOf: Date): NpsResult {
     rows,
   };
 }
+
+// Deflates a future (nominal) amount into today's purchasing power at an
+// assumed constant annual inflation rate.
+export function toTodaysRupees(amount: number, monthsAway: number, inflationPercent: number): number {
+  return amount / Math.pow(1 + inflationPercent / 100, monthsAway / 12);
+}
