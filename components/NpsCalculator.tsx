@@ -336,6 +336,8 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
               {(r.replacementRatio * 100).toFixed(0)}% of that. Total put in by you and the government from
               now on: {formatShort(r.totalContributions)}; investment growth: {formatShort(r.growth)}. Pay
               commissions assumed in {r.commissions.join(', ')}.
+              {r.upfrontCommission &&
+                ` The 8th Pay Commission (w.e.f. 1 Jan 2026) is applied to your entered Basic: ${formatRupees(r.upfrontCommission.before)} → ${formatRupees(r.upfrontCommission.after)}, with DA reset to 0%.`}
             </p>
           </div>
 

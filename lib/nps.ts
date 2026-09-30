@@ -66,6 +66,7 @@ export type NpsResult =
       totalContributions: number;
       growth: number;
       commissions: number[]; // years in which a commission was applied
+      upfrontCommission: { before: number; after: number } | null; // the 2026 commission applied to the entered Basic
       rows: NpsYearRow[];
     };
 
@@ -114,6 +115,7 @@ export function projectNps(input: NpsInput, asOf: Date): NpsResult {
   let corpus = input.presentCorpus;
   let totalContributions = 0;
   const commissions: number[] = [];
+  let upfrontCommission: { before: number; after: number } | null = null;
 
   // The 2026 commission is not in the entered Basic: apply it now, with
   // contribution arrears for the months elapsed since 1 Jan 2026.
@@ -125,13 +127,13 @@ export function projectNps(input: NpsInput, asOf: Date): NpsResult {
     const arrears = (newBasic - oldTotal) * contributionRate * (asOfIdx - jan2026Idx + 1);
     corpus += arrears;
     totalContributions += arrears;
+    upfrontCommission = { before: input.basicPay, after: newBasic };
     basic = newBasic;
     da = 0;
     commissions.push(FIRST_COMMISSION_YEAR);
   }
 
   const rows: NpsYearRow[] = [];
-  let yearCommission = false;
   const recentBasics: number[] = Array(12).fill(basic);
 
   for (let idx = asOfIdx + 1; idx <= retireIdx; idx++) {
@@ -144,7 +146,6 @@ export function projectNps(input: NpsInput, asOf: Date): NpsResult {
       basic = oldTotal * uplift;
       da = 0;
       commissionThisMonth = true;
-      yearCommission = true;
       commissions.push(year);
     }
     if (month === 6) basic *= 1 + input.annualIncrementPercent / 100;
@@ -163,9 +164,8 @@ export function projectNps(input: NpsInput, asOf: Date): NpsResult {
         basicPay: basic,
         daPercent: da,
         corpus,
-        commissionApplied: yearCommission,
+        commissionApplied: commissions.includes(year),
       });
-      yearCommission = false;
     }
   }
 
@@ -195,6 +195,7 @@ export function projectNps(input: NpsInput, asOf: Date): NpsResult {
     totalContributions,
     growth: corpus - input.presentCorpus - totalContributions,
     commissions,
+    upfrontCommission,
     rows,
   };
 }
