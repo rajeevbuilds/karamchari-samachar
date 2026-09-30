@@ -1,8 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { calculateDeathGratuity, calculateRetirementGratuity } from '@/lib/gratuity';
+import {
+  calculateDeathGratuity,
+  calculateRetirementGratuity,
+  type GratuityInput,
+} from '@/lib/gratuity';
 
 function formatRupees(amount: number): string {
   return `₹${Math.round(amount).toLocaleString('en-IN')}`;
@@ -23,25 +27,48 @@ export default function GratuityCalculator({
   const [years, setYears] = useState('');
   const [months, setMonths] = useState('');
 
-  const input = useMemo(() => {
-    const basic = Number(basicPay);
-    if (!basicPay || !Number.isFinite(basic) || basic <= 0) return null;
-    return {
-      basicPay: basic,
-      daPercent: Number(daPercent) || 0,
-      qualifyingYears: Number(years) || 0,
-      qualifyingMonths: Number(months) || 0,
-      ceiling,
+  // The inputs as they were when "Calculate Gratuity" was pressed. Results
+  // only appear (and update) on that click, and are cleared as soon as any
+  // input changes so a stale figure never sits next to edited values.
+  const [submitted, setSubmitted] = useState<{ mode: Mode; input: GratuityInput } | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  function edit<T>(setter: (v: T) => void) {
+    return (v: T) => {
+      setter(v);
+      setSubmitted(null);
+      setFormError(null);
     };
-  }, [basicPay, daPercent, years, months, ceiling]);
+  }
+
+  function calculate(e: FormEvent) {
+    e.preventDefault();
+    const basic = Number(basicPay);
+    if (!basicPay || !Number.isFinite(basic) || basic <= 0) {
+      setSubmitted(null);
+      setFormError('Enter a valid Basic Pay to calculate.');
+      return;
+    }
+    setFormError(null);
+    setSubmitted({
+      mode,
+      input: {
+        basicPay: basic,
+        daPercent: Number(daPercent) || 0,
+        qualifyingYears: Number(years) || 0,
+        qualifyingMonths: Number(months) || 0,
+        ceiling,
+      },
+    });
+  }
 
   const retirement = useMemo(
-    () => (input && mode === 'retirement' ? calculateRetirementGratuity(input) : null),
-    [input, mode]
+    () => (submitted?.mode === 'retirement' ? calculateRetirementGratuity(submitted.input) : null),
+    [submitted]
   );
   const death = useMemo(
-    () => (input && mode === 'death' ? calculateDeathGratuity(input) : null),
-    [input, mode]
+    () => (submitted?.mode === 'death' ? calculateDeathGratuity(submitted.input) : null),
+    [submitted]
   );
 
   const tabClass = (active: boolean) =>
@@ -65,7 +92,7 @@ export default function GratuityCalculator({
           role="tab"
           aria-selected={mode === 'retirement'}
           className={tabClass(mode === 'retirement')}
-          onClick={() => setMode('retirement')}
+          onClick={() => edit(setMode)('retirement')}
         >
           Retirement Gratuity
         </button>
@@ -74,13 +101,13 @@ export default function GratuityCalculator({
           role="tab"
           aria-selected={mode === 'death'}
           className={tabClass(mode === 'death')}
-          onClick={() => setMode('death')}
+          onClick={() => edit(setMode)('death')}
         >
           Death Gratuity
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-rule p-5 mb-8">
+      <form onSubmit={calculate} className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-rule p-5 mb-8">
         <div>
           <label className="block text-xs font-mono uppercase text-ink/50 mb-1">
             {mode === 'retirement' ? 'Last drawn Basic Pay (₹)' : 'Basic Pay at death (₹)'}
@@ -89,7 +116,7 @@ export default function GratuityCalculator({
             type="number"
             min="0"
             value={basicPay}
-            onChange={(e) => setBasicPay(e.target.value)}
+            onChange={(e) => edit(setBasicPay)(e.target.value)}
             placeholder="e.g. 80000"
             className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon"
           />
@@ -103,7 +130,7 @@ export default function GratuityCalculator({
             min="0"
             step="0.1"
             value={daPercent}
-            onChange={(e) => setDaPercent(e.target.value)}
+            onChange={(e) => edit(setDaPercent)(e.target.value)}
             className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon"
           />
         </div>
@@ -115,7 +142,7 @@ export default function GratuityCalculator({
             type="number"
             min="0"
             value={years}
-            onChange={(e) => setYears(e.target.value)}
+            onChange={(e) => edit(setYears)(e.target.value)}
             className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon"
           />
         </div>
@@ -128,13 +155,27 @@ export default function GratuityCalculator({
             min="0"
             max="11"
             value={months}
-            onChange={(e) => setMonths(e.target.value)}
+            onChange={(e) => edit(setMonths)(e.target.value)}
             className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon"
           />
         </div>
-      </div>
 
-      {input === null && <p className="text-sm text-ink/50 mb-8">Enter Basic Pay to see a result.</p>}
+        <div className="sm:col-span-2 flex items-center gap-4">
+          <button
+            type="submit"
+            className="bg-ink text-paper px-5 py-2.5 text-sm font-medium hover:bg-maroon transition-colors"
+          >
+            Calculate Gratuity
+          </button>
+          {formError && <span className="text-sm text-red-600">{formError}</span>}
+        </div>
+      </form>
+
+      {submitted === null && !formError && (
+        <p className="text-sm text-ink/50 mb-8">
+          Fill in the details above and press &ldquo;Calculate Gratuity&rdquo; to see the result.
+        </p>
+      )}
 
       {retirement && !retirement.eligible && (
         <div className="border border-rule px-5 py-4 mb-8 text-sm text-ink/80 leading-relaxed">
