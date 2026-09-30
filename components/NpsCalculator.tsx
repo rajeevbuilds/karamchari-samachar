@@ -2,7 +2,16 @@
 
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { projectNps, toTodaysRupees, type NpsInput, type NpsResult } from '@/lib/nps';
+import {
+  projectNps,
+  toTodaysRupees,
+  findReturnToReachCorpus,
+  RETIREMENT_AGE,
+  type NpsInput,
+  type NpsResult,
+} from '@/lib/nps';
+import { computeBreakEven, BREAK_EVEN_HORIZON_AGE, type BreakEvenResult } from '@/lib/breakeven';
+import BreakEvenChart from './BreakEvenChart';
 import { calculateUps, type UpsResult } from '@/lib/ups';
 
 function formatRupees(amount: number): string {
@@ -40,6 +49,11 @@ type Computed = {
   corpusWithoutUplift: number;
   presentCorpusShare: number;
   ups: UpsResult;
+  breakEven: BreakEvenResult | null;
+  investReturnPercent: number;
+  // NPS return needed for the whole corpus to buy an annuity as big as the UPS payout.
+  matchReturn: number | null;
+  matchCorpus: number;
 };
 
 type Tab = 'nps' | 'ups';
@@ -56,6 +70,7 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
   // Assumptions: sensible defaults, editable.
   const [annualReturn, setAnnualReturn] = useState('8');
   const [inflation, setInflation] = useState('5');
+  const [investReturn, setInvestReturn] = useState('7');
   const [increment, setIncrement] = useState('3');
   const [daRise, setDaRise] = useState('2');
   const [uplift, setUplift] = useState('15');
@@ -114,6 +129,33 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
       };
     });
 
+    const ups = calculateUps({
+      avgBasicLast12: base.avgBasicLast12,
+      finalTotalPay: base.finalTotalPay,
+      finalDaPercent: base.finalDaPercent,
+      serviceYears: base.serviceYearsAtRetirement,
+    });
+    const investReturnPercent = Number(investReturn) || 0;
+    const breakEven = ups.eligible
+      ? computeBreakEven({
+          npsLumpSum: base.lumpSum,
+          npsMonthlyPension: base.monthlyPension,
+          upsLumpSum: ups.lumpSum,
+          upsAssuredPayout: ups.assuredPayout,
+          upsDaPercentAtRetirement: base.finalDaPercent,
+          retirementDate: base.retirementDate,
+          retirementAge: RETIREMENT_AGE,
+          daRisePerHalfYear: input.daRisePerHalfYear,
+          commissionUpliftPercent: input.commissionUpliftPercent,
+          investReturnPercent,
+        })
+      : null;
+    const matchCorpus =
+      ups.eligible && input.annuityRatePercent > 0
+        ? (ups.payoutWithDr * 12) / (input.annuityRatePercent / 100)
+        : 0;
+    const matchReturn = matchCorpus > 0 ? findReturnToReachCorpus(input, asOf, matchCorpus) : null;
+
     const noUplift = projectNps({ ...input, commissionUpliftPercent: 0 }, asOf);
     const presentGrown =
       input.presentCorpus * Math.pow(1 + input.annualReturnPercent / 100, base.monthsToRetirement / 12);
@@ -126,12 +168,11 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
       inflationPercent: Number(inflation) || 0,
       corpusWithoutUplift: noUplift.ok ? noUplift.corpus : base.corpus,
       presentCorpusShare: base.corpus > 0 ? presentGrown / base.corpus : 0,
-      ups: calculateUps({
-        avgBasicLast12: base.avgBasicLast12,
-        finalTotalPay: base.finalTotalPay,
-        finalDaPercent: base.finalDaPercent,
-        serviceYears: base.serviceYearsAtRetirement,
-      }),
+      ups,
+      breakEven,
+      investReturnPercent,
+      matchReturn,
+      matchCorpus,
     });
   }
 
@@ -254,6 +295,11 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
             <div>
               <label className={labelClass}>Inflation (% a year, for today&apos;s-rupees figures)</label>
               <input type="number" min="0" step="0.1" value={inflation} onChange={(e) => edit(setInflation)(e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Return on an invested lump sum (% a year, UPS vs NPS)</label>
+              <input type="number" min="0" step="0.1" value={investReturn} onChange={(e) => edit(setInvestReturn)(e.target.value)} className={inputClass} />
+              <p className="text-xs text-ink/50 mt-1">Used only for the &ldquo;when does UPS overtake NPS&rdquo; comparison.</p>
             </div>
             <div>
               <label className={labelClass}>Annual increment (%, each 1 July)</label>
@@ -472,7 +518,7 @@ function UpsResultView({
   const ups = computed.ups;
   if (!ups.eligible) return null;
   const annuityRate = computed.input.annuityRatePercent;
-  const matchCorpus = annuityRate > 0 ? (ups.payoutWithDr * 12) / (annuityRate / 100) : 0;
+  const matchCorpus = computed.matchCorpus;
 
   return (
     <>
@@ -562,10 +608,17 @@ function UpsResultView({
           <p className="text-xs text-ink/50 mt-3">
             To match the UPS monthly payout from an annuity at {annuityRate}%, you would need an annuity
             purchase of about {formatShort(matchCorpus)} — your projected NPS corpus is{' '}
-            {formatShort(r.corpus)}, of which only {computed.input.annuityPercent}% goes into the annuity.
+            {formatShort(r.corpus)}, of which only {computed.input.annuityPercent}% goes into the annuity.{' '}
+            {computed.matchReturn === 0
+              ? 'Your corpus already reaches that even with no growth.'
+              : computed.matchReturn === null
+                ? 'No realistic market return would get the corpus there.'
+                : `NPS would need about ${computed.matchReturn.toFixed(1)}% a year (you assumed ${computed.input.annualReturnPercent}%) for the whole corpus to buy an annuity that large.`}
           </p>
         )}
       </div>
+
+      {computed.breakEven && <BreakEvenSection computed={computed} r={r} ups={ups} />}
 
       <div className="border border-rule bg-rule/10 p-5 mb-8 text-sm text-ink/80 leading-relaxed">
         <h2 className="font-serif text-lg font-semibold text-ink mb-2">Things to keep in mind</h2>
@@ -594,5 +647,114 @@ function UpsResultView({
         </ul>
       </div>
     </>
+  );
+}
+
+function durationText(months: number): string {
+  const years = Math.floor(months / 12);
+  const rest = months % 12;
+  const parts = [];
+  if (years > 0) parts.push(`${years} year${years === 1 ? '' : 's'}`);
+  if (rest > 0) parts.push(`${rest} month${rest === 1 ? '' : 's'}`);
+  return parts.join(' ') || 'day one';
+}
+
+function BreakEvenSection({
+  computed,
+  r,
+  ups,
+}: {
+  computed: Computed;
+  r: Extract<NpsResult, { ok: true }>;
+  ups: Extract<UpsResult, { eligible: true }>;
+}) {
+  const be = computed.breakEven;
+  if (!be) return null;
+  const retirementYear = Number(r.retirementDate.slice(0, 4));
+
+  const when = (months: number | null) => {
+    if (months === null) return `Not before age ${BREAK_EVEN_HORIZON_AGE}`;
+    if (months === 0) return 'From day one';
+    return `${durationText(months)} after retiring`;
+  };
+  const whenSub = (months: number | null) =>
+    months === null || months === 0
+      ? ''
+      : `Age ${(RETIREMENT_AGE + months / 12).toFixed(1)} · ${retirementYear + Math.floor(months / 12)}`;
+
+  const ahead = be.lumpSumGap <= 0;
+
+  return (
+    <div className="mb-8">
+      <h2 className="font-serif text-lg font-semibold text-ink mb-1">When does UPS overtake NPS?</h2>
+      <p className="text-sm text-ink/70 mb-4 max-w-prose">
+        {ahead
+          ? `On your numbers the UPS lump sum is not smaller than the NPS lump sum, so UPS is ahead from the start.`
+          : `NPS pays ${formatShort(be.lumpSumGap)} more as a lump sum on day one, but UPS pays ${formatRupees(be.startingMonthlyEdge)} more every month (and its Dearness Relief keeps rising, while an NPS annuity stays fixed). This is how long the extra monthly payout takes to make up the lump-sum difference.`}
+      </p>
+
+      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mb-5">
+        <div className="border border-rule p-4">
+          <dt className="text-ink/50 mb-1">Plain — no interest on the lump sum</dt>
+          <dd className="font-serif text-xl text-maroon">{when(be.plainMonths)}</dd>
+          <dd className="text-xs text-ink/50">{whenSub(be.plainMonths)}</dd>
+        </div>
+        <div className="border border-rule p-4">
+          <dt className="text-ink/50 mb-1">If the NPS lump-sum gap is invested at {computed.investReturnPercent}%</dt>
+          <dd className="font-serif text-xl text-maroon">{when(be.investedMonths)}</dd>
+          <dd className="text-xs text-ink/50">{whenSub(be.investedMonths)}</dd>
+        </div>
+      </dl>
+
+      {!ahead && (
+        <BreakEvenChart
+          points={be.points}
+          retirementAge={RETIREMENT_AGE}
+          retirementYear={retirementYear}
+          investReturnPercent={computed.investReturnPercent}
+          plainMonths={be.plainMonths}
+          investedMonths={be.investedMonths}
+        />
+      )}
+
+      {!ahead && (
+        <details className="mt-3">
+          <summary className="cursor-pointer text-sm font-medium text-ink">Show the same figures as a table</summary>
+          <div className="overflow-x-auto mt-2">
+            <table className="w-full text-sm border-t border-rule">
+              <thead>
+                <tr className="border-b border-rule text-left text-ink/50 font-mono text-xs uppercase">
+                  <th className="py-2 pr-3 font-medium">Age</th>
+                  <th className="py-2 pr-3 font-medium">Year</th>
+                  <th className="py-2 pr-3 font-medium">UPS monthly payout</th>
+                  <th className="py-2 pr-3 font-medium">UPS advantage (no interest)</th>
+                  <th className="py-2 font-medium">UPS advantage (invested)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {be.points
+                  .filter((p) => p.monthsAfter % 60 === 0 || p.monthsAfter === be.horizonMonths)
+                  .map((p) => (
+                    <tr key={p.monthsAfter} className="border-b border-rule/60">
+                      <td className="py-2 pr-3">{RETIREMENT_AGE + p.monthsAfter / 12}</td>
+                      <td className="py-2 pr-3">{retirementYear + p.monthsAfter / 12}</td>
+                      <td className="py-2 pr-3">{formatRupees(p.upsPayout)}</td>
+                      <td className="py-2 pr-3">{p.plain < 0 ? '−' : ''}{formatShort(Math.abs(p.plain))}</td>
+                      <td className="py-2">{p.invested < 0 ? '−' : ''}{formatShort(Math.abs(p.invested))}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
+
+      <p className="text-xs text-ink/50 mt-3">
+        Assumes the UPS payout is revised at each pay commission (+{computed.input.commissionUpliftPercent}%, with DR
+        reset) and Dearness Relief rises {computed.input.daRisePerHalfYear} points every Jan and Jul, through
+        age {BREAK_EVEN_HORIZON_AGE}. The NPS annuity is fixed. The 60% family pension UPS pays a spouse is not
+        counted, and neither is tax. The UPS lump sum here is {formatShort(ups.lumpSum)}.
+      </p>
+    </div>
   );
 }

@@ -205,3 +205,24 @@ export function projectNps(input: NpsInput, asOf: Date): NpsResult {
 export function toTodaysRupees(amount: number, monthsAway: number, inflationPercent: number): number {
   return amount / Math.pow(1 + inflationPercent / 100, monthsAway / 12);
 }
+
+// The annual return at which the projected NPS corpus would be large enough
+// to buy an annuity worth `targetCorpus` (e.g. the corpus needed to match a
+// UPS payout). Returns 0 if the corpus already suffices at 0%, and null if it
+// is not reachable even at 40% a year.
+export function findReturnToReachCorpus(input: NpsInput, asOf: Date, targetCorpus: number): number | null {
+  const corpusAt = (rate: number) => {
+    const r = projectNps({ ...input, annualReturnPercent: rate }, asOf);
+    return r.ok ? r.corpus : 0;
+  };
+  if (corpusAt(0) >= targetCorpus) return 0;
+  if (corpusAt(40) < targetCorpus) return null;
+  let lo = 0;
+  let hi = 40;
+  for (let i = 0; i < 30; i++) {
+    const mid = (lo + hi) / 2;
+    if (corpusAt(mid) >= targetCorpus) hi = mid;
+    else lo = mid;
+  }
+  return hi;
+}
