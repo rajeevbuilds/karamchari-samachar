@@ -1,6 +1,6 @@
 import { requireAdmin } from '@/lib/auth';
 import { getAllCircularsAdmin } from '@/lib/data';
-import PostsManager from '@/components/admin/PostsManager';
+import PostsList from '@/components/admin/PostsList';
 
 export const metadata = {
   title: 'All Posts — Admin',
@@ -13,7 +13,7 @@ export default async function AdminPostsPage() {
   return (
     <>
       <h1 className="font-serif text-3xl font-semibold text-ink mb-8">All Posts</h1>
-      <PostsManager initialCirculars={circulars} />
+      <PostsList initialCirculars={circulars} />
     </>
   );
 }

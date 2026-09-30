@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV = [
+  { href: '/admin/new', label: 'Add New Post' },
   { href: '/admin/posts', label: 'All Posts' },
   { href: '/admin/views', label: 'Post Views' },
   { href: '/admin/media', label: 'Media' },

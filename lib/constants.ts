@@ -1,3 +1,4 @@
+import type { Circular } from './data';
 // Shared constants with no dependencies on the database layer, so they can
 // be safely imported from client components (e.g. the admin dashboard)
 // without pulling mysql2 into the browser bundle.
@@ -33,3 +34,16 @@ export const SECTION_OPTIONS = [
 ] as const;
 
 export type SectionSlug = (typeof SECTION_OPTIONS)[number]['value'];
+
+export const CATEGORY_OPTIONS: { value: Circular['category']; label: string }[] = [
+  { value: 'da', label: 'Dearness Allowance' },
+  { value: 'pay', label: 'Pay Commission' },
+  { value: 'transfer', label: 'Transfer & Posting' },
+  { value: 'recruitment', label: 'Recruitment' },
+  { value: 'pension', label: 'Pension & Medical' },
+  { value: 'general', label: 'General' },
+];
+
+export const CATEGORY_LABEL: Record<Circular['category'], string> = Object.fromEntries(
+  CATEGORY_OPTIONS.map((c) => [c.value, c.label])
+) as Record<Circular['category'], string>;

@@ -1,26 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useState, type FormEvent } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { AdminCircular, Circular } from '@/lib/data';
-import { STATE_OPTIONS, SECTION_OPTIONS } from '@/lib/constants';
+import { STATE_OPTIONS, SECTION_OPTIONS, CATEGORY_OPTIONS } from '@/lib/constants';
 import { summaryToEditorHtml } from '@/lib/summary';
 import { apiFetch } from './apiFetch';
 import MediaLibrary from './MediaLibrary';
 import RichTextEditor from './RichTextEditor';
-
-const CATEGORY_OPTIONS: { value: Circular['category']; label: string }[] = [
-  { value: 'da', label: 'Dearness Allowance' },
-  { value: 'pay', label: 'Pay Commission' },
-  { value: 'transfer', label: 'Transfer & Posting' },
-  { value: 'recruitment', label: 'Recruitment' },
-  { value: 'pension', label: 'Pension & Medical' },
-  { value: 'general', label: 'General' },
-];
-
-const CATEGORY_LABEL: Record<Circular['category'], string> = Object.fromEntries(
-  CATEGORY_OPTIONS.map((c) => [c.value, c.label])
-) as Record<Circular['category'], string>;
 
 // Current date+time in IST ("YYYY-MM-DDTHH:mm", for a datetime-local input),
 // computed from the browser's clock — never the server's, since GoDaddy's
@@ -49,17 +37,38 @@ function makeEmptyForm() {
   };
 }
 
-// Posts section of the admin panel: add/edit form + list of circulars.
-export default function PostsManager({ initialCirculars }: { initialCirculars: AdminCircular[] }) {
-  const searchParams = useSearchParams();
-  const [circulars, setCirculars] = useState(initialCirculars);
+function formFromCircular(c: AdminCircular) {
+  return {
+    title: c.title,
+    category: c.category,
+    sections: c.sections,
+    // Rows saved before posted_at existed fall back to issueDate at
+    // midnight — editable, but left alone unless the admin changes it.
+    postedAt: c.postedAt ? c.postedAt.slice(0, 16).replace(' ', 'T') : `${c.issueDate}T00:00`,
+    summary: summaryToEditorHtml(c.summary),
+    pdfUrl: c.pdfUrl ?? '',
+    imageUrl: c.imageUrl ?? '',
+    isFeatured: c.isFeatured,
+    states: c.states.includes('all') ? [] : c.states,
+    allStates: c.states.includes('all'),
+    status: c.status,
+  };
+}
+
+// Add / edit form for a single circular. With no `initialCircular` it is the
+// "Add New Post" form; with one it edits that circular and returns to the
+// All Posts list after saving.
+export default function PostForm({ initialCircular }: { initialCircular?: AdminCircular }) {
+  const router = useRouter();
+  const editingId = initialCircular?.id ?? null;
   // Bumped whenever the form loads different content, to remount the
   // (uncontrolled) rich-text editor with it.
   const [editorKey, setEditorKey] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  const [form, setForm] = useState(makeEmptyForm);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [form, setForm] = useState(() =>
+    initialCircular ? formFromCircular(initialCircular) : makeEmptyForm()
+  );
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -70,75 +79,7 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
     return () => window.clearTimeout(timer);
   }, [successMessage]);
 
-  // Opened via a "?edit=<id>" link, e.g. the Edit button on a circular's
-  // public detail page. Guarded against re-firing for the same id (e.g. if
-  // useSearchParams() ever hands back a new object reference for the same
-  // URL) so this can never re-trigger startEdit in a loop.
-  const lastEditParamRef = useRef<string | null>(null);
-  useEffect(() => {
-    const editParam = searchParams.get('edit');
-    if (!editParam || editParam === lastEditParamRef.current) return;
-    lastEditParamRef.current = editParam;
-    const match = circulars.find((c) => c.id === Number(editParam));
-    if (match) startEdit(match);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
-
-  // Hard rate-limit: refreshCirculars is only ever meant to run once right
-  // after a save/delete, but this guard makes a runaway loop structurally
-  // impossible regardless of what triggers it, and logs a stack trace for
-  // any call that gets suppressed so a repeat of this is diagnosable from
-  // the browser console alone.
-  const refreshInFlightRef = useRef(false);
-  const lastRefreshAtRef = useRef(0);
-  const MIN_REFRESH_INTERVAL_MS = 1000;
-
-  async function refreshCirculars() {
-    const now = Date.now();
-    if (refreshInFlightRef.current || now - lastRefreshAtRef.current < MIN_REFRESH_INTERVAL_MS) {
-      console.warn(
-        '[PostsManager] refreshCirculars() call suppressed by rate limit — this should never fire from normal use. Stack:',
-        new Error().stack
-      );
-      return;
-    }
-    refreshInFlightRef.current = true;
-    lastRefreshAtRef.current = now;
-    try {
-      const res = await apiFetch('/api/admin/circulars');
-      if (res.ok) {
-        const data = await res.json();
-        setCirculars(data.circulars);
-      }
-    } finally {
-      refreshInFlightRef.current = false;
-    }
-  }
-
-  function startEdit(c: AdminCircular) {
-    setEditingId(c.id);
-    setForm({
-      title: c.title,
-      category: c.category,
-      sections: c.sections,
-      // Rows saved before posted_at existed fall back to issueDate at
-      // midnight — editable, but left alone unless the admin changes it.
-      postedAt: c.postedAt ? c.postedAt.slice(0, 16).replace(' ', 'T') : `${c.issueDate}T00:00`,
-      summary: summaryToEditorHtml(c.summary),
-      pdfUrl: c.pdfUrl ?? '',
-      imageUrl: c.imageUrl ?? '',
-      isFeatured: c.isFeatured,
-      states: c.states.includes('all') ? [] : c.states,
-      allStates: c.states.includes('all'),
-      status: c.status,
-    });
-    setEditorKey((k) => k + 1);
-    setError(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
   function resetForm() {
-    setEditingId(null);
     setForm(makeEmptyForm());
     setEditorKey((k) => k + 1);
     setError(null);
@@ -201,7 +142,10 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
         setError(data.error || 'Something went wrong');
         return;
       }
-      await refreshCirculars();
+      if (editingId) {
+        router.push('/admin/posts');
+        return;
+      }
       resetForm();
       setSuccessMessage(isPublished ? 'Circular published successfully' : 'Saved as draft');
     } catch {
@@ -211,24 +155,9 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
     }
   }
 
-  async function deleteCircularRow(id: number) {
-    if (!confirm('Delete this circular? This cannot be undone.')) return;
-    const res = await apiFetch(`/api/admin/circulars/${id}`, { method: 'DELETE' });
-    if (res.ok) {
-      await refreshCirculars();
-      if (editingId === id) resetForm();
-    } else {
-      const data = await res.json().catch(() => ({}));
-      alert(data.error || 'Failed to delete');
-    }
-  }
-
   return (
     <div>
       <section>
-        <h2 className="font-serif text-xl font-semibold text-ink mb-4">
-          {editingId ? 'Edit Circular' : 'Add Circular'}
-        </h2>
         {successMessage && (
           <div className="border border-leaf bg-leaf/10 text-leaf text-sm font-medium px-4 py-3 mb-4">
             {successMessage}
@@ -420,66 +349,15 @@ export default function PostsManager({ initialCirculars }: { initialCirculars: A
               disabled={saving}
               className="bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-maroon transition-colors disabled:opacity-50"
             >
-              {saving ? 'Saving…' : editingId ? 'Save Changes' : 'Add Circular'}
+              {saving ? 'Saving…' : editingId ? 'Save Changes' : 'Add Post'}
             </button>
             {editingId && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="text-sm text-ink/60 hover:text-maroon"
-              >
-                Cancel edit
-              </button>
+              <Link href="/admin/posts" className="text-sm text-ink/60 hover:text-maroon self-center">
+                Cancel
+              </Link>
             )}
           </div>
         </form>
-
-        <table className="w-full text-sm border-t border-rule">
-          <thead>
-            <tr className="border-b border-rule text-left text-ink/50 font-mono text-xs uppercase">
-              <th className="py-2 font-medium">Title</th>
-              <th className="py-2 font-medium">Category</th>
-              <th className="py-2 font-medium">Posted</th>
-              <th className="py-2 font-medium" />
-            </tr>
-          </thead>
-          <tbody>
-            {circulars.map((c) => (
-              <tr key={c.id} className="border-b border-rule/60">
-                <td className="py-2.5 pr-4">
-                  {c.status === 'draft' && (
-                    <span className="mr-2 font-mono text-[10px] uppercase tracking-wide text-brass border border-brass px-1.5 py-0.5 align-middle">
-                      Draft
-                    </span>
-                  )}
-                  {c.title}
-                </td>
-                <td className="py-2.5 pr-4 font-mono text-xs text-ink/60">
-                  {CATEGORY_LABEL[c.category]}
-                </td>
-                <td className="py-2.5 pr-4 font-mono text-xs text-ink/60">{c.issueDate}</td>
-                <td className="py-2.5 whitespace-nowrap">
-                  <button onClick={() => startEdit(c)} className="text-maroon hover:underline mr-3">
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => deleteCircularRow(c.id)}
-                    className="text-ink/50 hover:text-red-600"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {circulars.length === 0 && (
-              <tr>
-                <td colSpan={4} className="py-4 text-ink/50">
-                  No circulars yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
       </section>
 
       {pickerOpen && (

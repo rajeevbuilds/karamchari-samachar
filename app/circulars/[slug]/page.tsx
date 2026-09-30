@@ -99,7 +99,7 @@ export default async function CircularDetailPage({
           )}
           {editId && (
             <Link
-              href={`/admin/posts?edit=${editId}`}
+              href={`/admin/new?edit=${editId}`}
               className="font-mono text-xs uppercase tracking-wide text-ink/60 border border-rule px-2 py-1 hover:border-maroon hover:text-maroon transition-colors"
             >
               Edit
