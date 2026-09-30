@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Printer } from 'lucide-react';
 import Link from 'next/link';
 import {
   projectNps,
@@ -60,6 +61,39 @@ type Tab = 'nps' | 'ups';
 
 export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: number }) {
   const [tab, setTab] = useState<Tab>('nps');
+  const [printedOn, setPrintedOn] = useState('');
+  const [host, setHost] = useState('sarkarikaramchari.com');
+
+  // Print support: mark the page so globals.css hides the site header,
+  // footer and bottom nav when printing, and open every collapsed
+  // <details> (year-by-year tables, etc.) for the printout — whether the
+  // user pressed our Print button or Ctrl+P — then put them back.
+  useEffect(() => {
+    document.body.classList.add('calc-print');
+    setHost(window.location.host);
+    const reopened: HTMLDetailsElement[] = [];
+    const before = () => {
+      setPrintedOn(
+        new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+      );
+      document.querySelectorAll('details').forEach((d) => {
+        if (!d.open) {
+          d.open = true;
+          reopened.push(d);
+        }
+      });
+    };
+    const after = () => {
+      reopened.splice(0).forEach((d) => (d.open = false));
+    };
+    window.addEventListener('beforeprint', before);
+    window.addEventListener('afterprint', after);
+    return () => {
+      document.body.classList.remove('calc-print');
+      window.removeEventListener('beforeprint', before);
+      window.removeEventListener('afterprint', after);
+    };
+  }, []);
   const [dob, setDob] = useState('');
   const [doj, setDoj] = useState('');
   const [basicPay, setBasicPay] = useState('');
@@ -192,6 +226,20 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
 
   return (
     <div>
+      {computed && (
+        <PrintHeader
+          title={
+            tab === 'nps'
+              ? 'NPS Corpus & Pension Projection'
+              : 'UPS Pension Projection & UPS vs NPS Comparison'
+          }
+          host={host}
+          printedOn={printedOn}
+          computed={computed}
+          commissionReflected={commissionReflected}
+          retirementDate={computed.base.retirementDate}
+        />
+      )}
       <div className="border border-rule bg-rule/10 px-5 py-4 mb-8 text-sm text-ink/80 leading-relaxed">
         <strong className="text-ink">Disclaimer:</strong> This is a projection built from the assumptions below
         (returns, DA, pay commission outcomes and annuity rates are all estimates) and is for planning only —
@@ -200,7 +248,7 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
         (nominal) rupees; a line below each shows roughly what it is worth in today&apos;s purchasing power.
       </div>
 
-      <div className="flex gap-2 mb-4" role="tablist" aria-label="Pension scheme">
+      <div className="flex gap-2 mb-4 print:hidden" role="tablist" aria-label="Pension scheme">
         <button
           type="button"
           role="tab"
@@ -221,7 +269,7 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
         </button>
       </div>
 
-      <form onSubmit={calculate} className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-rule p-5 mb-8">
+      <form onSubmit={calculate} className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-rule p-5 mb-8 print:hidden">
         <div>
           <label className={labelClass}>Date of birth</label>
           <input type="date" value={dob} onChange={(e) => edit(setDob)(e.target.value)} className={inputClass} />
@@ -340,9 +388,24 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
       </form>
 
       {!computed && !error && (
-        <p className="text-sm text-ink/50 mb-8">
+        <p className="text-sm text-ink/50 mb-8 print:hidden">
           Fill in the details above and press &ldquo;{tab === 'nps' ? 'Calculate NPS Corpus' : 'Calculate UPS Pension'}&rdquo; to see the projection.
         </p>
+      )}
+
+      {r && computed && (
+        <>
+          <div className="flex justify-end mb-4 print:hidden">
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-2 border border-ink text-ink px-4 py-2 text-sm font-medium hover:bg-ink hover:text-paper transition-colors"
+            >
+              <Printer size={16} aria-hidden="true" />
+              Print / Save as PDF
+            </button>
+          </div>
+        </>
       )}
 
       {r && computed && tab === 'nps' && (
@@ -492,7 +555,7 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
         </>
       )}
 
-      <p className="text-xs text-ink/40 mt-8">
+      <p className="text-xs text-ink/40 mt-8 print:hidden">
         See also:{' '}
         <Link href="/calculators/gratuity" className="underline hover:text-maroon">
           Gratuity Calculator
@@ -502,6 +565,14 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
           DA &amp; Pay Commission Tracker
         </Link>
       </p>
+
+      {r && computed && (
+        <div className="hidden print:block border-t border-ink/30 pt-3 mt-8 text-xs text-ink/70 leading-relaxed">
+          <strong className="text-ink">Sarkari Karamchari Samachar</strong> · {host} — this is an estimate for
+          planning only, not an official calculation. Verify with your department&apos;s accounts office / PFRDA
+          before making decisions.
+        </div>
+      )}
     </div>
   );
 }
@@ -755,6 +826,65 @@ function BreakEvenSection({
         age {BREAK_EVEN_HORIZON_AGE}. The NPS annuity is fixed. The 60% family pension UPS pays a spouse is not
         counted, and neither is tax. The UPS lump sum here is {formatShort(ups.lumpSum)}.
       </p>
+    </div>
+  );
+}
+
+// Print-only masthead: site name, what this printout is, when it was made and
+// the inputs it was made from. Hidden on screen.
+function PrintHeader({
+  title,
+  host,
+  printedOn,
+  computed,
+  commissionReflected,
+  retirementDate,
+}: {
+  title: string;
+  host: string;
+  printedOn: string;
+  computed: Computed;
+  commissionReflected: boolean;
+  retirementDate: string;
+}) {
+  const i = computed.input;
+  const rows: [string, string][] = [
+    ['Date of birth', formatDate(i.dob)],
+    ['Date of joining', formatDate(i.doj)],
+    ['Retirement date (age 60)', formatDate(retirementDate)],
+    ['Present Basic Pay', formatRupees(i.basicPay)],
+    ['Current DA rate', `${i.daPercent}%`],
+    ['Present NPS corpus', formatRupees(i.presentCorpus)],
+    [
+      '8th Pay Commission',
+      commissionReflected ? 'Already included in Basic Pay' : 'Applied to Basic Pay from 1 Jan 2026',
+    ],
+    [
+      'Assumptions',
+      `return ${i.annualReturnPercent}% · increment ${i.annualIncrementPercent}% · DA +${i.daRisePerHalfYear} pts each Jan & Jul · pay commission +${i.commissionUpliftPercent}% every 10 years · inflation ${computed.inflationPercent}% · annuity ${i.annuityPercent}% at ${i.annuityRatePercent}%`,
+    ],
+  ];
+
+  return (
+    <div className="hidden print:block mb-6">
+      <div className="border-b-2 border-maroon pb-3 mb-4 flex items-end justify-between gap-6">
+        <div>
+          <p className="font-serif text-2xl font-semibold text-ink leading-tight">Sarkari Karamchari Samachar</p>
+          <p className="text-xs text-ink/60">सरकारी कर्मचारी समाचार · DA, Circulars &amp; Pay Updates · {host}</p>
+        </div>
+        {printedOn && <p className="text-xs text-ink/60 whitespace-nowrap">Prepared on {printedOn}</p>}
+      </div>
+      <h1 className="font-serif text-xl font-semibold text-ink mb-3">{title}</h1>
+      <table className="w-full text-xs border border-rule">
+        <tbody>
+          {rows.map(([label, value]) => (
+            <tr key={label} className="border-b border-rule/60 align-top">
+              <td className="py-1.5 px-2 w-[32%] text-ink/60 bg-rule/20">{label}</td>
+              <td className="py-1.5 px-2 text-ink">{value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

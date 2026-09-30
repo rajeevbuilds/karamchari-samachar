@@ -71,3 +71,33 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Printing a calculator page (body gets .calc-print from the calculator
+   component): drop the site chrome — the calculator adds its own masthead —
+   and keep boxes and table rows from splitting across pages. */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+  body.calc-print {
+    background: #fff !important;
+    padding-bottom: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  body.calc-print header,
+  body.calc-print footer,
+  body.calc-print nav {
+    display: none !important;
+  }
+  body.calc-print tr,
+  body.calc-print figure,
+  body.calc-print dl {
+    break-inside: avoid;
+  }
+  body.calc-print h2 {
+    break-after: avoid;
+  }
+}
