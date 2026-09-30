@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdminAuthenticated } from '@/lib/auth';
-import { updateCircular, deleteCircular } from '@/lib/data';
+import { updateCircular, deleteCircular, describeDbError } from '@/lib/data';
 import { parseCircularInput } from '@/lib/validation';
 
 function parseId(id: string): number | null {
@@ -31,7 +31,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error('PUT /api/admin/circulars/[id] failed', err);
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    return NextResponse.json(
+      { error: `Database error: ${describeDbError(err)}` },
+      { status: 500 }
+    );
   }
 }
 

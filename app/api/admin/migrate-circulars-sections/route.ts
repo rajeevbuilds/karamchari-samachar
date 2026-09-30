@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import mysql from 'mysql2/promise';
 import { isAdminAuthenticated } from '@/lib/auth';
+import { describeDbError } from '@/lib/data';
 
 // One-off migration: adds the `circulars.sections` column (see schema.sql)
 // and backfills it from the old single-value `section` column, so existing
@@ -35,16 +36,26 @@ export async function POST() {
       database: DB_NAME,
     });
 
-    const [rows] = await connection.query(
-      `SELECT COUNT(*) AS cnt FROM information_schema.columns
-       WHERE table_schema = ? AND table_name = 'circulars' AND column_name = 'sections'`,
-      [DB_NAME]
-    );
-    const alreadyExists = (rows as { cnt: number }[])[0].cnt > 0;
+    const columnInfo = async () => {
+      const [rows] = await connection!.query(
+        `SELECT COLUMN_TYPE AS columnType FROM information_schema.columns
+         WHERE table_schema = ? AND table_name = 'circulars' AND column_name = 'sections'`,
+        [DB_NAME]
+      );
+      return (rows as { columnType: string }[])[0];
+    };
+
+    const before = await columnInfo();
+    const alreadyExists = !!before;
 
     if (!alreadyExists) {
       await connection.query('ALTER TABLE circulars ADD COLUMN sections TEXT NULL AFTER section');
+    } else if (before.columnType.toLowerCase() !== 'text') {
+      // A narrower type (e.g. VARCHAR(50)) rejects multi-section values with
+      // "Data too long"; the app stores a comma-separated list, so use TEXT.
+      await connection.query('ALTER TABLE circulars MODIFY COLUMN sections TEXT NULL');
     }
+    const after = await columnInfo();
 
     const [result] = await connection.query(
       `UPDATE circulars SET sections = section
@@ -52,10 +63,16 @@ export async function POST() {
     );
     const backfilled = (result as mysql.ResultSetHeader).affectedRows;
 
-    return NextResponse.json({ ok: true, columnAlreadyExisted: alreadyExists, backfilled });
+    return NextResponse.json({
+      ok: true,
+      columnAlreadyExisted: alreadyExists,
+      columnTypeBefore: before?.columnType ?? null,
+      columnTypeAfter: after.columnType,
+      backfilled,
+    });
   } catch (err) {
     console.error('POST /api/admin/migrate-circulars-sections failed', err);
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    return NextResponse.json({ error: `Database error: ${describeDbError(err)}` }, { status: 500 });
   } finally {
     await connection?.end();
   }

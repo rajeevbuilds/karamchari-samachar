@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdminAuthenticated } from '@/lib/auth';
-import { getAllCircularsAdmin, createCircular } from '@/lib/data';
+import { getAllCircularsAdmin, createCircular, describeDbError } from '@/lib/data';
 import { parseCircularInput } from '@/lib/validation';
 
 export async function GET() {
@@ -33,6 +33,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ id }, { status: 201 });
   } catch (err) {
     console.error('POST /api/admin/circulars failed', err);
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    return NextResponse.json(
+      { error: `Database error: ${describeDbError(err)}` },
+      { status: 500 }
+    );
   }
 }

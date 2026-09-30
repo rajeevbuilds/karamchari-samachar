@@ -109,7 +109,7 @@ const FALLBACK_DA: DaRecord = { effectiveFrom: '', percentage: 0, ordersIssued: 
 // mysql2 connection failures (e.g. ECONNREFUSED) often surface as an
 // AggregateError with an empty top-level message — pull the useful bits
 // (error code, nested errors) out so logs are actually actionable.
-function describeDbError(err: unknown): string {
+export function describeDbError(err: unknown): string {
   if (err instanceof Error) {
     const code = (err as NodeJS.ErrnoException).code;
     const nested = (err as { errors?: unknown[] }).errors;
