@@ -26,6 +26,7 @@ export const MORE_NAV = [
   { href: '/section/pay-commission', label: 'Pay Commission Circulars' },
   { href: '/calculators/pension-ops', label: 'Pension Calculator' },
   { href: '/calculators/gratuity', label: 'Gratuity Calculator' },
+  { href: '/calculators/nps', label: 'NPS Calculator' },
   { href: '/states/punjab', label: 'By State' },
 ];
 

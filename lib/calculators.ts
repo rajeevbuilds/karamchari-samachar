@@ -25,7 +25,14 @@ export const GRATUITY_TOOL: CalculatorTool = {
     'Estimate your retirement gratuity or death gratuity for central government service (CCS Pension Rules, 2021). Enter Basic Pay, DA and qualifying service to get an instant estimate, including the ₹25 lakh ceiling.',
 };
 
+export const NPS_TOOL: CalculatorTool = {
+  href: '/calculators/nps',
+  title: 'NPS Corpus & Pension Calculator',
+  description:
+    'Project your NPS corpus and pension at retirement. Enter your date of birth, date of joining, Basic Pay and present corpus — the estimate builds in yearly increments, DA rises and a pay commission every 10 years.',
+};
+
 // Add future calculators (Commutation, ...) here as they ship.
 export const SECTION_TOOLS: Record<string, CalculatorTool[]> = {
-  calculators: [PENSION_OPS_TOOL, GRATUITY_TOOL],
+  calculators: [PENSION_OPS_TOOL, GRATUITY_TOOL, NPS_TOOL],
 };
