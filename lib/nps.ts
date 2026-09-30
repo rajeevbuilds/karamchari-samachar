@@ -59,6 +59,7 @@ export type NpsResult =
       annuityCorpus: number;
       monthlyPension: number;
       finalBasic: number;
+      avgBasicLast12: number; // average Basic Pay over the last 12 months of service (UPS assured payout base)
       finalDaPercent: number;
       finalTotalPay: number;
       replacementRatio: number; // monthly pension / final Basic + DA
@@ -131,6 +132,7 @@ export function projectNps(input: NpsInput, asOf: Date): NpsResult {
 
   const rows: NpsYearRow[] = [];
   let yearCommission = false;
+  const recentBasics: number[] = Array(12).fill(basic);
 
   for (let idx = asOfIdx + 1; idx <= retireIdx; idx++) {
     const year = Math.floor(idx / 12);
@@ -148,6 +150,8 @@ export function projectNps(input: NpsInput, asOf: Date): NpsResult {
     if (month === 6) basic *= 1 + input.annualIncrementPercent / 100;
     if ((month === 0 || month === 6) && !commissionThisMonth) da += input.daRisePerHalfYear;
 
+    recentBasics.shift();
+    recentBasics.push(basic);
     const contribution = basic * (1 + da / 100) * contributionRate;
     corpus = corpus * (1 + monthlyGrowth) + contribution;
     totalContributions += contribution;
@@ -184,6 +188,7 @@ export function projectNps(input: NpsInput, asOf: Date): NpsResult {
     annuityCorpus,
     monthlyPension,
     finalBasic: basic,
+    avgBasicLast12: recentBasics.reduce((a, b) => a + b, 0) / recentBasics.length,
     finalDaPercent: da,
     finalTotalPay,
     replacementRatio: finalTotalPay > 0 ? monthlyPension / finalTotalPay : 0,

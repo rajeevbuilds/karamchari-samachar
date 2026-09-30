@@ -27,9 +27,9 @@ export const GRATUITY_TOOL: CalculatorTool = {
 
 export const NPS_TOOL: CalculatorTool = {
   href: '/calculators/nps',
-  title: 'NPS Corpus & Pension Calculator',
+  title: 'NPS & UPS Pension Calculator',
   description:
-    'Project your NPS corpus and pension at retirement. Enter your date of birth, date of joining, Basic Pay and present corpus — the estimate builds in yearly increments, DA rises and a pay commission every 10 years.',
+    'Project your NPS corpus and pension at retirement, or your UPS assured payout, and compare the two. Enter your date of birth, date of joining, Basic Pay and present corpus — the estimate builds in yearly increments, DA rises and a pay commission every 10 years.',
 };
 
 // Add future calculators (Commutation, ...) here as they ship.
