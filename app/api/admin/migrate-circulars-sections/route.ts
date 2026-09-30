@@ -11,7 +11,9 @@ import { describeDbError } from '@/lib/data';
 // where DB_HOST=localhost resolves correctly. Safe to call more than once
 // (checks information_schema first, and the backfill only touches rows
 // that still have an empty `sections`); remove this route once confirmed
-// applied.
+// applied. It has no button in the admin UI any more — call it with
+// fetch('/api/admin/migrate-circulars-sections', { method: 'POST' }) from the
+// browser console while logged in to admin if it is ever needed again.
 //
 // Uses a plain connection + query() rather than lib/db's pooled execute() —
 // ALTER TABLE is DDL, which some MySQL versions reject over the

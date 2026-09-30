@@ -3,7 +3,6 @@ import { getAllDaHistoryAdmin, getAllSettings } from '@/lib/data';
 import DaManager from '@/components/admin/DaManager';
 import AdSettings from '@/components/admin/AdSettings';
 import PensionSettings from '@/components/admin/PensionSettings';
-import SectionsMigration from '@/components/admin/SectionsMigration';
 
 export const metadata = {
   title: 'Settings — Admin',
@@ -23,9 +22,6 @@ export default async function AdminSettingsPage() {
       </div>
       <div className="mt-10 pt-10 border-t border-rule">
         <PensionSettings initialSettings={settings} />
-      </div>
-      <div className="mt-10 pt-10 border-t border-rule">
-        <SectionsMigration />
       </div>
     </>
   );
