@@ -867,14 +867,21 @@ function PrintHeader({
 
   return (
     <div className="hidden print:block mb-6">
-      <div className="border-b-2 border-maroon pb-3 mb-4 flex items-end justify-between gap-6">
-        <div>
-          <p className="font-serif text-2xl font-semibold text-ink leading-tight">Sarkari Karamchari Samachar</p>
-          <p className="text-xs text-ink/60">सरकारी कर्मचारी समाचार · DA, Circulars &amp; Pay Updates · {host}</p>
+      {/* Brand header: logo left, domain + tagline right, heavy rule below. */}
+      <div className="flex items-center justify-between gap-6 border-b-4 border-ink pb-3 mb-5">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/logo.webp" alt="SarkariKaramchari.com" className="h-24 w-auto" />
+        <div className="text-right">
+          <p className="font-sans text-4xl font-extrabold text-ink leading-none tracking-tight">
+            sarkarikaramchari.com
+          </p>
+          <p className="mt-3 text-base text-ink/80">सरकारी कर्मचारी समाचार · DA, Circulars &amp; Pay Updates</p>
         </div>
+      </div>
+      <div className="flex items-baseline justify-between gap-6 mb-3">
+        <h1 className="font-serif text-xl font-semibold text-ink">{title}</h1>
         {printedOn && <p className="text-xs text-ink/60 whitespace-nowrap">Prepared on {printedOn}</p>}
       </div>
-      <h1 className="font-serif text-xl font-semibold text-ink mb-3">{title}</h1>
       <table className="w-full text-xs border border-rule">
         <tbody>
           {rows.map(([label, value]) => (
