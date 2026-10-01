@@ -1,5 +1,6 @@
 'use client';
 
+import { forwardRef, useImperativeHandle } from 'react';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
@@ -7,6 +8,7 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableHeader } from '@tiptap/extension-table-header';
 import { TableCell } from '@tiptap/extension-table-cell';
+import { InlineImage } from './inlineImage';
 
 // Minimal WYSIWYG for circular summaries: bold, italic, links, bullet lists.
 // Everything else StarterKit offers is switched off so the editor can only
@@ -14,13 +16,22 @@ import { TableCell } from '@tiptap/extension-table-cell';
 //
 // Uncontrolled: `initialHtml` is read once on mount. Give the component a
 // new `key` to load different content (e.g. when editing another circular).
-export default function RichTextEditor({
-  initialHtml,
-  onChange,
-}: {
-  initialHtml: string;
-  onChange: (html: string) => void;
-}) {
+export type RichTextEditorHandle = {
+  // Inserts an image at the cursor (the position it had when the editor
+  // last had focus). The URL must already be an approved upload/AIRF image.
+  insertImage: (url: string, alt: string) => void;
+};
+
+const RichTextEditor = forwardRef<
+  RichTextEditorHandle,
+  {
+    initialHtml: string;
+    onChange: (html: string) => void;
+    // Called when the toolbar's "Image" button is pressed; the parent opens
+    // its media picker and then calls insertImage().
+    onPickImage?: () => void;
+  }
+>(function RichTextEditor({ initialHtml, onChange, onPickImage }, ref) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -45,6 +56,9 @@ export default function RichTextEditor({
         types: ['paragraph', 'heading'],
         alignments: ['left', 'center', 'right'],
       }),
+      // Inline, so an image lives inside a paragraph and the alignment
+      // buttons can centre it. Base64 is off: only uploaded/AIRF URLs.
+      InlineImage,
       Table.configure({ resizable: false }),
       TableRow,
       TableHeader,
@@ -78,6 +92,22 @@ export default function RichTextEditor({
         : null,
   });
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      insertImage: (url, alt) => {
+        // Its own paragraph, so it sits on its own line (and the alignment
+        // buttons can centre it) instead of trailing the previous sentence.
+        editor
+          ?.chain()
+          .focus()
+          .insertContent({ type: 'paragraph', content: [{ type: 'image', attrs: { src: url, alt } }] })
+          .run();
+      },
+    }),
+    [editor]
+  );
+
   function toggleLink() {
     if (!editor) return;
     if (editor.isActive('link')) {
@@ -103,6 +133,7 @@ export default function RichTextEditor({
           { label: '⇤', title: 'Align left', isActive: active?.alignLeft, onClick: () => editor.chain().focus().setTextAlign('left').run() },
           { label: '⇔', title: 'Align center', isActive: active?.alignCenter, onClick: () => editor.chain().focus().setTextAlign('center').run() },
           { label: '⇥', title: 'Align right', isActive: active?.alignRight, onClick: () => editor.chain().focus().setTextAlign('right').run() },
+          ...(onPickImage ? [{ label: 'Image', title: 'Insert image', onClick: onPickImage }] : []),
           {
             label: 'Table',
             title: 'Insert table',
@@ -142,4 +173,6 @@ export default function RichTextEditor({
       <EditorContent editor={editor} />
     </div>
   );
-}
+});
+
+export default RichTextEditor;

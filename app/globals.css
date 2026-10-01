@@ -63,6 +63,17 @@ body {
   font-weight: 600;
   text-align: left;
 }
+/* Images inserted in the text: never wider than the page, keep proportions. */
+.rich-text img {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+.rich-text img.ProseMirror-selectednode {
+  outline: 2px solid #7E1F35;
+}
 
 @media (prefers-reduced-motion: reduce) {
   * {

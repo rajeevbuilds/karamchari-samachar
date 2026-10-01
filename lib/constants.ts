@@ -47,3 +47,10 @@ export const CATEGORY_OPTIONS: { value: Circular['category']; label: string }[] 
 export const CATEGORY_LABEL: Record<Circular['category'], string> = Object.fromEntries(
   CATEGORY_OPTIONS.map((c) => [c.value, c.label])
 ) as Record<Circular['category'], string>;
+
+// Images we accept anywhere on the site — the post's main image and images
+// inserted inside post text. Public pages render image_url through
+// next/image, which throws on hosts not listed in next.config.js, so only our
+// own uploads and AIRF images are allowed.
+export const IMAGE_URL_PATTERN =
+  /^(\/assets\/uploads\/[a-z0-9-]+\.(jpg|png|webp)|https?:\/\/(www\.)?airfindia\.org\/\S+)$/i;

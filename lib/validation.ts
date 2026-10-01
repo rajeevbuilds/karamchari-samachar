@@ -3,13 +3,8 @@
 // and respond 400 with that message.
 
 import type { Circular, CircularWriteInput, DaWriteInput } from './data';
-import { SECTION_OPTIONS } from './constants';
+import { SECTION_OPTIONS, IMAGE_URL_PATTERN } from './constants';
 import { sanitizeSummaryForStorage, summaryText } from './sanitize';
-
-// Public pages render image_url through next/image, which throws on hosts not
-// listed in next.config.js — so only accept our own uploads or AIRF images.
-const IMAGE_URL_PATTERN =
-  /^(\/assets\/uploads\/[a-z0-9-]+\.(jpg|png|webp)|https?:\/\/(www\.)?airfindia\.org\/\S+)$/i;
 
 const VALID_CATEGORIES: Circular['category'][] = [
   'da',

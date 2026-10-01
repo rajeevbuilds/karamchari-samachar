@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { AdminCircular, Circular } from '@/lib/data';
@@ -8,7 +8,7 @@ import { STATE_OPTIONS, SECTION_OPTIONS, CATEGORY_OPTIONS } from '@/lib/constant
 import { summaryToEditorHtml } from '@/lib/summary';
 import { apiFetch } from './apiFetch';
 import MediaLibrary from './MediaLibrary';
-import RichTextEditor from './RichTextEditor';
+import RichTextEditor, { type RichTextEditorHandle } from './RichTextEditor';
 
 // Current date+time in IST ("YYYY-MM-DDTHH:mm", for a datetime-local input),
 // computed from the browser's clock — never the server's, since GoDaddy's
@@ -68,6 +68,9 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
   // (uncontrolled) rich-text editor with it.
   const [editorKey, setEditorKey] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // What the picker is for: the post's main image, or an image placed inside the text.
+  const [pickerMode, setPickerMode] = useState<'cover' | 'inline'>('cover');
+  const editorRef = useRef<RichTextEditorHandle>(null);
 
   const [form, setForm] = useState(() =>
     initialCircular ? formFromCircular(initialCircular) : makeEmptyForm()
@@ -253,8 +256,13 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
             <label className="block text-xs font-mono uppercase text-ink/50 mb-1">Summary</label>
             <RichTextEditor
               key={editorKey}
+              ref={editorRef}
               initialHtml={form.summary}
               onChange={(html) => setForm((f) => ({ ...f, summary: html }))}
+              onPickImage={() => {
+                setPickerMode('inline');
+                setPickerOpen(true);
+              }}
             />
           </div>
 
@@ -284,7 +292,10 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
               />
               <button
                 type="button"
-                onClick={() => setPickerOpen(true)}
+                onClick={() => {
+                  setPickerMode('cover');
+                  setPickerOpen(true);
+                }}
                 className="shrink-0 border border-ink px-3 py-2 text-sm text-ink hover:bg-ink hover:text-paper transition-colors"
               >
                 Choose image
@@ -391,7 +402,9 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
         >
           <div className="bg-paper w-full max-w-4xl mt-8 p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-serif text-xl font-semibold text-ink">Choose image</h2>
+              <h2 className="font-serif text-xl font-semibold text-ink">
+                {pickerMode === 'inline' ? 'Insert image into the text' : 'Choose image'}
+              </h2>
               <button
                 type="button"
                 onClick={() => setPickerOpen(false)}
@@ -402,8 +415,14 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
             </div>
             <MediaLibrary
               onSelect={(url) => {
-                setForm((f) => ({ ...f, imageUrl: url }));
                 setPickerOpen(false);
+                if (pickerMode === 'inline') {
+                  // Placed at the cursor the editor had when "Image" was pressed.
+                  const alt = window.prompt('Short description of the image (optional)')?.trim() ?? '';
+                  editorRef.current?.insertImage(url, alt);
+                } else {
+                  setForm((f) => ({ ...f, imageUrl: url }));
+                }
               }}
             />
           </div>
