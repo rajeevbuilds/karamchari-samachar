@@ -3,6 +3,10 @@ import type { Circular } from '@/lib/data';
 import CompactCircularRow from './CompactCircularRow';
 import FeaturedCircularCard from './FeaturedCircularCard';
 
+// How many posts the showcase displays (hero + 3 + 8). The homepage reads
+// this to know which posts are already on screen above its section blocks.
+export const HOME_LATEST_COUNT = 12;
+
 // Hero + dense compact-row layout for a list of circulars: the most recent
 // as a FeaturedCircularCard, the next 3 stacked below it (left column), and
 // the following 8 as an independent stacked list (right column). Shared by
@@ -20,7 +24,7 @@ export default function CircularsShowcase({
   // 1 hero + 3 under it + 8 in the right column: the right column's rows are
   // much shorter than the hero card, so 8 of them roughly match the height
   // of the left column.
-  const latest = circulars.slice(0, 12);
+  const latest = circulars.slice(0, HOME_LATEST_COUNT);
   const [featured, ...rest] = latest;
   const leftRest = rest.slice(0, 3);
   const rightList = rest.slice(3, 11);
