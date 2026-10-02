@@ -3,6 +3,12 @@ import Image from 'next/image';
 import MainNav from './MainNav';
 import HamburgerMenu from './mobile/HamburgerMenu';
 
+// The two information pages readers look for most; all five are in the footer.
+const TOP_BAR_LINKS = [
+  { href: '/about', label: 'About Us' },
+  { href: '/contact', label: 'Contact Us' },
+];
+
 function todayFormatted() {
   return new Date().toLocaleDateString('en-IN', {
     weekday: 'long',
@@ -18,7 +24,14 @@ export default function Header() {
       <div className="bg-ink text-paper/80 text-xs">
         <div className="mx-auto max-w-[1200px] px-4 py-1.5 flex items-center justify-between">
           <span className="font-mono">{todayFormatted()}</span>
-          <span className="font-mono hidden sm:inline">Central &amp; State Government Employee News</span>
+          <span className="font-mono hidden lg:inline">Central &amp; State Government Employee News</span>
+          <nav aria-label="About and contact" className="flex items-center gap-4 font-mono">
+            {TOP_BAR_LINKS.map((link) => (
+              <Link key={link.href} href={link.href} className="hover:text-paper hover:underline">
+                {link.label}
+              </Link>
+            ))}
+          </nav>
         </div>
       </div>
       <div className="mx-auto max-w-[1200px] px-4 pt-4">

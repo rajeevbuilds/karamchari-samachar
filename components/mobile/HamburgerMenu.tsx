@@ -22,6 +22,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { PRIMARY_NAV, MORE_NAV, isActive } from '../MainNav';
+import { INFO_LINKS } from '@/lib/site';
 
 const ICONS: Record<string, LucideIcon> = {
   '/': Home,
@@ -117,6 +118,21 @@ export default function HamburgerMenu() {
                   </li>
                 );
               })}
+            </ul>
+            <p className="px-4 pt-4 pb-1 font-mono text-[11px] uppercase tracking-wide text-ink/50">More info</p>
+            <ul className="pb-4">
+              {INFO_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className={`block px-4 py-2.5 text-sm border-b border-rule/60 ${
+                      isActive(pathname, link.href) ? 'text-maroon font-bold' : 'text-ink/70'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
