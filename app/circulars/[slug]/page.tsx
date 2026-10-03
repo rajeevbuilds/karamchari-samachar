@@ -7,6 +7,7 @@ import { isAdminAuthenticated } from '@/lib/auth';
 import { resolveOgImageUrl } from '@/lib/uploads';
 import AdSlot from '@/components/AdSlot';
 import JsonLd from '@/components/JsonLd';
+import ShareButtons from '@/components/ShareButtons';
 import { SECTION_OPTIONS } from '@/lib/constants';
 import { SITE_LOGO_URL, SITE_NAME, SITE_URL } from '@/lib/site';
 
@@ -170,6 +171,10 @@ export default async function CircularDetailPage({
           {circular.title}
         </h1>
 
+        <div className="mb-5">
+          <ShareButtons url={`${SITE_URL}/circulars/${circular.slug}`} title={circular.title} />
+        </div>
+
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm border-y border-rule py-4 mb-6 font-mono">
           <div>
             <dt className="text-ink/50">Date of Posting</dt>
@@ -206,6 +211,10 @@ export default async function CircularDetailPage({
             View original order (PDF) →
           </a>
         )}
+
+        <div className="mt-8 border-t border-rule pt-5">
+          <ShareButtons url={`${SITE_URL}/circulars/${circular.slug}`} title={circular.title} label="Share this post at the end" />
+        </div>
 
         <div className="mt-8">
           <AdSlot code={settings.ad_in_article} slot="in_article" />
