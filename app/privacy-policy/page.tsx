@@ -3,7 +3,8 @@ import InfoPage from '@/components/InfoPage';
 import { LEGAL_LAST_UPDATED, SITE_NAME, SITE_DOMAIN } from '@/lib/site';
 
 export const metadata = {
-  title: `Privacy Policy — ${SITE_NAME}`,
+  title: 'Privacy Policy',
+  alternates: { canonical: '/privacy-policy' },
   description: `How ${SITE_NAME} handles information when you visit ${SITE_DOMAIN}.`,
 };
 

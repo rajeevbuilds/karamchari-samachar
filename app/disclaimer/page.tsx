@@ -3,7 +3,8 @@ import InfoPage from '@/components/InfoPage';
 import { LEGAL_LAST_UPDATED, SITE_NAME, SITE_DOMAIN } from '@/lib/site';
 
 export const metadata = {
-  title: `Disclaimer — ${SITE_NAME}`,
+  title: 'Disclaimer',
+  alternates: { canonical: '/disclaimer' },
   description: `Important notes on the information and calculators published on ${SITE_DOMAIN}.`,
 };
 

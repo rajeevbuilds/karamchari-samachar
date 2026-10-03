@@ -3,7 +3,8 @@ import InfoPage from '@/components/InfoPage';
 import { LEGAL_LAST_UPDATED, SITE_NAME, SITE_DOMAIN } from '@/lib/site';
 
 export const metadata = {
-  title: `Terms & Conditions — ${SITE_NAME}`,
+  title: 'Terms & Conditions',
+  alternates: { canonical: '/terms' },
   description: `The terms for using ${SITE_DOMAIN}.`,
 };
 

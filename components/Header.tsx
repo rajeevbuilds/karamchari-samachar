@@ -48,9 +48,9 @@ export default function Header() {
       <div className="relative mx-auto max-w-[1200px] pl-14 pr-4 py-5 md:px-4">
         <HamburgerMenu />
         <Link href="/" className="block">
-          <h1 className="font-serif text-[clamp(28px,5vw,40px)] font-semibold text-ink tracking-tight">
+          <p className="font-serif text-[clamp(28px,5vw,40px)] font-semibold text-ink tracking-tight">
             Sarkari Karamchari Samachar
-          </h1>
+          </p>
           <p className="mt-1 text-sm text-ink/60">
             कर्मचारी समाचार — DA, Circulars &amp; Pay Updates
           </p>

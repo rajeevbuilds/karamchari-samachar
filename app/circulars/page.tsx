@@ -8,7 +8,10 @@ import { summaryPreviewText } from '@/lib/sanitize';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'All Circulars — Karamchari Samachar',
+  title: 'All Circulars',
+  description:
+    'Every circular, order and notification published on Sarkari Karamchari Samachar, newest first — Railway Board, DOPT, Finance Ministry, Defence, pay commission and more.',
+  alternates: { canonical: '/circulars' },
 };
 
 export default async function CircularsPage() {

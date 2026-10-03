@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import CircularsShowcase from '@/components/CircularsShowcase';
+import JsonLd from '@/components/JsonLd';
+import { SITE_URL } from '@/lib/site';
 import SidebarWidgets from '@/components/SidebarWidgets';
 import { getAllCirculars, getCircularsBySection } from '@/lib/data';
 import { SECTION_OPTIONS } from '@/lib/constants';
@@ -15,7 +17,12 @@ const SECTION_TOOLS_INTRO: Record<string, string> = {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const section = SECTION_OPTIONS.find((s) => s.value === slug);
-  return { title: section ? `${section.label} — Karamchari Samachar` : 'Karamchari Samachar' };
+  if (!section) return {};
+  return {
+    title: section.label,
+    description: `Latest ${section.label} — circulars, orders, news and updates for central and state government employees and pensioners, with links to the original documents.`,
+    alternates: { canonical: `/section/${slug}` },
+  };
 }
 
 export default async function SectionPage({
@@ -35,6 +42,16 @@ export default async function SectionPage({
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+            { '@type': 'ListItem', position: 2, name: section.label, item: `${SITE_URL}/section/${slug}` },
+          ],
+        }}
+      />
       <div>
         {tools.length > 0 && (
           <div className="border border-rule p-5 mb-6">
@@ -60,6 +77,7 @@ export default async function SectionPage({
         <CircularsShowcase
           circulars={sectionCirculars.map((c) => ({ ...c, summary: summaryPreviewText(c.summary) }))}
           heading={section.label}
+          headingAs="h1"
         />
       </div>
       <SidebarWidgets circulars={allCirculars} />

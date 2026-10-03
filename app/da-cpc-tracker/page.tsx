@@ -9,7 +9,10 @@ import { summaryPreviewText } from '@/lib/sanitize';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: '8th Pay Commission — Karamchari Samachar',
+  title: '8th Pay Commission',
+  description:
+    'Latest news, circulars and updates on the 8th Pay Commission — terms of reference, fitment factor, DA and what it means for central government employees and pensioners.',
+  alternates: { canonical: '/da-cpc-tracker' },
 };
 
 // The "8th Pay Commission" item in the main menu. Same layout as every
@@ -37,6 +40,7 @@ export default async function DaTrackerPage() {
         <CircularsShowcase
           circulars={sectionCirculars.map((c) => ({ ...c, summary: summaryPreviewText(c.summary) }))}
           heading="8th Pay Commission"
+          headingAs="h1"
         />
       </div>
       <SidebarWidgets circulars={allCirculars} />

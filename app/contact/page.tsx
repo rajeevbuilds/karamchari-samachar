@@ -8,7 +8,8 @@ import { SITE_NAME, whatsappHref } from '@/lib/site';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: `Contact Us — ${SITE_NAME}`,
+  title: 'Contact Us',
+  alternates: { canonical: '/contact' },
   description: `How to reach ${SITE_NAME} with corrections, circulars, feedback or advertising enquiries.`,
 };
 

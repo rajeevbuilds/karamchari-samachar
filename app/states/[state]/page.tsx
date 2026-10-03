@@ -10,6 +10,17 @@ function stateLabel(slug: string) {
     .join(' ');
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ state: string }> }) {
+  const { state } = await params;
+  if (!(STATE_OPTIONS as readonly string[]).includes(state)) return {};
+  const label = stateLabel(state);
+  return {
+    title: `${label} Government Employees — Circulars & Orders`,
+    description: `Central circulars plus orders and notifications specific to ${label} for government employees and pensioners.`,
+    alternates: { canonical: `/states/${state}` },
+  };
+}
+
 export default async function StatePage({
   params,
 }: {

@@ -15,10 +15,13 @@ export const HOME_LATEST_COUNT = 12;
 export default function CircularsShowcase({
   circulars,
   heading,
+  headingAs: Heading = 'h2',
   viewAllHref,
 }: {
   circulars: Circular[];
   heading: string;
+  // The page's main title should be an h1; a block lower down the page an h2.
+  headingAs?: 'h1' | 'h2';
   viewAllHref?: string;
 }) {
   // 1 hero + 3 under it + 8 in the right column: the right column's rows are
@@ -32,7 +35,7 @@ export default function CircularsShowcase({
   return (
     <section className="py-10">
       <div className="flex items-baseline justify-between mb-5 flex-wrap gap-4">
-        <h2 className="font-serif text-2xl font-semibold text-ink">{heading}</h2>
+        <Heading className="font-serif text-2xl font-semibold text-ink">{heading}</Heading>
         {viewAllHref && (
           <Link href={viewAllHref} className="text-sm text-maroon hover:underline">
             View all

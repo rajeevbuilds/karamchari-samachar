@@ -3,7 +3,8 @@ import InfoPage from '@/components/InfoPage';
 import { SITE_NAME, SITE_DOMAIN } from '@/lib/site';
 
 export const metadata = {
-  title: `About Us — ${SITE_NAME}`,
+  title: 'About Us',
+  alternates: { canonical: '/about' },
   description: `About ${SITE_NAME} (${SITE_DOMAIN}): an independent news and information site for central and state government employees and pensioners.`,
 };
 
