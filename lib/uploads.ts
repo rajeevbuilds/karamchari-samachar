@@ -18,7 +18,6 @@ export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 // Facebook/Twitter's standard og:image ratio.
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
-const OG_RATIO = OG_WIDTH / OG_HEIGHT;
 
 // Blocks path traversal and non-image names.
 export const UPLOAD_NAME_PATTERN = /^[a-z0-9-]+\.(jpg|png|webp)$/;
@@ -74,27 +73,29 @@ type UploadRow = { name: string; mime: string; size: number; uploaded_at: string
 // only know the original's URL (e.g. og:image metadata) can look the
 // variant up without a schema change linking the two.
 function ogName(name: string): string {
+  return name.replace(/\.(jpg|png|webp)$/, '-og.jpg');
+}
+
+// Share copies made before they were converted to JPEG kept the original's
+// extension; still cleaned up on delete.
+function legacyOgName(name: string): string {
   return name.replace(/\.(jpg|png|webp)$/, '-og.$1');
 }
 
-// Center-crops `buf` to the 1200x630 og:image ratio and resizes to exactly
-// that size. Returns null (never upscales) when the source, once cropped
-// to the right ratio, would already be smaller than 1200x630 — the
-// original is used as the og:image fallback in that case.
+// Center-crops `buf` to the 1200x630 og:image ratio and re-encodes it as a
+// light JPEG (typically 80-150 KB). Link previews need this: WhatsApp drops
+// preview images much over ~300 KB and Facebook can time out on heavy ones,
+// and a raw PNG screenshot at this size is easily 1-2 MB. A source smaller
+// than 1200x630 is scaled up, so every share image has the declared size.
 async function makeOgVariant(buf: Buffer): Promise<Buffer | null> {
-  const image = sharp(buf);
+  const image = sharp(buf).rotate();
   const metadata = await image.metadata();
-  const width = metadata.width;
-  const height = metadata.height;
-  if (!width || !height) return null;
-
-  const ratio = width / height;
-  const croppedWidth = ratio > OG_RATIO ? height * OG_RATIO : width;
-  const croppedHeight = ratio > OG_RATIO ? height : width / OG_RATIO;
-  if (croppedWidth < OG_WIDTH || croppedHeight < OG_HEIGHT) return null;
+  if (!metadata.width || !metadata.height) return null;
 
   return image
     .resize(OG_WIDTH, OG_HEIGHT, { fit: 'cover', position: 'centre' })
+    .flatten({ background: '#ffffff' })
+    .jpeg({ quality: 80, mozjpeg: true })
     .toBuffer();
 }
 
@@ -119,7 +120,7 @@ export async function saveUpload(file: File): Promise<UploadedImage> {
       const variantName = ogName(name);
       await query(
         'INSERT INTO uploads (name, mime, size, data) VALUES (?, ?, ?, ?)',
-        [variantName, type.mime, variant.length, variant]
+        [variantName, MIME_BY_EXT.jpg, variant.length, variant]
       );
       ogUrl = UPLOAD_URL_PREFIX + variantName;
     }
@@ -154,7 +155,26 @@ export async function resolveOgImageUrl(imageUrl: string | null): Promise<string
     'SELECT name FROM uploads WHERE name = ?',
     [variantName]
   );
-  return rows[0] ? UPLOAD_URL_PREFIX + variantName : null;
+  if (rows[0]) return UPLOAD_URL_PREFIX + variantName;
+
+  // No light share copy yet (the picture predates this, or an older heavy
+  // copy exists): build it once from the original and keep it for next time.
+  try {
+    const original = await query<Array<{ data: Buffer }>>('SELECT data FROM uploads WHERE name = ?', [name]);
+    if (!original[0]) return null;
+    const variant = await makeOgVariant(original[0].data);
+    if (!variant) return null;
+    await query('INSERT IGNORE INTO uploads (name, mime, size, data) VALUES (?, ?, ?, ?)', [
+      variantName,
+      MIME_BY_EXT.jpg,
+      variant.length,
+      variant,
+    ]);
+    return UPLOAD_URL_PREFIX + variantName;
+  } catch (err) {
+    console.error(`Failed to build share image for ${name}`, err);
+    return null;
+  }
 }
 
 export async function listUploads(): Promise<UploadedImage[]> {
@@ -209,7 +229,7 @@ export async function deleteUploads(names: string[]): Promise<DeleteUploadsResul
       continue;
     }
 
-    const res = await query<{ affectedRows: number }>('DELETE FROM uploads WHERE name IN (?, ?)', [name, ogName(name)]);
+    const res = await query<{ affectedRows: number }>('DELETE FROM uploads WHERE name IN (?, ?, ?)', [name, ogName(name), legacyOgName(name)]);
     if (res.affectedRows > 0) result.deleted.push(name);
   }
   return result;
