@@ -344,6 +344,9 @@ export async function getAllDaHistoryAdmin(): Promise<AdminDaRecord[]> {
 
 export type CircularWriteInput = {
   title: string;
+  // Optional hand-written web address (Latin letters, digits, hyphens). Blank
+  // means: new posts derive it from the title, edits keep the current one.
+  slug: string;
   states: string[];
   sections: string[];
   issueDate: string;
@@ -366,12 +369,17 @@ function slugify(title: string): string {
 
 // Checks every row, drafts included: getCircularBySlug only sees published
 // ones, but slug is UNIQUE across the whole table.
-async function uniqueSlug(title: string): Promise<string> {
-  const baseSlug = slugify(title);
+async function uniqueSlug(text: string, ignoreId?: number): Promise<string> {
+  const baseSlug = slugify(text);
   let slug = baseSlug;
   let suffix = 2;
   while (
-    (await query<{ id: number }[]>('SELECT id FROM circulars WHERE slug = ? LIMIT 1', [slug])).length
+    (
+      await query<{ id: number }[]>('SELECT id FROM circulars WHERE slug = ? AND id <> ? LIMIT 1', [
+        slug,
+        ignoreId ?? 0,
+      ])
+    ).length
   ) {
     slug = `${baseSlug}-${suffix++}`;
   }
@@ -379,7 +387,7 @@ async function uniqueSlug(title: string): Promise<string> {
 }
 
 export async function createCircular(input: CircularWriteInput): Promise<number> {
-  const slug = await uniqueSlug(input.title);
+  const slug = await uniqueSlug(input.slug || input.title);
 
   const result = await query<ResultSetHeader>(
     `INSERT INTO circulars
@@ -414,12 +422,15 @@ export async function updateCircular(id: number, input: CircularWriteInput): Pro
   // department is deliberately left out of the SET list — the admin form no
   // longer collects it, and leaving it out (rather than writing '') keeps
   // whatever value an existing row already had.
+  // A blank slug box leaves the existing address alone, so old links keep working.
+  const slug = input.slug ? await uniqueSlug(input.slug, id) : null;
   await query(
     `UPDATE circulars
-     SET title = ?, states = ?, sections = ?, issue_date = ?, posted_at = ?,
+     SET slug = COALESCE(?, slug), title = ?, states = ?, sections = ?, issue_date = ?, posted_at = ?,
          summary = ?, pdf_url = ?, image_url = ?, is_featured = ?, category = ?, status = ?
      WHERE id = ?`,
     [
+      slug,
       input.title,
       input.states.join(','),
       input.sections.join(','),

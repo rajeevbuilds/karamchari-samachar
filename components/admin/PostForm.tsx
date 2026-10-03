@@ -24,6 +24,7 @@ function currentIstDatetimeLocal(): string {
 function makeEmptyForm() {
   return {
     title: '',
+    slug: '',
     category: 'general' as Circular['category'],
     sections: [] as string[],
     postedAt: currentIstDatetimeLocal(),
@@ -42,6 +43,7 @@ function makeEmptyForm() {
 function formFromCircular(c: AdminCircular) {
   return {
     title: c.title,
+    slug: c.slug,
     category: c.category,
     sections: c.sections,
     // Rows saved before posted_at existed fall back to issueDate at
@@ -124,6 +126,7 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
     const isPublished = form.status === 'published';
     const payload = {
       title: form.title,
+      slug: form.slug,
       category: form.category,
       sections: form.sections,
       postedAt: form.postedAt,
@@ -182,6 +185,37 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon"
             />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-mono uppercase text-ink/50 mb-1">
+              Web address (optional)
+            </label>
+            <div className="flex items-center border border-rule focus-within:border-maroon">
+              <span className="px-3 text-sm text-ink/50 whitespace-nowrap">/circulars/</span>
+              <input
+                value={form.slug}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    slug: e.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9-]+/g, '-')
+                      .replace(/-{2,}/g, '-')
+                      .slice(0, 120),
+                  }))
+                }
+                placeholder="unified-cadre-sm-asm-ym-ti"
+                className="w-full px-1 py-2 text-sm bg-transparent focus:outline-none"
+              />
+            </div>
+            <p className="text-xs text-ink/50 mt-1">
+              English letters, numbers and hyphens only. Leave blank to make it from the title
+              (Hindi titles need this box for a readable address).
+              {editingId && initialCircular?.status === 'published' && form.slug !== initialCircular.slug
+                ? ' Changing it breaks the old link for this post.'
+                : ''}
+            </p>
           </div>
 
           <div>
