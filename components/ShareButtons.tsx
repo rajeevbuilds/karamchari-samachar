@@ -8,8 +8,15 @@ type Props = {
   label?: string;
 };
 
-const BUTTON =
-  'inline-flex h-10 w-10 items-center justify-center rounded-full border border-rule text-ink/70 transition-colors hover:border-maroon hover:bg-maroon hover:text-paper focus:outline-none focus-visible:ring-2 focus-visible:ring-maroon';
+const BUTTON_BASE =
+  'inline-flex h-10 w-10 items-center justify-center rounded-full text-white transition-opacity hover:opacity-85 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-maroon';
+// Each service in its own brand colour; the generic actions use the site's ink.
+const BRAND = {
+  WhatsApp: `${BUTTON_BASE} bg-[#25D366]`,
+  Facebook: `${BUTTON_BASE} bg-[#1877F2]`,
+  X: `${BUTTON_BASE} bg-black`,
+  generic: `${BUTTON_BASE} bg-ink`,
+} as const;
 
 function Icon({ children }: { children: React.ReactNode }) {
   return (
@@ -38,7 +45,7 @@ export default function ShareButtons({ url, title, label = 'Share this post' }: 
   const text = encodeURIComponent(`${title}\n${url}`);
   const links = [
     {
-      name: 'WhatsApp',
+      name: 'WhatsApp' as const,
       href: `https://wa.me/?text=${text}`,
       icon: (
         <Icon>
@@ -47,7 +54,7 @@ export default function ShareButtons({ url, title, label = 'Share this post' }: 
       ),
     },
     {
-      name: 'Facebook',
+      name: 'Facebook' as const,
       href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
       icon: (
         <Icon>
@@ -56,7 +63,7 @@ export default function ShareButtons({ url, title, label = 'Share this post' }: 
       ),
     },
     {
-      name: 'X',
+      name: 'X' as const,
       href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
       icon: (
         <Icon>
@@ -90,14 +97,14 @@ export default function ShareButtons({ url, title, label = 'Share this post' }: 
           href={l.href}
           target="_blank"
           rel="noopener noreferrer"
-          className={BUTTON}
+          className={BRAND[l.name]}
           aria-label={`Share on ${l.name}`}
           title={`Share on ${l.name}`}
         >
           {l.icon}
         </a>
       ))}
-      <button type="button" onClick={copyLink} className={BUTTON} aria-label="Copy link" title="Copy link">
+      <button type="button" onClick={copyLink} className={BRAND.generic} aria-label="Copy link" title="Copy link">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5" />
           <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5" />
@@ -107,7 +114,7 @@ export default function ShareButtons({ url, title, label = 'Share this post' }: 
         <button
           type="button"
           onClick={() => navigator.share({ title, url }).catch(() => {})}
-          className={`${BUTTON} sm:hidden`}
+          className={`${BRAND.generic} sm:hidden`}
           aria-label="More sharing options"
           title="More"
         >
