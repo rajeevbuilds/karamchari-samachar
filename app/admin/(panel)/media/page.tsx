@@ -13,7 +13,8 @@ export default async function AdminMediaPage() {
       <h1 className="font-serif text-3xl font-semibold text-ink mb-2">Media</h1>
       <p className="text-sm text-ink/60 mb-8">
         Upload images for circulars, or find one in AIRF&rsquo;s media library. Click an image to copy its
-        URL; in the post form, use <strong>Choose image</strong> to pick one directly.
+        URL; in the post form, use <strong>Choose image</strong> to pick one directly. To delete uploaded
+        images, tick them and press <strong>Delete selected</strong> (images a post still uses are kept).
       </p>
       <MediaLibrary />
     </>

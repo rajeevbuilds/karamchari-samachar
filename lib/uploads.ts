@@ -182,3 +182,35 @@ export async function readUpload(name: string): Promise<{ data: Buffer; mime: st
   );
   return rows[0] ?? null;
 }
+
+export type DeleteUploadsResult = {
+  deleted: string[];
+  // Pictures that were not deleted because a post still uses them.
+  blocked: { name: string; posts: { id: number; title: string }[] }[];
+};
+
+// Deletes uploaded pictures (and each one's hidden social-sharing copy).
+// A picture a post still uses — as its main image, or inside its text, in a
+// draft or a published post — is never deleted: it is reported back so the
+// editor can change those posts first. Unknown or malformed names are ignored.
+export async function deleteUploads(names: string[]): Promise<DeleteUploadsResult> {
+  const result: DeleteUploadsResult = { deleted: [], blocked: [] };
+
+  for (const name of Array.from(new Set(names))) {
+    if (!UPLOAD_NAME_PATTERN.test(name) || /-og\.(jpg|png|webp)$/.test(name)) continue;
+    const url = UPLOAD_URL_PREFIX + name;
+
+    const posts = await query<{ id: number; title: string }[]>(
+      'SELECT id, title FROM circulars WHERE image_url = ? OR summary LIKE ?',
+      [url, `%${url}%`]
+    );
+    if (posts.length > 0) {
+      result.blocked.push({ name, posts: posts.slice(0, 5) });
+      continue;
+    }
+
+    const res = await query<{ affectedRows: number }>('DELETE FROM uploads WHERE name IN (?, ?)', [name, ogName(name)]);
+    if (res.affectedRows > 0) result.deleted.push(name);
+  }
+  return result;
+}

@@ -50,6 +50,9 @@ function UploadsTab({ onSelect }: { onSelect?: (url: string) => void }) {
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
@@ -95,6 +98,55 @@ function UploadsTab({ onSelect }: { onSelect?: (url: string) => void }) {
     }
   }
 
+  function toggle(name: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  }
+
+  async function deleteSelected() {
+    const names = Array.from(selected);
+    if (names.length === 0) return;
+    const label = names.length === 1 ? 'this image' : `these ${names.length} images`;
+    if (!confirm(`Delete ${label} permanently? This cannot be undone.`)) return;
+
+    setDeleting(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await apiFetch('/api/admin/media', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ names }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      const deleted = new Set<string>(data.deleted);
+      setUploads((u) => (u ?? []).filter((x) => !deleted.has(x.name)));
+      setSelected(new Set());
+
+      const blocked: { name: string; posts: { title: string }[] }[] = data.blocked ?? [];
+      const parts: string[] = [];
+      if (deleted.size > 0) parts.push(`Deleted ${deleted.size} image${deleted.size === 1 ? '' : 's'}.`);
+      if (blocked.length > 0) {
+        parts.push(
+          `Not deleted — still used by a post: ${blocked
+            .map((b) => `${b.name} (${b.posts.map((p) => `“${p.title}”`).join(', ')})`)
+            .join('; ')}. Change those posts first, then delete.`
+        );
+      }
+      setNotice(parts.join(' ') || 'Nothing was deleted.');
+    } catch (err) {
+      setError((err as Error).message || 'Delete failed');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   function onDrop(e: DragEvent) {
     e.preventDefault();
     setDragging(false);
@@ -134,16 +186,54 @@ function UploadsTab({ onSelect }: { onSelect?: (url: string) => void }) {
       </div>
 
       {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+      {notice && (
+        <p className="text-sm text-ink/80 border border-rule bg-rule/20 px-3 py-2 mb-4" role="status">
+          {notice}
+        </p>
+      )}
 
       {uploads === null ? (
         <p className="text-sm text-ink/60">Loading uploads…</p>
       ) : uploads.length === 0 ? (
         <p className="text-sm text-ink/60">No uploads yet.</p>
       ) : (
-        <ImageGrid
-          items={uploads.map((u) => ({ key: u.name, url: u.url, thumbUrl: u.url, caption: u.name }))}
-          onSelect={onSelect}
-        />
+        <>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-3 text-sm">
+            <label className="flex items-center gap-2 text-ink/80">
+              <input
+                type="checkbox"
+                checked={selected.size === uploads.length}
+                onChange={(e) => setSelected(e.target.checked ? new Set(uploads.map((u) => u.name)) : new Set())}
+              />
+              Select all
+            </label>
+            {selected.size > 0 && (
+              <>
+                <span className="text-ink/60">{selected.size} selected</span>
+                <button
+                  type="button"
+                  onClick={deleteSelected}
+                  disabled={deleting}
+                  className="bg-red-700 text-white px-3 py-1.5 text-sm font-medium hover:bg-red-800 transition-colors disabled:opacity-50"
+                >
+                  {deleting ? 'Deleting…' : 'Delete selected'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelected(new Set())}
+                  className="text-ink/60 hover:text-maroon"
+                >
+                  Clear
+                </button>
+              </>
+            )}
+          </div>
+          <ImageGrid
+            items={uploads.map((u) => ({ key: u.name, url: u.url, thumbUrl: u.url, caption: u.name }))}
+            onSelect={onSelect}
+            selection={{ selected, onToggle: toggle }}
+          />
+        </>
       )}
     </div>
   );
@@ -229,7 +319,16 @@ function AirfTab({ onSelect }: { onSelect?: (url: string) => void }) {
 
 type GridItem = { key: string; url: string; thumbUrl: string; caption: string };
 
-function ImageGrid({ items, onSelect }: { items: GridItem[]; onSelect?: (url: string) => void }) {
+function ImageGrid({
+  items,
+  onSelect,
+  selection,
+}: {
+  items: GridItem[];
+  onSelect?: (url: string) => void;
+  // When given (My Uploads only), each picture gets a tick box for bulk delete.
+  selection?: { selected: Set<string>; onToggle: (key: string) => void };
+}) {
   const [copied, setCopied] = useState<string | null>(null);
 
   async function copy(url: string) {
@@ -246,7 +345,23 @@ function ImageGrid({ items, onSelect }: { items: GridItem[]; onSelect?: (url: st
   return (
     <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
       {items.map((item) => (
-        <li key={item.key} className="border border-rule bg-white/40">
+        <li
+          key={item.key}
+          className={`relative border bg-white/40 ${
+            selection?.selected.has(item.key) ? 'border-maroon ring-2 ring-maroon' : 'border-rule'
+          }`}
+        >
+          {selection && (
+            <label className="absolute left-2 top-2 z-10 flex h-7 w-7 cursor-pointer items-center justify-center bg-white/95 shadow ring-1 ring-ink/30">
+              <input
+                type="checkbox"
+                className="h-4 w-4 cursor-pointer"
+                checked={selection.selected.has(item.key)}
+                onChange={() => selection.onToggle(item.key)}
+                aria-label={`Select ${item.caption}`}
+              />
+            </label>
+          )}
           <button
             type="button"
             onClick={() => (onSelect ? onSelect(item.url) : copy(item.url))}
