@@ -57,7 +57,9 @@ export async function generateMetadata({
       url: `/circulars/${slug}`,
       title,
       description,
-      images: [{ url: image }],
+      // Declaring the size lets Facebook/WhatsApp render the preview on the very
+      // first scrape instead of waiting to download the picture to measure it.
+      images: [ogVariantUrl ? { url: image, width: 1200, height: 630, alt: title } : { url: image, alt: title }],
       publishedTime: isoDateTime(circular.postedAt, circular.issueDate),
     },
     twitter: {
