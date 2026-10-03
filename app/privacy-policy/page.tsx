@@ -45,8 +45,8 @@ export default function PrivacyPolicyPage() {
 
       <h2>Cookies</h2>
       <p>
-        The site does not set cookies for visitors. A login cookie is used only for the site&apos;s administrators.
-        Third-party services described below may set their own cookies.
+        The site itself does not set cookies for visitors. A login cookie is used only for the site&apos;s administrators.
+        Third-party services described below, such as advertising partners, may set their own cookies.
       </p>
 
       <h2>Advertising</h2>
@@ -62,6 +62,19 @@ export default function PrivacyPolicyPage() {
           aboutads.info
         </a>
         . We do not control, and are not responsible for, how advertisers handle information.
+      </p>
+      <p>
+        Google, as a third-party vendor, uses cookies to serve ads on this site. Google&apos;s use of advertising cookies
+        enables it and its partners to serve ads to you based on your visit to this site and/or other sites on the
+        internet. You may opt out of personalised advertising by visiting{' '}
+        <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer">
+          Google Ads Settings
+        </a>
+        . To learn how Google uses information from sites that use its services, see{' '}
+        <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">
+          How Google uses information from sites or apps that use our services
+        </a>
+        .
       </p>
 
       <h2>Links and images from other websites</h2>
