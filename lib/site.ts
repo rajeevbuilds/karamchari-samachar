@@ -3,6 +3,9 @@
 
 export const SITE_NAME = 'Sarkari Karamchari Samachar';
 export const SITE_DOMAIN = 'sarkarikaramchari.com';
+// Google Analytics 4 measurement ID (public by design; it appears in every page's code).
+export const GA_MEASUREMENT_ID = 'G-3L3WCSQZEN';
+
 export const SITE_URL = `https://${SITE_DOMAIN}`;
 export const SITE_TITLE = `${SITE_NAME} — DA, Circulars & Pay Updates for Government Employees`;
 export const SITE_DESCRIPTION =

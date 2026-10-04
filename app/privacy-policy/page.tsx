@@ -43,10 +43,26 @@ export default function PrivacyPolicyPage() {
         </li>
       </ul>
 
+      <h2>Analytics</h2>
+      <p>
+        We use Google Analytics to understand how visitors use the site, for example which pages are read and which
+        websites send readers to us. Google Analytics uses cookies and similar technologies to collect information such
+        as your approximate location, device and browser type, and the pages you view. It does not tell us your name or
+        contact details. You can opt out with the{' '}
+        <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">
+          Google Analytics opt-out browser add-on
+        </a>
+        , and learn more in{' '}
+        <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">
+          how Google uses information from sites that use its services
+        </a>
+        .
+      </p>
+
       <h2>Cookies</h2>
       <p>
         The site itself does not set cookies for visitors. A login cookie is used only for the site&apos;s administrators.
-        Third-party services described below, such as advertising partners, may set their own cookies.
+        Third-party services, such as Google Analytics and advertising partners, may set their own cookies.
       </p>
 
       <h2>Advertising</h2>

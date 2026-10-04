@@ -6,6 +6,7 @@ import BottomNav from '@/components/mobile/BottomNav';
 import SwipeTransition from '@/components/mobile/SwipeTransition';
 import RegisterServiceWorker from '@/components/RegisterServiceWorker';
 import JsonLd from '@/components/JsonLd';
+import Analytics from '@/components/Analytics';
 import { SITE_DESCRIPTION, SITE_LOGO_URL, SITE_NAME, SITE_TITLE, SITE_URL } from '@/lib/site';
 
 export const viewport: Viewport = {
@@ -59,6 +60,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans antialiased pb-16 md:pb-0">
         <RegisterServiceWorker />
+        <Analytics />
         <JsonLd
           data={[
             {
