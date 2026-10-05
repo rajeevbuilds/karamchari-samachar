@@ -28,7 +28,12 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
   const b = asRecord(body);
 
   const title = String(b.title ?? '').trim();
-  const slug = String(b.slug ?? '').trim().toLowerCase();
+  // Tidy rather than reject: runs of spaces/symbols become one hyphen and stray
+  // hyphens at the ends are dropped, so "my post-" saves as "my-post".
+  const slug = String(b.slug ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
   // postedAt comes from a <input type="datetime-local"> — "YYYY-MM-DDTHH:mm"
   // (no timezone; the value is already the IST wall-clock time the admin
   // picked/confirmed). issueDate (DATE column used for sorting/queries) is
@@ -49,8 +54,6 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
   const status = (b.status === undefined ? 'published' : String(b.status)) as Circular['status'];
 
   if (!title) throw new Error('Title is required');
-  if (slug && !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug))
-    throw new Error('Web address can only use English letters, numbers and hyphens (e.g. unified-cadre-railway)');
   if (slug.length > 120) throw new Error('Web address is too long (max 120 characters)');
   if (!summaryText(summary)) throw new Error('Summary is required');
   if (imageUrl && !IMAGE_URL_PATTERN.test(imageUrl))
