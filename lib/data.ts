@@ -191,6 +191,28 @@ export async function getCircularsBySection(section: string): Promise<Circular[]
   }
 }
 
+// "Read more" suggestions under a post: other published posts, those sharing a
+// section with it first (most shared sections, then newest), topped up with the
+// latest posts when too few match. Never throws.
+export async function getRelatedCirculars(current: Circular, limit = 5): Promise<Circular[]> {
+  try {
+    const rows = await query<CircularRow[]>(
+      "SELECT * FROM circulars WHERE status = 'published' AND slug <> ? ORDER BY issue_date DESC, id DESC LIMIT 60",
+      [current.slug]
+    );
+    const mine = new Set(current.sections);
+    return rows
+      .map(mapCircular)
+      .map((c, index) => ({ c, index, shared: c.sections.filter((s) => mine.has(s)).length }))
+      .sort((a, b) => b.shared - a.shared || a.index - b.index)
+      .slice(0, limit)
+      .map((x) => x.c);
+  } catch (err) {
+    console.error('getRelatedCirculars: database query failed —', describeDbError(err));
+    return [];
+  }
+}
+
 // Fire-and-forget view tracking, called from the circular detail page for
 // real (non-admin) visitors only — callers must check isAdminAuthenticated()
 // themselves before calling this, so the admin's own preview views while

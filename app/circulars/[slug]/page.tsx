@@ -1,13 +1,20 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getAllSettings, getCircularBySlug, getCircularIdBySlug, incrementViewCount } from '@/lib/data';
+import {
+  getAllSettings,
+  getCircularBySlug,
+  getCircularIdBySlug,
+  getRelatedCirculars,
+  incrementViewCount,
+} from '@/lib/data';
 import { summaryHtml, summaryPreviewText } from '@/lib/sanitize';
 import { isAdminAuthenticated } from '@/lib/auth';
 import { resolveOgImageUrl } from '@/lib/uploads';
 import AdSlot from '@/components/AdSlot';
 import JsonLd from '@/components/JsonLd';
 import ShareButtons from '@/components/ShareButtons';
+import RelatedPosts from '@/components/RelatedPosts';
 import { SECTION_OPTIONS } from '@/lib/constants';
 import { SITE_LOGO_URL, SITE_NAME, SITE_URL } from '@/lib/site';
 
@@ -89,6 +96,7 @@ export default async function CircularDetailPage({
 
   const editId = isAdmin ? await getCircularIdBySlug(slug) : null;
   const settings = await getAllSettings();
+  const related = await getRelatedCirculars(circular, 5);
 
   // Structured data: tells search engines this is a news article, who
   // published it and when, and where it sits in the site.
@@ -215,6 +223,8 @@ export default async function CircularDetailPage({
         <div className="mt-8 border-t border-rule pt-5">
           <ShareButtons url={`${SITE_URL}/circulars/${circular.slug}`} title={circular.title} label="Share this post at the end" />
         </div>
+
+        <RelatedPosts posts={related} />
 
         <div className="mt-8">
           <AdSlot code={settings.ad_in_article} slot="in_article" />
