@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import DateInput from '@/components/DateInput';
-import { Printer } from 'lucide-react';
+import { DownloadPdfButton, PrintBrandFooter } from '@/components/PrintTools';
 import {
   cellsOf,
   fixPayAfterMacp,
@@ -314,21 +314,12 @@ export default function PayFixationCalculator() {
 
       {good && submitted && (
         <>
-          <div className="flex justify-end mb-4 print:hidden">
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className="inline-flex items-center gap-2 border border-ink text-ink px-4 py-2 text-sm font-medium hover:bg-ink hover:text-paper transition-colors"
-            >
-              <Printer size={16} aria-hidden="true" />
-              Print / Save as PDF
-            </button>
-          </div>
+          <DownloadPdfButton fileName="Pay-Fixation-Estimate" />
 
           <PrintHeader submitted={submitted} printedOn={printedOn} />
 
-          <div className="border border-rule p-5 mb-6">
-            <h2 className="font-serif text-lg font-semibold text-ink mb-4">
+          <div className="border border-rule p-5 mb-6 print:p-3 print:mb-2 print:break-inside-avoid">
+            <h2 className="font-serif text-lg font-semibold text-ink mb-4 print:mb-2">
               Pay after {submitted.tab === 'macp' ? 'MACP upgradation' : 'promotion'}
             </h2>
             <dl className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mb-2">
@@ -360,17 +351,17 @@ export default function PayFixationCalculator() {
             </p>
           </div>
 
-          <div className="border border-rule p-5 mb-6">
-            <h2 className="font-serif text-lg font-semibold text-ink mb-3">How the pay is fixed</h2>
-            <ol className="list-decimal pl-5 space-y-2 text-sm text-ink/80 leading-relaxed">
+          <div className="border border-rule p-5 mb-6 print:p-3 print:mb-2 print:break-inside-avoid">
+            <h2 className="font-serif text-lg font-semibold text-ink mb-3 print:mb-1">How the pay is fixed</h2>
+            <ol className="list-decimal pl-5 space-y-2 print:space-y-1 text-sm print:text-xs text-ink/80 leading-relaxed">
               {good.steps.map((s, i) => (
                 <li key={i}>{s}</li>
               ))}
             </ol>
           </div>
 
-          <div className="border border-rule p-5 mb-6">
-            <h2 className="font-serif text-lg font-semibold text-ink mb-3">Pay on the way</h2>
+          <div className="border border-rule p-5 mb-6 print:p-3 print:mb-2 print:break-inside-avoid">
+            <h2 className="font-serif text-lg font-semibold text-ink mb-3 print:mb-1">Pay on the way</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -384,10 +375,10 @@ export default function PayFixationCalculator() {
                 <tbody>
                   {good.timeline.map((row) => (
                     <tr key={row.date + row.pay} className="border-b border-rule/60">
-                      <td className="py-2 pr-4 whitespace-nowrap">{formatDay(row.date)}</td>
-                      <td className="py-2 pr-4 whitespace-nowrap">{levelLabel(row.level)}</td>
-                      <td className="py-2 pr-4 text-right font-medium whitespace-nowrap">{rupees(row.pay)}</td>
-                      <td className="py-2 pl-4 text-ink/70">{row.remark}</td>
+                      <td className="py-2 print:py-1 pr-4 whitespace-nowrap">{formatDay(row.date)}</td>
+                      <td className="py-2 print:py-1 pr-4 whitespace-nowrap">{levelLabel(row.level)}</td>
+                      <td className="py-2 print:py-1 pr-4 text-right font-medium whitespace-nowrap">{rupees(row.pay)}</td>
+                      <td className="py-2 print:py-1 pl-4 text-ink/70">{row.remark}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -395,17 +386,16 @@ export default function PayFixationCalculator() {
             </div>
           </div>
 
-          <ul className="list-disc pl-5 space-y-1 text-xs text-ink/60 leading-relaxed mb-8">
+          <ul className="list-disc pl-5 space-y-1 text-xs print:text-[10px] text-ink/60 leading-relaxed mb-8 print:mb-2">
             {good.notes.map((n, i) => (
               <li key={i}>{n}</li>
             ))}
           </ul>
 
-          <div className="hidden print:block border-t border-ink/30 pt-3 mt-8 text-xs text-ink/70 leading-relaxed">
-            <strong className="text-ink">Sarkari Karamchari Samachar</strong> · sarkarikaramchari.com — this is an estimate for
-            planning only, not an official pay fixation. Verify with your department&apos;s pay and accounts
-            office.
-          </div>
+          <PrintBrandFooter
+            qrSrc="/qr/pay-fixation.svg"
+            disclaimer="This is an estimate for planning only, not an official pay fixation. Verify it with your department's pay and accounts office."
+          />
         </>
       )}
 
@@ -429,7 +419,6 @@ function PrintHeader({ submitted, printedOn }: { submitted: Submitted; printedOn
   const s = submitted;
   const isMacp = s.tab === 'macp';
   const rows: [string, string][] = [
-    ['Type', TAB_LABEL[s.tab]],
     ['Present Level and Basic Pay', `${levelLabel(s.level)} · ${rupees(s.basicPay)}`],
     [isMacp ? 'Upgraded to' : 'Promoted to', levelLabel(s.newLevel)],
     [isMacp ? 'Date of MACP upgradation' : 'Date of promotion', formatDay(s.date)],
@@ -442,10 +431,10 @@ function PrintHeader({ submitted, printedOn }: { submitted: Submitted; printedOn
   }
 
   return (
-    <div className="hidden print:block mb-6">
-      <div className="flex items-center justify-between gap-6 border-b-4 border-ink pb-3 mb-5">
+    <div className="hidden print:block mb-3">
+      <div className="flex items-center justify-between gap-6 border-b-4 border-ink pb-2 mb-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/logo.webp" alt="SarkariKaramchari.com" className="h-24 w-auto" />
+        <img src="/brand/logo.webp" alt="SarkariKaramchari.com" className="h-16 w-auto" />
         <div className="text-right">
           <p className="font-sans text-4xl font-extrabold text-ink leading-none tracking-tight">
             sarkarikaramchari.com
@@ -453,7 +442,7 @@ function PrintHeader({ submitted, printedOn }: { submitted: Submitted; printedOn
           <p className="mt-3 text-base text-ink/80">सरकारी कर्मचारी समाचार · DA, Circulars &amp; Pay Updates</p>
         </div>
       </div>
-      <div className="flex items-baseline justify-between gap-6 mb-3">
+      <div className="flex items-baseline justify-between gap-6 mb-2">
         <p className="font-serif text-xl font-semibold text-ink">Pay Fixation Estimate — {TAB_LABEL[s.tab]}</p>
         {printedOn && <p className="text-xs text-ink/60 whitespace-nowrap">Prepared on {printedOn}</p>}
       </div>
@@ -461,8 +450,8 @@ function PrintHeader({ submitted, printedOn }: { submitted: Submitted; printedOn
         <tbody>
           {rows.map(([label, value]) => (
             <tr key={label} className="border-b border-rule/60 align-top">
-              <td className="py-1.5 px-2 w-[32%] text-ink/60 bg-rule/20">{label}</td>
-              <td className="py-1.5 px-2 text-ink">{value}</td>
+              <td className="py-0.5 px-2 w-[32%] text-ink/60 bg-rule/20">{label}</td>
+              <td className="py-0.5 px-2 text-ink">{value}</td>
             </tr>
           ))}
         </tbody>

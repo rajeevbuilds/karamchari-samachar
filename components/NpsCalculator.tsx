@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from 'react';
 import DateInput from '@/components/DateInput';
-import { Printer } from 'lucide-react';
+import { DownloadPdfButton, PrintBrandFooter } from '@/components/PrintTools';
 import Link from 'next/link';
 import {
   projectNps,
@@ -396,16 +396,7 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
 
       {r && computed && (
         <>
-          <div className="flex justify-end mb-4 print:hidden">
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className="inline-flex items-center gap-2 border border-ink text-ink px-4 py-2 text-sm font-medium hover:bg-ink hover:text-paper transition-colors"
-            >
-              <Printer size={16} aria-hidden="true" />
-              Print / Save as PDF
-            </button>
-          </div>
+          <DownloadPdfButton fileName={tab === 'nps' ? 'NPS-Pension-Estimate' : 'UPS-Pension-Estimate'} />
         </>
       )}
 
@@ -568,11 +559,10 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
       </p>
 
       {r && computed && (
-        <div className="hidden print:block border-t border-ink/30 pt-3 mt-8 text-xs text-ink/70 leading-relaxed">
-          <strong className="text-ink">Sarkari Karamchari Samachar</strong> · {host} — this is an estimate for
-          planning only, not an official calculation. Verify with your department&apos;s accounts office / PFRDA
-          before making decisions.
-        </div>
+        <PrintBrandFooter
+          qrSrc="/qr/nps.svg"
+          disclaimer="This is an estimate for planning only, not an official calculation. Verify it with your department's accounts office / PFRDA before making decisions."
+        />
       )}
     </div>
   );
