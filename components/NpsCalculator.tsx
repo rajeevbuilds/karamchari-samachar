@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
+import DateInput from '@/components/DateInput';
 import { Printer } from 'lucide-react';
 import Link from 'next/link';
 import {
@@ -272,11 +273,11 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
       <form onSubmit={calculate} className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-rule p-5 mb-8 print:hidden">
         <div>
           <label className={labelClass}>Date of birth</label>
-          <input type="date" value={dob} onChange={(e) => edit(setDob)(e.target.value)} className={inputClass} />
+          <DateInput value={dob} onChange={(v) => edit(setDob)(v)} className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>Date of joining</label>
-          <input type="date" value={doj} onChange={(e) => edit(setDoj)(e.target.value)} className={inputClass} />
+          <DateInput value={doj} onChange={(v) => edit(setDoj)(v)} className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>Present Basic Pay (₹)</label>

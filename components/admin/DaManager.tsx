@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import DateInput from '@/components/DateInput';
 import type { AdminDaRecord } from '@/lib/data';
 import { apiFetch } from './apiFetch';
 
@@ -97,11 +98,10 @@ export default function DaManager({ initialDaHistory }: { initialDaHistory: Admi
           <label className="block text-xs font-mono uppercase text-ink/50 mb-1">
             Effective From
           </label>
-          <input
+          <DateInput
             required
-            type="date"
             value={daForm.effectiveFrom}
-            onChange={(e) => setDaForm((f) => ({ ...f, effectiveFrom: e.target.value }))}
+            onChange={(v) => setDaForm((f) => ({ ...f, effectiveFrom: v }))}
             className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon"
           />
         </div>
@@ -123,11 +123,10 @@ export default function DaManager({ initialDaHistory }: { initialDaHistory: Admi
           <label className="block text-xs font-mono uppercase text-ink/50 mb-1">
             Orders Issued
           </label>
-          <input
+          <DateInput
             required
-            type="date"
             value={daForm.ordersIssued}
-            onChange={(e) => setDaForm((f) => ({ ...f, ordersIssued: e.target.value }))}
+            onChange={(v) => setDaForm((f) => ({ ...f, ordersIssued: v }))}
             className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon"
           />
         </div>

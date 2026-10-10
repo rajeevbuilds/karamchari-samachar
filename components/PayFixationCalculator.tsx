@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import DateInput from '@/components/DateInput';
 import { Printer } from 'lucide-react';
 import {
   cellsOf,
@@ -234,13 +235,7 @@ export default function PayFixationCalculator() {
           <label htmlFor="pf-date" className={LABEL}>
             {tab === 'macp' ? 'Date of MACP upgradation' : 'Date of promotion'}
           </label>
-          <input
-            id="pf-date"
-            type="date"
-            value={date}
-            onChange={(e) => edit(setDate)(e.target.value)}
-            className={FIELD}
-          />
+          <DateInput id="pf-date" value={date} onChange={(v) => edit(setDate)(v)} className={FIELD} />
         </div>
 
         {tab !== 'after-macp' && (
