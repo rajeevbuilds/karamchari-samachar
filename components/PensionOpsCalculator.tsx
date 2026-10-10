@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { calculatePensionOps } from '@/lib/pension';
+import { DownloadPdfButton, PrintBrandFooter, PrintMasthead, usePrintSupport } from '@/components/PrintTools';
 
 function formatRupees(amount: number): string {
   return `₹${Math.round(amount).toLocaleString('en-IN')}`;
@@ -15,6 +16,7 @@ export default function PensionOpsCalculator({
   defaultDrPercent: number;
   minFloor: number;
 }) {
+  const printedOn = usePrintSupport();
   const [lastDrawnPay, setLastDrawnPay] = useState('');
   const [avgLast10Months, setAvgLast10Months] = useState('');
   const [years, setYears] = useState('');
@@ -42,14 +44,14 @@ export default function PensionOpsCalculator({
 
   return (
     <div>
-      <div className="border border-rule bg-rule/10 px-5 py-4 mb-8 text-sm text-ink/80 leading-relaxed">
+      <div className="border border-rule bg-rule/10 px-5 py-4 mb-8 text-sm text-ink/80 leading-relaxed print:hidden">
         <strong className="text-ink">Disclaimer:</strong> This calculator provides an indicative estimate
         based on the CCS (Pension) Rules, 1972. It does not account for every individual circumstance
         (breaks in service, VRS weightage, pension ceiling caps, etc.). Always verify your actual pension
         with your department&apos;s pension sanctioning authority (PAO/CPAO) before making financial decisions.
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-rule p-5 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-rule p-5 mb-8 print:hidden">
         <div className="sm:col-span-2">
           <label className="block text-xs font-mono uppercase text-ink/50 mb-1">
             Last drawn Basic Pay (₹)
@@ -122,8 +124,24 @@ export default function PensionOpsCalculator({
         </div>
       </div>
 
+      {result !== null && (
+        <>
+          <DownloadPdfButton fileName="OPS-Pension-Estimate" />
+          <PrintMasthead
+            title="Old Pension Scheme (OPS) Pension Estimate"
+            printedOn={printedOn}
+            rows={[
+              ['Last drawn Basic Pay', formatRupees(Number(lastDrawnPay))],
+              ...(avgLast10Months ? ([['Average Basic Pay, last 10 months', formatRupees(Number(avgLast10Months))]] as [string, string][]) : []),
+              ['Qualifying service', `${Number(years) || 0} years ${Number(months) || 0} months`],
+              ['Dearness Relief (DR) rate', `${Number(drPercent) || 0}%`],
+            ]}
+          />
+        </>
+      )}
+
       {result === null && (
-        <p className="text-sm text-ink/50 mb-8">Enter last drawn Basic Pay to see a result.</p>
+        <p className="text-sm text-ink/50 mb-8 print:hidden">Enter last drawn Basic Pay to see a result.</p>
       )}
 
       {result !== null && !result.eligible && (
@@ -187,7 +205,14 @@ export default function PensionOpsCalculator({
         </div>
       )}
 
-      <p className="text-xs text-ink/40 mt-8">
+      {result !== null && (
+        <PrintBrandFooter
+          qrSrc="/qr/pension-ops.svg"
+          disclaimer="This is an estimate for planning only, not an official pension calculation. Verify it with your pension sanctioning authority (PAO/CPAO)."
+        />
+      )}
+
+      <p className="text-xs text-ink/40 mt-8 print:hidden">
         See also:{' '}
         <Link href="/da-cpc-tracker" className="underline hover:text-maroon">
           DA &amp; Pay Commission Tracker

@@ -34,8 +34,8 @@ export default async function PensionOpsPage() {
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
         }}
       />
-      <h1 className="font-serif text-3xl font-semibold text-ink mb-2">{PENSION_OPS_TOOL.title}</h1>
-      <p className="text-sm text-ink/60 mb-8 max-w-prose">{PENSION_OPS_TOOL.description}</p>
+      <h1 className="font-serif text-3xl font-semibold text-ink mb-2 print:hidden">{PENSION_OPS_TOOL.title}</h1>
+      <p className="text-sm text-ink/60 mb-8 max-w-prose print:hidden">{PENSION_OPS_TOOL.description}</p>
       <PensionOpsCalculator defaultDrPercent={defaultDrPercent} minFloor={minFloor} />
     </div>
   );

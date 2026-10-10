@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { FileDown } from 'lucide-react';
 
 // "Download PDF" button for the calculators. It opens the browser's save
@@ -55,6 +56,67 @@ export function PrintBrandFooter({ qrSrc, disclaimer }: { qrSrc: string; disclai
         <img src={qrSrc} alt="QR code to open this calculator" className="h-[72px] w-[72px] border border-ink/20 p-1 bg-white" />
         <p className="mt-0.5 text-[9px] text-ink/70">Scan to open this calculator</p>
       </div>
+    </div>
+  );
+}
+
+// Marks the page for printing (globals.css hides the site header, footer and
+// bottom bar when body has .calc-print) and returns the date to stamp on the
+// printout, set at the moment of printing.
+export function usePrintSupport(): string {
+  const [printedOn, setPrintedOn] = useState('');
+  useEffect(() => {
+    document.body.classList.add('calc-print');
+    const before = () =>
+      setPrintedOn(
+        new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+      );
+    window.addEventListener('beforeprint', before);
+    return () => {
+      document.body.classList.remove('calc-print');
+      window.removeEventListener('beforeprint', before);
+    };
+  }, []);
+  return printedOn;
+}
+
+// Print-only masthead: logo, site name and tagline, then what this printout is
+// and the facts it was made from. Hidden on screen.
+export function PrintMasthead({
+  title,
+  printedOn,
+  rows,
+}: {
+  title: string;
+  printedOn: string;
+  rows: [string, string][];
+}) {
+  return (
+    <div className="hidden print:block mb-3">
+      <div className="flex items-center justify-between gap-6 border-b-4 border-ink pb-2 mb-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/logo.webp" alt="SarkariKaramchari.com" className="h-16 w-auto" />
+        <div className="text-right">
+          <p className="font-sans text-4xl font-extrabold text-ink leading-none tracking-tight">
+            sarkarikaramchari.com
+          </p>
+          <p className="mt-3 text-base text-ink/80">सरकारी कर्मचारी समाचार · DA, Circulars &amp; Pay Updates</p>
+        </div>
+      </div>
+      <div className="flex items-baseline justify-between gap-6 mb-2">
+        <p className="font-serif text-xl font-semibold text-ink">{title}</p>
+        {printedOn && <p className="text-xs text-ink/60 whitespace-nowrap">Prepared on {printedOn}</p>}
+      </div>
+      <table className="w-full text-xs border border-rule">
+        <tbody>
+          {rows.map(([label, value]) => (
+            <tr key={label} className="border-b border-rule/60 align-top">
+              <td className="py-0.5 px-2 w-[32%] text-ink/60 bg-rule/20">{label}</td>
+              <td className="py-0.5 px-2 text-ink">{value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

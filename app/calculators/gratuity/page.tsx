@@ -33,8 +33,8 @@ export default async function GratuityPage() {
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
         }}
       />
-      <h1 className="font-serif text-3xl font-semibold text-ink mb-2">{GRATUITY_TOOL.title}</h1>
-      <p className="text-sm text-ink/60 mb-8 max-w-prose">{GRATUITY_TOOL.description}</p>
+      <h1 className="font-serif text-3xl font-semibold text-ink mb-2 print:hidden">{GRATUITY_TOOL.title}</h1>
+      <p className="text-sm text-ink/60 mb-8 max-w-prose print:hidden">{GRATUITY_TOOL.description}</p>
       <GratuityCalculator defaultDaPercent={latestDa.percentage} ceiling={ceiling} />
     </div>
   );

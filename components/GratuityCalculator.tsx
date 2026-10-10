@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import { DownloadPdfButton, PrintBrandFooter, PrintMasthead, usePrintSupport } from '@/components/PrintTools';
 import {
   calculateDeathGratuity,
   calculateRetirementGratuity,
@@ -21,6 +22,7 @@ export default function GratuityCalculator({
   defaultDaPercent: number;
   ceiling: number;
 }) {
+  const printedOn = usePrintSupport();
   const [mode, setMode] = useState<Mode>('retirement');
   const [basicPay, setBasicPay] = useState('');
   const [daPercent, setDaPercent] = useState(String(defaultDaPercent));
@@ -78,7 +80,7 @@ export default function GratuityCalculator({
 
   return (
     <div>
-      <div className="border border-rule bg-rule/10 px-5 py-4 mb-8 text-sm text-ink/80 leading-relaxed">
+      <div className="border border-rule bg-rule/10 px-5 py-4 mb-8 text-sm text-ink/80 leading-relaxed print:hidden">
         <strong className="text-ink">Disclaimer:</strong> This calculator provides an indicative estimate
         based on Rules 50 and 51 of the CCS (Pension) Rules, 2021 (the same formula applies to NPS/UPS
         employees under the CCS (Payment of Gratuity under NPS) Rules, 2021). It does not account for every
@@ -86,7 +88,7 @@ export default function GratuityCalculator({
         actual gratuity with your department&apos;s pay and accounts office before making financial decisions.
       </div>
 
-      <div className="flex gap-2 mb-4" role="tablist" aria-label="Gratuity type">
+      <div className="flex gap-2 mb-4 print:hidden" role="tablist" aria-label="Gratuity type">
         <button
           type="button"
           role="tab"
@@ -107,7 +109,7 @@ export default function GratuityCalculator({
         </button>
       </div>
 
-      <form onSubmit={calculate} className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-rule p-5 mb-8">
+      <form onSubmit={calculate} className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-rule p-5 mb-8 print:hidden">
         <div>
           <label className="block text-xs font-mono uppercase text-ink/50 mb-1">
             {mode === 'retirement' ? 'Last drawn Basic Pay (₹)' : 'Basic Pay at death (₹)'}
@@ -172,9 +174,30 @@ export default function GratuityCalculator({
       </form>
 
       {submitted === null && !formError && (
-        <p className="text-sm text-ink/50 mb-8">
+        <p className="text-sm text-ink/50 mb-8 print:hidden">
           Fill in the details above and press &ldquo;Calculate Gratuity&rdquo; to see the result.
         </p>
+      )}
+
+      {submitted && ((retirement && retirement.eligible) || death) && (
+        <>
+          <DownloadPdfButton
+            fileName={submitted.mode === 'retirement' ? 'Retirement-Gratuity-Estimate' : 'Death-Gratuity-Estimate'}
+          />
+          <PrintMasthead
+            title={submitted.mode === 'retirement' ? 'Retirement Gratuity Estimate' : 'Death Gratuity Estimate'}
+            printedOn={printedOn}
+            rows={[
+              ['Type', submitted.mode === 'retirement' ? 'Retirement gratuity' : 'Death gratuity'],
+              [submitted.mode === 'retirement' ? 'Last drawn Basic Pay' : 'Basic Pay at death', formatRupees(submitted.input.basicPay)],
+              ['Dearness Allowance rate', `${submitted.input.daPercent}%`],
+              [
+                'Qualifying service',
+                `${submitted.input.qualifyingYears} years ${submitted.input.qualifyingMonths} months`,
+              ],
+            ]}
+          />
+        </>
       )}
 
       {retirement && !retirement.eligible && (
@@ -232,7 +255,14 @@ export default function GratuityCalculator({
         </div>
       )}
 
-      <p className="text-xs text-ink/40 mt-8">
+      {submitted && ((retirement && retirement.eligible) || death) && (
+        <PrintBrandFooter
+          qrSrc="/qr/gratuity.svg"
+          disclaimer="This is an estimate for planning only, not an official calculation. Verify it with your department's pay and accounts office."
+        />
+      )}
+
+      <p className="text-xs text-ink/40 mt-8 print:hidden">
         See also:{' '}
         <Link href="/calculators/pension-ops" className="underline hover:text-maroon">
           OPS Pension Calculator
