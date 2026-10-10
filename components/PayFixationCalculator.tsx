@@ -6,6 +6,8 @@ import DateInput from '@/components/DateInput';
 import { DownloadPdfButton, PrintBrandFooter } from '@/components/PrintTools';
 import {
   cellsOf,
+  compareOptions,
+  type Comparison,
   fixPayAfterMacp,
   fixPayOnPromotion,
   formatDay,
@@ -132,6 +134,20 @@ export default function PayFixationCalculator() {
 
   const noun = tab === 'macp' ? 'MACP upgradation' : 'promotion';
   const r = submitted?.result;
+  const comparison = useMemo(
+    () =>
+      submitted && submitted.tab !== 'after-macp' && submitted.result.ok
+        ? compareOptions({
+            level: submitted.level,
+            basicPay: submitted.basicPay,
+            newLevel: submitted.newLevel,
+            date: submitted.date,
+            incrementMonth: submitted.incrementMonth,
+            kind: submitted.tab === 'macp' ? 'macp' : 'promotion',
+          })
+        : null,
+    [submitted]
+  );
   const good = r && r.ok ? r : null;
   const rise = good && submitted ? good.newPay - submitted.basicPay : 0;
   const risePercent = good && submitted && submitted.basicPay ? (rise / submitted.basicPay) * 100 : 0;
@@ -386,6 +402,10 @@ export default function PayFixationCalculator() {
             </div>
           </div>
 
+          {comparison && comparison.ok && submitted && (
+            <OptionComparison comparison={comparison} noun={noun} selected={submitted.option} />
+          )}
+
           <ul className="list-disc pl-5 space-y-1 text-xs print:text-[10px] text-ink/60 leading-relaxed mb-8 print:mb-2">
             {good.notes.map((n, i) => (
               <li key={i}>{n}</li>
@@ -456,6 +476,128 @@ function PrintHeader({ submitted, printedOn }: { submitted: Submitted; printedOn
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+const OPTION_NAME = {
+  'promotion-date': 'From the date of promotion',
+  'next-increment': 'From the next increment date',
+} as const;
+
+const roundTo100 = (n: number) => Math.round(n / 100) * 100;
+const years = (months: number) => (months === 12 ? '1 year' : `${months / 12} years`);
+
+// "Which option is better for you?" — both options worked out for the same
+// facts, side by side, with a plain verdict.
+function OptionComparison({
+  comparison,
+  noun,
+  selected,
+}: {
+  comparison: Extract<Comparison, { ok: true }>;
+  noun: string;
+  selected: FixationOption;
+}) {
+  const { options, better, diffs, horizons } = comparison;
+  const a = options['promotion-date'];
+  const b = options['next-increment'];
+  const main = diffs.find((d) => d.months === 36)!.diff;
+  const loser: FixationOption = better === 'promotion-date' ? 'next-increment' : 'promotion-date';
+
+  const cell = (value: number, other: number, bigger = true) =>
+    `px-3 py-2 text-right whitespace-nowrap ${
+      value !== other && (bigger ? value > other : value < other) ? 'font-semibold text-maroon' : 'text-ink'
+    }`;
+
+  const rows: { label: string; a: number; b: number; approx?: boolean }[] = [
+    { label: `Pay on the date of ${noun}`, a: a.payOnDate, b: b.payOnDate },
+    ...horizons.slice(0, 2).map((m, i) => ({
+      label: `Pay after ${years(m)}`,
+      a: a.payAfter[i].pay,
+      b: b.payAfter[i].pay,
+    })),
+    ...horizons.map((m, i) => ({
+      label: `Total Basic Pay in ${years(m)}`,
+      a: roundTo100(a.totals[i].total),
+      b: roundTo100(b.totals[i].total),
+      approx: true,
+    })),
+  ];
+
+  return (
+    <div className="border border-rule p-5 mb-6 print:hidden">
+      <h2 className="font-serif text-lg font-semibold text-ink mb-3">Which option is better for you?</h2>
+
+      <div
+        className={`px-4 py-3 mb-4 text-sm leading-relaxed border ${
+          better === 'same' ? 'border-rule bg-rule/20' : 'border-maroon/40 bg-maroon/5'
+        }`}
+        role="status"
+      >
+        {better === 'same' ? (
+          <p className="font-medium text-ink">Both options give you the same pay. Choose whichever is simpler for you.</p>
+        ) : (
+          <>
+            <p className="font-medium text-ink">
+              {OPTION_NAME[better]} is better for you: about{' '}
+              <span className="text-maroon">{rupees(roundTo100(Math.abs(main)))}</span> more Basic Pay over the next 3
+              years.
+            </p>
+            <p className="mt-1 text-ink/70">
+              {comparison.breakEvenMonths !== null
+                ? `For the first ${comparison.breakEvenMonths} months the other option pays more in total; after that this one is ahead. `
+                : ''}
+              {comparison.higherPayFrom
+                ? `It pays more every month from ${formatDay(comparison.higherPayFrom)}.`
+                : ''}
+              {selected === loser ? ` You have chosen the other option above (${OPTION_NAME[selected].toLowerCase()}).` : ''}
+            </p>
+          </>
+        )}
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs font-mono uppercase text-ink/50 border-b border-rule">
+              <th className="py-2 pr-4 font-medium" />
+              <th className="px-3 py-2 font-medium text-right">{OPTION_NAME['promotion-date']}</th>
+              <th className="px-3 py-2 font-medium text-right">{OPTION_NAME['next-increment']}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.label} className="border-b border-rule/60">
+                <td className="py-2 pr-4 text-ink/70">{row.label}</td>
+                <td className={cell(row.a, row.b)}>
+                  {row.approx ? '≈ ' : ''}
+                  {rupees(row.a)}
+                </td>
+                <td className={cell(row.b, row.a)}>
+                  {row.approx ? '≈ ' : ''}
+                  {rupees(row.b)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <ul className="list-disc pl-5 mt-4 space-y-1 text-xs text-ink/60 leading-relaxed">
+        <li>
+          Counts Basic Pay only. DA, HRA and other allowances rise with Basic Pay, so the real difference is larger.
+          Totals are worked out day by day and rounded to the nearest ₹100.
+        </li>
+        <li>
+          The option has to be given within one month of the {noun}. Ask your office whether it can be changed later,
+          and check that your {noun} order includes the option clause.
+        </li>
+        <li>
+          Later events such as another promotion or MACP can change the picture, because pay then depends on the cell
+          you are in at that time.
+        </li>
+      </ul>
     </div>
   );
 }

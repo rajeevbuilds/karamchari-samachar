@@ -160,7 +160,7 @@ const COMMON_NOTES = [
   'This is an estimate. The authority sanctioning the promotion or upgradation fixes the pay; check it with your accounts office.',
 ];
 
-export function fixPayOnPromotion(input: PromotionInput): FixationResult {
+export function fixPayOnPromotion(input: PromotionInput, incrementsToShow = 3): FixationResult {
   const error = validate(input);
   if (error) return { ok: false, error };
 
@@ -197,7 +197,7 @@ export function fixPayOnPromotion(input: PromotionInput): FixationResult {
     );
     timeline.push({ date, pay: placed, level: newLevel, remark: `Pay fixed on ${what}` });
     const firstAi = firstIncrementDate(date);
-    timeline.push(...futureIncrements(newLevel, placed, firstAi, 3));
+    timeline.push(...futureIncrements(newLevel, placed, firstAi, incrementsToShow));
     notes.push('Your next annual increment falls on 1 January or 1 July after you complete six months in the new level.');
     return { ok: true, level: newLevel, newPay: placed, steps, timeline, notes };
   }
@@ -226,7 +226,7 @@ export function fixPayOnPromotion(input: PromotionInput): FixationResult {
       : `${levelLabel(newLevel)} has no cell equal to ${rupees(second.pay)}, so pay is re-fixed at the next higher cell: ${rupees(refixed)}.`
   );
   timeline.push({ date: dni, pay: refixed, level: newLevel, remark: 'Re-fixed on next increment date in the lower post' });
-  timeline.push(...futureIncrements(newLevel, refixed, firstIncrementDate(dni), 3));
+  timeline.push(...futureIncrements(newLevel, refixed, firstIncrementDate(dni), incrementsToShow));
   notes.push(
     'On this option the date of next increment is regulated from the date of re-fixation, so your next annual increment in the new level comes after six months from it (DoPT OM 27.07.2017, para 3(iv)).'
   );
@@ -288,4 +288,115 @@ export function formatDay(isoDate: string): string {
   const [y, m, d] = parts(isoDate);
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   return `${d} ${months[m - 1]} ${y}`;
+}
+
+// ---- Which option is better? -----------------------------------------------
+// Runs both options for the same facts and compares the Basic Pay the
+// employee draws over the following years.
+
+export type OptionSummary = {
+  option: FixationOption;
+  timeline: TimelineRow[];
+  payOnDate: number;
+  payAfter: { months: number; pay: number }[];
+  totals: { months: number; total: number }[];
+};
+
+export type Comparison =
+  | {
+      ok: true;
+      options: Record<FixationOption, OptionSummary>;
+      horizons: number[];
+      // "next increment" minus "date of promotion", per horizon (total Basic Pay)
+      diffs: { months: number; diff: number }[];
+      better: FixationOption | 'same';
+      // the better option pays more every month from this date
+      higherPayFrom: string | null;
+      // months after which the better option has made up an earlier shortfall
+      breakEvenMonths: number | null;
+    }
+  | { ok: false; error: string };
+
+const HORIZONS = [12, 36, 60];
+const SAME_WITHIN = 500; // rupees over three years: treated as no difference
+
+function dayNumber(isoDate: string): number {
+  const [y, m, d] = parts(isoDate);
+  return Date.UTC(y, m - 1, d) / 86400000;
+}
+
+function payOn(rows: TimelineRow[], date: string): number {
+  let pay = rows[0].pay;
+  for (const row of rows) if (row.date <= date) pay = row.pay;
+  return pay;
+}
+
+// Basic Pay drawn from `start` for `months` months, each rate counted for the
+// days it is in force (a month is taken as 30.4375 days).
+function totalBasicPay(rows: TimelineRow[], start: string, months: number): number {
+  const end = addMonths(start, months);
+  const cuts = [start, ...rows.map((r) => r.date).filter((d) => d > start && d < end), end];
+  let total = 0;
+  for (let i = 0; i < cuts.length - 1; i++) {
+    const days = dayNumber(cuts[i + 1]) - dayNumber(cuts[i]);
+    total += payOn(rows, cuts[i]) * (days / 30.4375);
+  }
+  return total;
+}
+
+function summarise(option: FixationOption, result: Extract<FixationResult, { ok: true }>, start: string): OptionSummary {
+  return {
+    option,
+    timeline: result.timeline,
+    payOnDate: result.timeline[0].pay,
+    payAfter: HORIZONS.map((months) => ({ months, pay: payOn(result.timeline, addMonths(start, months)) })),
+    totals: HORIZONS.map((months) => ({ months, total: totalBasicPay(result.timeline, start, months) })),
+  };
+}
+
+export function compareOptions(input: Omit<PromotionInput, 'option'>): Comparison {
+  const a = fixPayOnPromotion({ ...input, option: 'promotion-date' }, 8);
+  const b = fixPayOnPromotion({ ...input, option: 'next-increment' }, 8);
+  if (!a.ok) return { ok: false, error: a.error };
+  if (!b.ok) return { ok: false, error: b.error };
+
+  const start = input.date;
+  const options = {
+    'promotion-date': summarise('promotion-date', a, start),
+    'next-increment': summarise('next-increment', b, start),
+  };
+  const diffs = HORIZONS.map((months, i) => ({
+    months,
+    diff: options['next-increment'].totals[i].total - options['promotion-date'].totals[i].total,
+  }));
+  const main = diffs.find((d) => d.months === 36)!.diff;
+  const better: FixationOption | 'same' =
+    Math.abs(main) <= SAME_WITHIN ? 'same' : main > 0 ? 'next-increment' : 'promotion-date';
+
+  let higherPayFrom: string | null = null;
+  let breakEvenMonths: number | null = null;
+  if (better !== 'same') {
+    const other: FixationOption = better === 'promotion-date' ? 'next-increment' : 'promotion-date';
+    const dates = Array.from(new Set([...a.timeline, ...b.timeline].map((r) => r.date))).sort();
+    for (const d of dates) {
+      if (payOn(options[better].timeline, d) > payOn(options[other].timeline, d)) {
+        higherPayFrom = d;
+        break;
+      }
+    }
+    // Was the better option behind in total at first? If so, when did it catch up?
+    const sign = better === 'next-increment' ? 1 : -1;
+    const lead = (m: number) =>
+      sign *
+      (totalBasicPay(options['next-increment'].timeline, start, m) - totalBasicPay(options['promotion-date'].timeline, start, m));
+    if (lead(1) < 0) {
+      for (let m = 2; m <= 60; m++) {
+        if (lead(m) >= 0) {
+          breakEvenMonths = m;
+          break;
+        }
+      }
+    }
+  }
+  return { ok: true, options, horizons: HORIZONS, diffs, better, higherPayFrom, breakEvenMonths };
 }
