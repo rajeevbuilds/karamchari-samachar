@@ -9,6 +9,10 @@ export type CalculatorTool = {
   href: string;
   title: string;
   description: string;
+  // Used on the Calculators listing page only.
+  short: string; // one line for the tool's card
+  group: string; // heading the card is listed under
+  icon: 'wallet' | 'calculator' | 'piggy' | 'scale';
 };
 
 export const PENSION_OPS_TOOL: CalculatorTool = {
@@ -16,6 +20,9 @@ export const PENSION_OPS_TOOL: CalculatorTool = {
   title: 'OPS Pension Calculator',
   description:
     'Estimate your monthly pension under the Old Pension Scheme (CCS Pension Rules, 1972). Enter your last drawn Basic Pay and qualifying service to get an instant estimate.',
+  short: 'Estimate your monthly pension under the Old Pension Scheme.',
+  group: 'Retirement benefits',
+  icon: 'wallet',
 };
 
 export const GRATUITY_TOOL: CalculatorTool = {
@@ -23,6 +30,9 @@ export const GRATUITY_TOOL: CalculatorTool = {
   title: 'Gratuity Calculator',
   description:
     'Estimate your retirement gratuity or death gratuity for central government service (CCS Pension Rules, 2021). Enter Basic Pay, DA and qualifying service to get an instant estimate, including the ₹25 lakh ceiling.',
+  short: 'Retirement or death gratuity under the CCS Pension Rules, 2021, with the ₹25 lakh ceiling.',
+  group: 'Retirement benefits',
+  icon: 'calculator',
 };
 
 export const NPS_TOOL: CalculatorTool = {
@@ -30,6 +40,9 @@ export const NPS_TOOL: CalculatorTool = {
   title: 'NPS & UPS Pension Calculator',
   description:
     'Project your NPS corpus and pension at retirement, or your UPS assured payout, and compare the two. Enter your date of birth, date of joining, Basic Pay and present corpus — the estimate builds in yearly increments, DA rises and a pay commission every 10 years.',
+  short: 'Project your NPS corpus and pension, and compare it with the UPS assured payout.',
+  group: 'Retirement benefits',
+  icon: 'piggy',
 };
 
 export const PAY_FIXATION_TOOL: CalculatorTool = {
@@ -37,6 +50,9 @@ export const PAY_FIXATION_TOOL: CalculatorTool = {
   title: 'Pay Fixation Calculator (Promotion & MACP)',
   description:
     'Work out your new Basic Pay on promotion or MACP upgradation under the 7th CPC Pay Matrix, for Central Government and Railway employees. Choose your Level and pay to see the fixed pay step by step, with your next increments.',
+  short: 'Your new Basic Pay on promotion or MACP, under the 7th CPC Pay Matrix.',
+  group: 'Pay',
+  icon: 'scale',
 };
 
 // Add future calculators (Commutation, ...) here as they ship.

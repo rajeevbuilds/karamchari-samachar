@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import CircularsShowcase from '@/components/CircularsShowcase';
+import CalculatorCards from '@/components/CalculatorCards';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
 import SidebarWidgets from '@/components/SidebarWidgets';
@@ -11,7 +11,7 @@ import { summaryPreviewText } from '@/lib/sanitize';
 
 const SECTION_TOOLS_INTRO: Record<string, string> = {
   calculators:
-    'Free calculators for central government employees — estimate your pension, gratuity, and other retirement benefits in seconds.',
+    'Free tools for central government and railway employees: estimate your pension, gratuity and pay in seconds.',
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -54,31 +54,22 @@ export default async function SectionPage({
       />
       <div>
         {tools.length > 0 && (
-          <div className="border border-rule p-5 mb-6">
-            <h2 className="font-serif text-lg font-semibold text-ink mb-2">Available Calculators</h2>
+          <div className="mb-10 pt-8">
+            <h1 className="font-serif text-3xl font-semibold text-ink mb-2">{section.label}</h1>
             {SECTION_TOOLS_INTRO[slug] && (
-              <p className="text-sm text-ink/70 mb-4 max-w-prose">{SECTION_TOOLS_INTRO[slug]}</p>
+              <p className="text-sm text-ink/70 mb-6 max-w-prose">{SECTION_TOOLS_INTRO[slug]}</p>
             )}
-            <ul className="flex flex-col gap-4">
-              {tools.map((tool) => (
-                <li key={tool.href}>
-                  <p className="text-sm text-ink/70 mb-2 max-w-prose">{tool.description}</p>
-                  <Link
-                    href={tool.href}
-                    className="inline-block text-sm font-medium text-paper bg-ink px-3.5 py-2 hover:bg-maroon transition-colors"
-                  >
-                    {tool.title} →
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <CalculatorCards tools={tools} />
           </div>
         )}
-        <CircularsShowcase
-          circulars={sectionCirculars.map((c) => ({ ...c, summary: summaryPreviewText(c.summary) }))}
-          heading={section.label}
-          headingAs="h1"
-        />
+        {/* On a page with tools the tools lead; articles appear below only if there are any. */}
+        {(tools.length === 0 || sectionCirculars.length > 0) && (
+          <CircularsShowcase
+            circulars={sectionCirculars.map((c) => ({ ...c, summary: summaryPreviewText(c.summary) }))}
+            heading={tools.length > 0 ? `${section.label} — related articles` : section.label}
+            headingAs={tools.length > 0 ? 'h2' : 'h1'}
+          />
+        )}
       </div>
       <SidebarWidgets circulars={allCirculars} />
     </div>
