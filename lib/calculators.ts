@@ -32,7 +32,14 @@ export const NPS_TOOL: CalculatorTool = {
     'Project your NPS corpus and pension at retirement, or your UPS assured payout, and compare the two. Enter your date of birth, date of joining, Basic Pay and present corpus — the estimate builds in yearly increments, DA rises and a pay commission every 10 years.',
 };
 
+export const PAY_FIXATION_TOOL: CalculatorTool = {
+  href: '/calculators/pay-fixation',
+  title: 'Pay Fixation Calculator (Promotion & MACP)',
+  description:
+    'Work out your new Basic Pay on promotion or MACP upgradation under the 7th CPC Pay Matrix, for Central Government and Railway employees. Choose your Level and pay to see the fixed pay step by step, with your next increments.',
+};
+
 // Add future calculators (Commutation, ...) here as they ship.
 export const SECTION_TOOLS: Record<string, CalculatorTool[]> = {
-  calculators: [PENSION_OPS_TOOL, GRATUITY_TOOL, NPS_TOOL],
+  calculators: [PENSION_OPS_TOOL, GRATUITY_TOOL, NPS_TOOL, PAY_FIXATION_TOOL],
 };

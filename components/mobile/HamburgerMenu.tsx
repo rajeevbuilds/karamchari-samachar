@@ -41,6 +41,7 @@ const ICONS: Record<string, LucideIcon> = {
   '/calculators/pension-ops': Wallet,
   '/calculators/gratuity': Calculator,
   '/calculators/nps': PiggyBank,
+  '/calculators/pay-fixation': Calculator,
   '/states/punjab': MapPin,
 };
 
