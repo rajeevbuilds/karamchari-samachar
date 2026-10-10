@@ -11,7 +11,7 @@ import { summaryPreviewText } from '@/lib/sanitize';
 
 const SECTION_TOOLS_INTRO: Record<string, string> = {
   calculators:
-    'Free tools for central government and railway employees: estimate your pension, gratuity and pay in seconds.',
+    'Free Tools for Central Government Employees and Railway Employees: Estimate Your Pension, Gratuity and Pay in Seconds',
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -57,7 +57,7 @@ export default async function SectionPage({
           <div className="mb-10 pt-8">
             <h1 className="font-serif text-3xl font-semibold text-ink mb-2">{section.label}</h1>
             {SECTION_TOOLS_INTRO[slug] && (
-              <p className="text-sm text-ink/70 mb-6 max-w-prose">{SECTION_TOOLS_INTRO[slug]}</p>
+              <p className="text-base font-medium text-ink/80 mb-6 max-w-prose leading-relaxed">{SECTION_TOOLS_INTRO[slug]}</p>
             )}
             <CalculatorCards tools={tools} />
           </div>
