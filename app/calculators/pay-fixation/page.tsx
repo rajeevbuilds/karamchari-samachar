@@ -1,13 +1,9 @@
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
-import { PAY_FIXATION_TOOL } from '@/lib/calculators';
+import { PAY_FIXATION_TOOL, calculatorMetadata } from '@/lib/calculators';
 import PayFixationCalculator from '@/components/PayFixationCalculator';
 
-export const metadata = {
-  title: PAY_FIXATION_TOOL.title,
-  alternates: { canonical: PAY_FIXATION_TOOL.href },
-  description: PAY_FIXATION_TOOL.description,
-};
+export const metadata = calculatorMetadata(PAY_FIXATION_TOOL);
 
 export default function PayFixationPage() {
   return (

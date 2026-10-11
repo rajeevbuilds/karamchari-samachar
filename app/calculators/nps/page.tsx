@@ -1,18 +1,14 @@
 import { getLatestDa } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
-import { NPS_TOOL } from '@/lib/calculators';
+import { NPS_TOOL, calculatorMetadata } from '@/lib/calculators';
 import NpsCalculator from '@/components/NpsCalculator';
 
 // Reads the latest DA rate from the DA history on every request, so the
 // prefilled DA follows admin updates without a redeploy.
 export const dynamic = 'force-dynamic';
 
-export const metadata = {
-  title: NPS_TOOL.title,
-  alternates: { canonical: NPS_TOOL.href },
-  description: NPS_TOOL.description,
-};
+export const metadata = calculatorMetadata(NPS_TOOL);
 
 export default async function NpsPage() {
   const latestDa = await getLatestDa();

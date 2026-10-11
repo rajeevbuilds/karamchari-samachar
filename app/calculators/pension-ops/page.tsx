@@ -1,7 +1,7 @@
 import { getAllSettings } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
-import { PENSION_OPS_TOOL } from '@/lib/calculators';
+import { PENSION_OPS_TOOL, calculatorMetadata } from '@/lib/calculators';
 import PensionOpsCalculator from '@/components/PensionOpsCalculator';
 
 // Reads DR%/floor from the settings table on every request, so an admin
@@ -9,11 +9,7 @@ import PensionOpsCalculator from '@/components/PensionOpsCalculator';
 // immediately without a redeploy.
 export const dynamic = 'force-dynamic';
 
-export const metadata = {
-  title: PENSION_OPS_TOOL.title,
-  alternates: { canonical: PENSION_OPS_TOOL.href },
-  description: PENSION_OPS_TOOL.description,
-};
+export const metadata = calculatorMetadata(PENSION_OPS_TOOL);
 
 export default async function PensionOpsPage() {
   const settings = await getAllSettings();

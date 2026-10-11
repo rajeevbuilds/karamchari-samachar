@@ -1,18 +1,14 @@
 import { getAllSettings, getDaHistory, getLatestDa } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
-import { RETIREMENT_BENEFITS_TOOL } from '@/lib/calculators';
+import { RETIREMENT_BENEFITS_TOOL, calculatorMetadata } from '@/lib/calculators';
 import RetirementBenefits from '@/components/RetirementBenefits';
 
 // Reads the latest DA, the pension floor and the gratuity ceiling on every
 // request, so admin updates apply without a redeploy.
 export const dynamic = 'force-dynamic';
 
-export const metadata = {
-  title: RETIREMENT_BENEFITS_TOOL.title,
-  alternates: { canonical: RETIREMENT_BENEFITS_TOOL.href },
-  description: RETIREMENT_BENEFITS_TOOL.description,
-};
+export const metadata = calculatorMetadata(RETIREMENT_BENEFITS_TOOL);
 
 export default async function RetirementBenefitsPage({
   searchParams,

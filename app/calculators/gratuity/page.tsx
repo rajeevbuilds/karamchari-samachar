@@ -1,7 +1,7 @@
 import { getAllSettings, getLatestDa } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
-import { GRATUITY_TOOL } from '@/lib/calculators';
+import { GRATUITY_TOOL, calculatorMetadata } from '@/lib/calculators';
 import GratuityCalculator from '@/components/GratuityCalculator';
 
 // Reads the gratuity ceiling from the settings table and the latest DA rate
@@ -9,11 +9,7 @@ import GratuityCalculator from '@/components/GratuityCalculator';
 // immediately without a redeploy.
 export const dynamic = 'force-dynamic';
 
-export const metadata = {
-  title: GRATUITY_TOOL.title,
-  alternates: { canonical: GRATUITY_TOOL.href },
-  description: GRATUITY_TOOL.description,
-};
+export const metadata = calculatorMetadata(GRATUITY_TOOL);
 
 export default async function GratuityPage() {
   const [settings, latestDa] = await Promise.all([getAllSettings(), getLatestDa()]);
