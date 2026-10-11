@@ -1,0 +1,281 @@
+'use client';
+
+import { useState, type FormEvent } from 'react';
+import Link from 'next/link';
+import DateInput from '@/components/DateInput';
+import { DownloadPdfButton, PrintBrandFooter, PrintMasthead, usePrintSupport } from '@/components/PrintTools';
+import { checkPpo, type PpoCheck } from '@/lib/ppocheck';
+
+const FIELD = 'w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon';
+const LABEL = 'block text-xs font-mono uppercase text-ink/50 mb-1';
+const rupees = (n: number) => `₹${Math.round(n).toLocaleString('en-IN')}`;
+
+function formatDay(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  return `${d} ${months[m - 1]} ${y}`;
+}
+
+const num = (v: string): number | null => (v.trim() !== '' && Number.isFinite(Number(v)) ? Number(v) : null);
+
+type Submitted = {
+  check: PpoCheck;
+  rows: [string, string][];
+};
+
+export default function PpoChecker({
+  defaultDaPercent,
+  ceiling,
+  minFloor,
+}: {
+  defaultDaPercent: number;
+  ceiling: number;
+  minFloor: number;
+}) {
+  const printedOn = usePrintSupport();
+  // From the PPO
+  const [basicPension, setBasicPension] = useState('');
+  const [commutedPension, setCommutedPension] = useState('');
+  const [commutedValue, setCommutedValue] = useState('');
+  const [reducedPension, setReducedPension] = useState('');
+  const [restorationDate, setRestorationDate] = useState('');
+  const [gratuity, setGratuity] = useState('');
+  // From the service record
+  const [dob, setDob] = useState('');
+  const [retirementDate, setRetirementDate] = useState('');
+  const [lastDrawnPay, setLastDrawnPay] = useState('');
+  const [avg10, setAvg10] = useState('');
+  const [years, setYears] = useState('');
+  const [months, setMonths] = useState('');
+  const [da, setDa] = useState(String(defaultDaPercent));
+
+  const [submitted, setSubmitted] = useState<Submitted | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  function edit<T>(setter: (v: T) => void) {
+    return (v: T) => {
+      setter(v);
+      setSubmitted(null);
+      setFormError(null);
+    };
+  }
+
+  function run(e: FormEvent) {
+    e.preventDefault();
+    const ppo = {
+      basicPension: num(basicPension),
+      commutedPension: num(commutedPension),
+      commutedValue: num(commutedValue),
+      reducedPension: num(reducedPension),
+      restorationDate,
+      gratuity: num(gratuity),
+    };
+    const entered = [ppo.basicPension, ppo.commutedPension, ppo.commutedValue, ppo.reducedPension, ppo.gratuity].some((v) => v !== null) || restorationDate !== '';
+    if (!entered) return setFormError('Enter at least one figure from your PPO.');
+
+    const facts = {
+      lastDrawnPay: num(lastDrawnPay),
+      avgLast10MonthsPay: num(avg10) && Number(avg10) > 0 ? Number(avg10) : null,
+      qualifyingYears: Number(years) || 0,
+      qualifyingMonths: Number(months) || 0,
+      daPercent: Number(da) || 0,
+      dob,
+      retirementDate,
+      minFloor,
+      gratuityCeiling: ceiling,
+    };
+    const check = checkPpo(ppo, facts);
+
+    const rows: [string, string][] = [];
+    if (dob) rows.push(['Date of birth', formatDay(dob)]);
+    if (retirementDate) rows.push(['Date of retirement', formatDay(retirementDate)]);
+    if (facts.lastDrawnPay) rows.push(['Last drawn Basic Pay', rupees(facts.lastDrawnPay)]);
+    if (facts.qualifyingYears || facts.qualifyingMonths) rows.push(['Qualifying service', `${facts.qualifyingYears} years ${facts.qualifyingMonths} months`]);
+    if (facts.lastDrawnPay) rows.push(['DA rate at retirement', `${facts.daPercent}%`]);
+    setFormError(null);
+    setSubmitted({ check, rows });
+  }
+
+  const c = submitted?.check;
+  const symbol = { ok: '✓', differs: '⚠', skipped: '–' } as const;
+  const word = { ok: 'Matches', differs: 'Check this', skipped: 'Not checked' } as const;
+  const tone = { ok: 'text-leaf', differs: 'text-maroon', skipped: 'text-ink/50' } as const;
+
+  return (
+    <div>
+      <div className="border border-rule bg-rule/10 px-5 py-4 mb-8 text-sm text-ink/80 leading-relaxed print:hidden">
+        <strong className="text-ink">Please read:</strong> This tool compares the figures on your Pension Payment Order
+        (PPO) with the rules. It is <strong>not</strong> a PPO and cannot replace one, and a difference here is a reason
+        to ask your Accounts Office or Pension Cell, not proof of a mistake. It is for employees under the Old Pension
+        Scheme. <strong>Do not type your name, PPO number or account number.</strong> They are not needed. Everything is
+        worked out in your browser and nothing is stored or sent.
+      </div>
+
+      <form onSubmit={run} className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-rule p-5 mb-8 print:hidden">
+        <h2 className="sm:col-span-2 font-serif text-lg font-semibold text-ink">1. Figures printed on your PPO</h2>
+        <div>
+          <label className={LABEL}>Basic pension (₹ a month)</label>
+          <input type="number" min="0" value={basicPension} onChange={(e) => edit(setBasicPension)(e.target.value)} className={FIELD} placeholder="e.g. 28450" />
+        </div>
+        <div>
+          <label className={LABEL}>Commuted pension (₹ a month)</label>
+          <input type="number" min="0" value={commutedPension} onChange={(e) => edit(setCommutedPension)(e.target.value)} className={FIELD} placeholder="e.g. 11380" />
+        </div>
+        <div>
+          <label className={LABEL}>Commuted value, the lump sum (₹)</label>
+          <input type="number" min="0" value={commutedValue} onChange={(e) => edit(setCommutedValue)(e.target.value)} className={FIELD} placeholder="e.g. 1118973" />
+        </div>
+        <div>
+          <label className={LABEL}>Reduced pension after commutation (₹ a month)</label>
+          <input type="number" min="0" value={reducedPension} onChange={(e) => edit(setReducedPension)(e.target.value)} className={FIELD} placeholder="e.g. 17070" />
+        </div>
+        <div>
+          <label className={LABEL}>Date the commuted pension is restored</label>
+          <DateInput value={restorationDate} onChange={(v) => edit(setRestorationDate)(v)} className={FIELD} />
+        </div>
+        <div>
+          <label className={LABEL}>Retirement gratuity (₹)</label>
+          <input type="number" min="0" value={gratuity} onChange={(e) => edit(setGratuity)(e.target.value)} className={FIELD} placeholder="e.g. 1502160" />
+        </div>
+
+        <h2 className="sm:col-span-2 font-serif text-lg font-semibold text-ink mt-2">2. From your service record</h2>
+        <p className="sm:col-span-2 text-xs text-ink/50 -mt-2">
+          Needed to check the commuted value, the restoration date, the basic pension and the gratuity. Leave out what you
+          do not have. The PPO checks that need only the PPO still run.
+        </p>
+        <div>
+          <label className={LABEL}>Date of birth</label>
+          <DateInput value={dob} onChange={(v) => edit(setDob)(v)} className={FIELD} />
+        </div>
+        <div>
+          <label className={LABEL}>Date of retirement</label>
+          <DateInput value={retirementDate} onChange={(v) => edit(setRetirementDate)(v)} className={FIELD} />
+        </div>
+        <div>
+          <label className={LABEL}>Last drawn Basic Pay (₹)</label>
+          <input type="number" min="0" value={lastDrawnPay} onChange={(e) => edit(setLastDrawnPay)(e.target.value)} className={FIELD} placeholder="e.g. 56900" />
+        </div>
+        <div>
+          <label className={LABEL}>Average Basic Pay, last 10 months (₹, optional)</label>
+          <input type="number" min="0" value={avg10} onChange={(e) => edit(setAvg10)(e.target.value)} className={FIELD} />
+        </div>
+        <div>
+          <label className={LABEL}>Qualifying service — years</label>
+          <input type="number" min="0" value={years} onChange={(e) => edit(setYears)(e.target.value)} className={FIELD} />
+        </div>
+        <div>
+          <label className={LABEL}>Qualifying service — months</label>
+          <input type="number" min="0" max="11" value={months} onChange={(e) => edit(setMonths)(e.target.value)} className={FIELD} />
+        </div>
+        <div>
+          <label className={LABEL}>DA rate at retirement (%)</label>
+          <input type="number" min="0" step="0.1" value={da} onChange={(e) => edit(setDa)(e.target.value)} className={FIELD} />
+          <p className="text-xs text-ink/50 mt-1">Filled with the latest DA. Use the rate in force on your retirement date.</p>
+        </div>
+
+        <div className="sm:col-span-2 flex items-center gap-4">
+          <button type="submit" className="bg-ink text-paper px-5 py-2.5 text-sm font-medium hover:bg-maroon transition-colors">
+            Check my PPO
+          </button>
+          {formError && <span className="text-sm text-red-600">{formError}</span>}
+        </div>
+      </form>
+
+      {submitted === null && !formError && (
+        <p className="text-sm text-ink/50 mb-8 print:hidden">Enter the figures from your PPO and press &ldquo;Check my PPO&rdquo;.</p>
+      )}
+
+      {submitted && c && (
+        <>
+          <DownloadPdfButton fileName="PPO-Verification-Report" />
+          <PrintMasthead title="PPO Verification Report — estimate, not an official document" printedOn={printedOn} rows={submitted.rows.length ? submitted.rows : [['Figures', 'As entered from the PPO']]} />
+
+          <div
+            className={`px-4 py-3 mb-4 print:mb-2 text-sm leading-relaxed border ${
+              c.differs > 0 ? 'border-maroon/40 bg-maroon/5' : 'border-leaf/40 bg-leaf/10'
+            }`}
+            role="status"
+          >
+            {c.differs > 0 ? (
+              <p className="font-medium text-ink">
+                {c.differs} {c.differs === 1 ? 'line needs' : 'lines need'} a check with your Accounts Office or Pension Cell.
+              </p>
+            ) : c.ok > 0 ? (
+              <p className="font-medium text-ink">
+                All {c.ok} {c.ok === 1 ? 'line' : 'lines'} checked match the rules.
+              </p>
+            ) : (
+              <p className="font-medium text-ink">Nothing could be checked yet. Fill in more of the boxes below the PPO figures.</p>
+            )}
+            {c.skipped > 0 && (
+              <p className="mt-1 text-ink/70">
+                {c.skipped} {c.skipped === 1 ? 'line was' : 'lines were'} not checked, because some details were left out. See the lines marked &ldquo;Not checked&rdquo;.
+              </p>
+            )}
+          </div>
+
+          <div className="border border-rule p-5 mb-4 print:p-3 print:mb-2 print:break-inside-avoid">
+            <h2 className="font-serif text-lg font-semibold text-ink mb-3 print:mb-1">What was checked</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm print:text-xs">
+                <thead>
+                  <tr className="text-left text-xs font-mono uppercase text-ink/50 border-b border-rule">
+                    <th className="py-2 print:py-1 pr-3 font-medium w-[30%]">Item</th>
+                    <th className="py-2 print:py-1 px-2 font-medium text-right">On your PPO</th>
+                    <th className="py-2 print:py-1 px-2 font-medium text-right">By the rules</th>
+                    <th className="py-2 print:py-1 pl-3 font-medium">Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {c.lines.map((l) => (
+                    <tr key={l.key} className="border-b border-rule/60 align-top">
+                      <td className="py-2 print:py-1 pr-3 text-ink min-w-[9rem]">{l.label}</td>
+                      <td className="py-2 print:py-1 px-2 text-right whitespace-nowrap">{l.ppo || '—'}</td>
+                      <td className="py-2 print:py-1 px-2 text-right whitespace-nowrap">{l.expected || '—'}</td>
+                      <td className="py-2 print:py-1 pl-3 min-w-[12rem]">
+                        <span className={`font-medium ${tone[l.status]}`}>
+                          {symbol[l.status]} {word[l.status]}
+                        </span>
+                        <span className="block text-xs print:text-[10px] text-ink/60 leading-snug">{l.message}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <ul className="list-disc pl-5 space-y-1 print:space-y-0 text-xs print:text-[9px] text-ink/60 leading-relaxed mb-8 print:mb-1">
+            <li>
+              If a line says &ldquo;Check this&rdquo;, take your PPO and this report to your Accounts Office or Pension Cell and ask them to verify it. They
+              can tell you whether a correction is needed.
+            </li>
+            <li>
+              Rules used: basic pension and gratuity as in the CCS (Pension) Rules; commutation of up to 40% with Table-II of the CCS (Commutation of Pension)
+              Rules, 1981 (LIC 94-96, 8% interest), the pension being restored after 15 years.
+            </li>
+            <li className="print:hidden">
+              Small rounding differences (₹1 on pension, about ₹100 on the lump sum) are treated as matching.
+            </li>
+          </ul>
+
+          <PrintBrandFooter
+            qrSrc="/qr/ppo-checker.svg"
+            disclaimer="This report was made by an online tool and is not a Pension Payment Order or any official document. Verify every figure with your Accounts Office."
+          />
+        </>
+      )}
+
+      <p className="text-xs text-ink/40 mt-8 print:hidden">
+        See also:{' '}
+        <Link href="/calculators/retirement-summary" className="underline hover:text-maroon">
+          Retirement Benefits Summary
+        </Link>
+        {' · '}
+        <Link href="/calculators/pension-ops" className="underline hover:text-maroon">
+          OPS Pension Calculator
+        </Link>
+      </p>
+    </div>
+  );
+}

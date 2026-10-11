@@ -29,6 +29,7 @@ export const MORE_NAV = [
   { href: '/calculators/nps', label: 'NPS & UPS Calculator' },
   { href: '/calculators/pay-fixation', label: 'Pay Fixation Calculator' },
   { href: '/calculators/retirement-summary', label: 'Retirement Summary' },
+  { href: '/calculators/ppo-checker', label: 'PPO Checker' },
   { href: '/states/punjab', label: 'By State' },
 ];
 

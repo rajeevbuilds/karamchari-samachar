@@ -11,7 +11,7 @@ export type CalculatorTool = {
   description: string;
   // Used on the Calculators listing page only.
   short: string; // one line for the tool's card
-  icon: 'wallet' | 'calculator' | 'piggy' | 'scale' | 'clipboard';
+  icon: 'wallet' | 'calculator' | 'piggy' | 'scale' | 'clipboard' | 'check';
 };
 
 export const PENSION_OPS_TOOL: CalculatorTool = {
@@ -59,7 +59,16 @@ export const RETIREMENT_SUMMARY_TOOL: CalculatorTool = {
   icon: 'clipboard',
 };
 
+export const PPO_CHECKER_TOOL: CalculatorTool = {
+  href: '/calculators/ppo-checker',
+  title: 'PPO Checker (Pension Payment Order)',
+  description:
+    'Check the figures on your Pension Payment Order against the rules: the commuted share, reduced pension, commuted value, restoration date, basic pension and gratuity. See what matches and what to ask your Accounts Office about. Nothing is stored.',
+  short: 'Check your PPO: commutation, reduced pension, restoration date and gratuity.',
+  icon: 'check',
+};
+
 // Add future calculators (Commutation, ...) here as they ship.
 export const SECTION_TOOLS: Record<string, CalculatorTool[]> = {
-  calculators: [PENSION_OPS_TOOL, GRATUITY_TOOL, NPS_TOOL, PAY_FIXATION_TOOL, RETIREMENT_SUMMARY_TOOL],
+  calculators: [PENSION_OPS_TOOL, GRATUITY_TOOL, NPS_TOOL, PAY_FIXATION_TOOL, RETIREMENT_SUMMARY_TOOL, PPO_CHECKER_TOOL],
 };

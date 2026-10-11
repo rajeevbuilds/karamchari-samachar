@@ -43,6 +43,7 @@ const ICONS: Record<string, LucideIcon> = {
   '/calculators/nps': PiggyBank,
   '/calculators/pay-fixation': Calculator,
   '/calculators/retirement-summary': Calculator,
+  '/calculators/ppo-checker': Calculator,
   '/states/punjab': MapPin,
 };
 
