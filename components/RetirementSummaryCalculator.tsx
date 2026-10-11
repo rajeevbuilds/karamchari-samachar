@@ -39,6 +39,7 @@ type Submitted = {
 export default function RetirementSummaryCalculator({
   shared,
   onShared,
+  daOnFile,
   ceiling,
   minFloor,
 }: SharedProps & {
@@ -172,8 +173,9 @@ export default function RetirementSummaryCalculator({
           <label className={LABEL}>Dearness Allowance / Relief rate (%)</label>
           <input type="number" min="0" step="0.1" value={da} onChange={(e) => edit(setDa)(e.target.value)} className={FIELD} />
           <p className="text-xs text-ink/50 mt-1">
-            Taken from the DA rates on this site for your date of retirement. DA and DR are the same rate. Used for
-            gratuity, leave encashment and pension.
+            {daOnFile
+              ? 'Taken from the DA rates on this site for your date of retirement. DA and DR are the same rate. Used for gratuity, leave encashment and pension.'
+              : 'No DA rate has been added on this site yet. Type the rate in force on your date of retirement. DA and DR are the same rate.'}
           </p>
         </div>
 

@@ -29,6 +29,7 @@ type Submitted = {
 export default function PpoChecker({
   shared,
   onShared,
+  daOnFile,
   ceiling,
   minFloor,
 }: SharedProps & {
@@ -200,7 +201,7 @@ export default function PpoChecker({
         <div>
           <label className={LABEL}>DA rate at retirement (%)</label>
           <input type="number" min="0" step="0.1" value={da} onChange={(e) => edit(setDa)(e.target.value)} className={FIELD} />
-          <p className="text-xs text-ink/50 mt-1">Taken from the DA rates on this site for your date of retirement. You can change it.</p>
+          <p className="text-xs text-ink/50 mt-1">{daOnFile ? 'Taken from the DA rates on this site for your date of retirement. You can change it.' : 'No DA rate has been added on this site yet. Type the rate in force on your date of retirement.'}</p>
         </div>
 
         {expected && (

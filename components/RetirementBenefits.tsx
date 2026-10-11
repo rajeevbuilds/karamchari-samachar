@@ -21,6 +21,8 @@ export type SharedFields = {
 export type SharedProps = {
   shared: SharedFields;
   onShared: (patch: Partial<SharedFields>) => void;
+  // False when no DA rate has been added in the admin panel.
+  daOnFile: boolean;
 };
 
 // One page for employees and pensioners under the Old Pension Scheme: an
@@ -46,7 +48,7 @@ export default function RetirementBenefits({
     avg10: '',
     years: '',
     months: '',
-    da: String(defaultDaPercent),
+    da: daHistory.length > 0 ? String(defaultDaPercent) : '',
   });
   // Once the person types a DA rate themselves, stop replacing it.
   const [daTyped, setDaTyped] = useState(false);
@@ -89,9 +91,9 @@ export default function RetirementBenefits({
       </div>
 
       {tab === 'estimate' ? (
-        <RetirementSummaryCalculator shared={shared} onShared={onShared} ceiling={ceiling} minFloor={minFloor} />
+        <RetirementSummaryCalculator shared={shared} onShared={onShared} daOnFile={daHistory.length > 0} ceiling={ceiling} minFloor={minFloor} />
       ) : (
-        <PpoChecker shared={shared} onShared={onShared} ceiling={ceiling} minFloor={minFloor} />
+        <PpoChecker shared={shared} onShared={onShared} daOnFile={daHistory.length > 0} ceiling={ceiling} minFloor={minFloor} />
       )}
     </div>
   );
