@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Calculator, PiggyBank, Scale, Wallet, type LucideIcon } from 'lucide-react';
+import { ArrowRight, Calculator, ClipboardList, PiggyBank, Scale, Wallet, type LucideIcon } from 'lucide-react';
 import type { CalculatorTool } from '@/lib/calculators';
 
 const ICONS: Record<CalculatorTool['icon'], LucideIcon> = {
@@ -7,6 +7,7 @@ const ICONS: Record<CalculatorTool['icon'], LucideIcon> = {
   calculator: Calculator,
   piggy: PiggyBank,
   scale: Scale,
+  clipboard: ClipboardList,
 };
 
 // Cards for the Calculators listing page: one grid, two across on wider

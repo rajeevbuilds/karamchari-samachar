@@ -11,7 +11,7 @@ export type CalculatorTool = {
   description: string;
   // Used on the Calculators listing page only.
   short: string; // one line for the tool's card
-  icon: 'wallet' | 'calculator' | 'piggy' | 'scale';
+  icon: 'wallet' | 'calculator' | 'piggy' | 'scale' | 'clipboard';
 };
 
 export const PENSION_OPS_TOOL: CalculatorTool = {
@@ -50,7 +50,16 @@ export const PAY_FIXATION_TOOL: CalculatorTool = {
   icon: 'scale',
 };
 
+export const RETIREMENT_SUMMARY_TOOL: CalculatorTool = {
+  href: '/calculators/retirement-summary',
+  title: 'Retirement Benefits Summary (OPS)',
+  description:
+    'One printable page for employees under the Old Pension Scheme: monthly pension, gratuity, leave encashment, commutation of pension and other dues, with the total amount you can expect at retirement. Central Government and Railway employees.',
+  short: 'Pension, gratuity, leave encashment and commutation on one printable page.',
+  icon: 'clipboard',
+};
+
 // Add future calculators (Commutation, ...) here as they ship.
 export const SECTION_TOOLS: Record<string, CalculatorTool[]> = {
-  calculators: [PENSION_OPS_TOOL, GRATUITY_TOOL, NPS_TOOL, PAY_FIXATION_TOOL],
+  calculators: [PENSION_OPS_TOOL, GRATUITY_TOOL, NPS_TOOL, PAY_FIXATION_TOOL, RETIREMENT_SUMMARY_TOOL],
 };
