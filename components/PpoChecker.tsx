@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import DateInput from '@/components/DateInput';
 import { DownloadPdfButton, PrintBrandFooter, PrintMasthead, usePrintSupport } from '@/components/PrintTools';
 import type { SharedProps } from '@/components/RetirementBenefits';
 import { checkPpo, type PpoCheck } from '@/lib/ppocheck';
+import { ageNextBirthday, commutationFactor } from '@/lib/commutation';
+import { buildRetirementSummary } from '@/lib/retirement';
 
 const FIELD = 'w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon';
 const LABEL = 'block text-xs font-mono uppercase text-ink/50 mb-1';
@@ -68,6 +70,52 @@ export default function PpoChecker({
     };
   }
 
+  // The figures the rules give for the service details, shown as they are filled in.
+  const { expected, expectedNote } = useMemo(() => {
+    const pay = Number(lastDrawnPay);
+    const y = Number(years) || 0;
+    const m = Number(months) || 0;
+    if (!(pay > 0) || y * 12 + m <= 0) return { expected: null, expectedNote: '' };
+    const ageNext = dob && retirementDate ? ageNextBirthday(dob, retirementDate) : null;
+    const canCommute = ageNext !== null && commutationFactor(ageNext) !== null;
+    const r = buildRetirementSummary({
+      lastDrawnPay: pay,
+      avgLast10MonthsPay: Number(avg10) > 0 ? Number(avg10) : null,
+      qualifyingYears: y,
+      qualifyingMonths: m,
+      daPercent: Number(da) || 0,
+      drPercent: Number(da) || 0,
+      lapDays: 0,
+      hplDays: 0,
+      commutePercent: canCommute ? 40 : 0,
+      ageNextBirthday: ageNext ?? 0,
+      gpfBalance: 0,
+      otherDues: 0,
+      gratuityCeiling: ceiling,
+      minFloor,
+    });
+    if (!r.ok) return { expected: null, expectedNote: '' };
+    const rows: [string, string][] = [];
+    if (r.pension) rows.push(['Basic pension (₹ a month)', rupees(r.pension.basicPension)]);
+    else rows.push(['Basic pension', 'Not eligible (under 10 years)']);
+    if (r.commutation) {
+      rows.push(['Commuted pension, at 40% (₹ a month)', rupees(r.commutation.commutedPension)]);
+      rows.push(['Commuted value, the lump sum (₹)', rupees(r.commutation.lumpSum)]);
+      rows.push(['Reduced pension (₹ a month)', rupees(r.commutation.reducedBasicPension)]);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(retirementDate)) {
+        const [yy, mm, dd] = retirementDate.split('-');
+        rows.push(['Commuted pension restored on', `${dd}/${mm}/${Number(yy) + r.commutation.restoredAfterYears}`]);
+      }
+    }
+    rows.push(['Retirement gratuity (₹)', r.gratuity !== null ? rupees(r.gratuity) : 'Not eligible (under 5 years)']);
+    return {
+      expected: rows,
+      expectedNote: r.commutation
+        ? 'Commutation is shown at the full 40%. If you commuted a smaller share, your PPO figures will differ here; the checks below use the commuted pension printed on your PPO.'
+        : 'Add your date of birth and date of retirement to see the commutation figures.',
+    };
+  }, [lastDrawnPay, avg10, years, months, da, dob, retirementDate, ceiling, minFloor]);
+
   function run(e: FormEvent) {
     e.preventDefault();
     const ppo = {
@@ -79,7 +127,7 @@ export default function PpoChecker({
       gratuity: num(gratuity),
     };
     const entered = [ppo.basicPension, ppo.commutedPension, ppo.commutedValue, ppo.reducedPension, ppo.gratuity].some((v) => v !== null) || restorationDate !== '';
-    if (!entered) return setFormError('Enter at least one figure from your PPO.');
+    if (!entered) return setFormError('Enter at least one figure from your PPO to compare it with the rules.');
 
     const facts = {
       lastDrawnPay: num(lastDrawnPay),
@@ -120,36 +168,9 @@ export default function PpoChecker({
       </div>
 
       <form onSubmit={run} className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-rule p-5 mb-8 print:hidden">
-        <h2 className="sm:col-span-2 font-serif text-lg font-semibold text-ink">1. Figures printed on your PPO</h2>
-        <div>
-          <label className={LABEL}>Basic pension (₹ a month)</label>
-          <input type="number" min="0" value={basicPension} onChange={(e) => edit(setBasicPension)(e.target.value)} className={FIELD} placeholder="e.g. 28450" />
-        </div>
-        <div>
-          <label className={LABEL}>Commuted pension (₹ a month)</label>
-          <input type="number" min="0" value={commutedPension} onChange={(e) => edit(setCommutedPension)(e.target.value)} className={FIELD} placeholder="e.g. 11380" />
-        </div>
-        <div>
-          <label className={LABEL}>Commuted value, the lump sum (₹)</label>
-          <input type="number" min="0" value={commutedValue} onChange={(e) => edit(setCommutedValue)(e.target.value)} className={FIELD} placeholder="e.g. 1118973" />
-        </div>
-        <div>
-          <label className={LABEL}>Reduced pension after commutation (₹ a month)</label>
-          <input type="number" min="0" value={reducedPension} onChange={(e) => edit(setReducedPension)(e.target.value)} className={FIELD} placeholder="e.g. 17070" />
-        </div>
-        <div>
-          <label className={LABEL}>Date the commuted pension is restored</label>
-          <DateInput value={restorationDate} onChange={(v) => edit(setRestorationDate)(v)} className={FIELD} />
-        </div>
-        <div>
-          <label className={LABEL}>Retirement gratuity (₹)</label>
-          <input type="number" min="0" value={gratuity} onChange={(e) => edit(setGratuity)(e.target.value)} className={FIELD} placeholder="e.g. 1502160" />
-        </div>
-
-        <h2 className="sm:col-span-2 font-serif text-lg font-semibold text-ink mt-2">2. From your service record</h2>
+        <h2 className="sm:col-span-2 font-serif text-lg font-semibold text-ink">1. Your service details</h2>
         <p className="sm:col-span-2 text-xs text-ink/50 -mt-2">
-          Needed to check the commuted value, the restoration date, the basic pension and the gratuity. Leave out what you
-          do not have. The PPO checks that need only the PPO still run.
+          Already filled if you used the other tab. As you fill these in, the figures the rules give appear below.
         </p>
         <div>
           <label className={LABEL}>Date of birth</label>
@@ -180,6 +201,48 @@ export default function PpoChecker({
           <label className={LABEL}>DA rate at retirement (%)</label>
           <input type="number" min="0" step="0.1" value={da} onChange={(e) => edit(setDa)(e.target.value)} className={FIELD} />
           <p className="text-xs text-ink/50 mt-1">Taken from the DA rates on this site for your date of retirement. You can change it.</p>
+        </div>
+
+        {expected && (
+          <div className="sm:col-span-2 border border-leaf/40 bg-leaf/10 px-4 py-3 text-sm" aria-live="polite">
+            <p className="font-medium text-ink mb-2">What the rules give for these details</p>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+              {expected.map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-3 border-b border-rule/40 py-1">
+                  <dt className="text-ink/70">{k}</dt>
+                  <dd className="font-medium text-ink whitespace-nowrap">{v}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="text-xs text-ink/60 mt-2 leading-snug">{expectedNote}</p>
+          </div>
+        )}
+
+        <h2 className="sm:col-span-2 font-serif text-lg font-semibold text-ink mt-2">2. Figures printed on your PPO</h2>
+        <p className="sm:col-span-2 text-xs text-ink/50 -mt-2">Enter what is printed on your PPO and press &ldquo;Check my PPO&rdquo; to compare it with the figures above.</p>
+        <div>
+          <label className={LABEL}>Basic pension (₹ a month)</label>
+          <input type="number" min="0" value={basicPension} onChange={(e) => edit(setBasicPension)(e.target.value)} className={FIELD} placeholder="e.g. 28450" />
+        </div>
+        <div>
+          <label className={LABEL}>Commuted pension (₹ a month)</label>
+          <input type="number" min="0" value={commutedPension} onChange={(e) => edit(setCommutedPension)(e.target.value)} className={FIELD} placeholder="e.g. 11380" />
+        </div>
+        <div>
+          <label className={LABEL}>Commuted value, the lump sum (₹)</label>
+          <input type="number" min="0" value={commutedValue} onChange={(e) => edit(setCommutedValue)(e.target.value)} className={FIELD} placeholder="e.g. 1118973" />
+        </div>
+        <div>
+          <label className={LABEL}>Reduced pension after commutation (₹ a month)</label>
+          <input type="number" min="0" value={reducedPension} onChange={(e) => edit(setReducedPension)(e.target.value)} className={FIELD} placeholder="e.g. 17070" />
+        </div>
+        <div>
+          <label className={LABEL}>Date the commuted pension is restored</label>
+          <DateInput value={restorationDate} onChange={(v) => edit(setRestorationDate)(v)} className={FIELD} />
+        </div>
+        <div>
+          <label className={LABEL}>Retirement gratuity (₹)</label>
+          <input type="number" min="0" value={gratuity} onChange={(e) => edit(setGratuity)(e.target.value)} className={FIELD} placeholder="e.g. 1502160" />
         </div>
 
         <div className="sm:col-span-2 flex items-center gap-4">
