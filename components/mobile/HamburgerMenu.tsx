@@ -42,8 +42,7 @@ const ICONS: Record<string, LucideIcon> = {
   '/calculators/gratuity': Calculator,
   '/calculators/nps': PiggyBank,
   '/calculators/pay-fixation': Calculator,
-  '/calculators/retirement-summary': Calculator,
-  '/calculators/ppo-checker': Calculator,
+  '/calculators/retirement-benefits': Calculator,
   '/states/punjab': MapPin,
 };
 

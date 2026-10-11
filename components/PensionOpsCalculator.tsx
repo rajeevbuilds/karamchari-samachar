@@ -214,6 +214,10 @@ export default function PensionOpsCalculator({
 
       <p className="text-xs text-ink/40 mt-8 print:hidden">
         See also:{' '}
+        <Link href="/calculators/retirement-benefits" className="underline hover:text-maroon">
+          Retirement Benefits (OPS)
+        </Link>
+        {' · '}
         <Link href="/da-cpc-tracker" className="underline hover:text-maroon">
           DA &amp; Pay Commission Tracker
         </Link>

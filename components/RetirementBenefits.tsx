@@ -1,0 +1,55 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import PpoChecker from '@/components/PpoChecker';
+import RetirementSummaryCalculator from '@/components/RetirementSummaryCalculator';
+
+type Tab = 'estimate' | 'check';
+
+// One page for employees and pensioners under the Old Pension Scheme: an
+// estimate of the benefits before retirement, and a check of the PPO after it.
+export default function RetirementBenefits({
+  initialTab,
+  defaultDaPercent,
+  ceiling,
+  minFloor,
+}: {
+  initialTab: Tab;
+  defaultDaPercent: number;
+  ceiling: number;
+  minFloor: number;
+}) {
+  const [tab, setTab] = useState<Tab>(initialTab);
+  const tabClass = (active: boolean) =>
+    `px-4 py-2 text-sm border ${active ? 'bg-ink text-paper border-ink' : 'border-rule text-ink/70 hover:text-maroon'}`;
+
+  return (
+    <div>
+      <div className="border border-rule bg-white/40 px-5 py-4 mb-6 text-sm text-ink/80 leading-relaxed print:hidden">
+        <strong className="text-ink">Who is this for?</strong> Employees and pensioners covered by the{' '}
+        <strong>Old Pension Scheme</strong>, generally those appointed before 1 January 2004. If you are under NPS or
+        UPS, use the{' '}
+        <Link href="/calculators/nps" className="underline hover:text-maroon">
+          NPS &amp; UPS Calculator
+        </Link>{' '}
+        instead.
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-6 print:hidden" role="tablist" aria-label="Retirement benefits">
+        <button type="button" role="tab" aria-selected={tab === 'estimate'} className={tabClass(tab === 'estimate')} onClick={() => setTab('estimate')}>
+          Estimate my retirement benefits
+        </button>
+        <button type="button" role="tab" aria-selected={tab === 'check'} className={tabClass(tab === 'check')} onClick={() => setTab('check')}>
+          Check my PPO
+        </button>
+      </div>
+
+      {tab === 'estimate' ? (
+        <RetirementSummaryCalculator defaultDaPercent={defaultDaPercent} ceiling={ceiling} minFloor={minFloor} />
+      ) : (
+        <PpoChecker defaultDaPercent={defaultDaPercent} ceiling={ceiling} minFloor={minFloor} />
+      )}
+    </div>
+  );
+}

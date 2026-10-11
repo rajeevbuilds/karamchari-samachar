@@ -260,7 +260,7 @@ export default function PpoChecker({
           </ul>
 
           <PrintBrandFooter
-            qrSrc="/qr/ppo-checker.svg"
+            qrSrc="/qr/retirement-benefits-check.svg"
             disclaimer="This report was made by an online tool and is not a Pension Payment Order or any official document. Verify every figure with your Accounts Office."
           />
         </>
@@ -268,12 +268,12 @@ export default function PpoChecker({
 
       <p className="text-xs text-ink/40 mt-8 print:hidden">
         See also:{' '}
-        <Link href="/calculators/retirement-summary" className="underline hover:text-maroon">
-          Retirement Benefits Summary
-        </Link>
-        {' · '}
         <Link href="/calculators/pension-ops" className="underline hover:text-maroon">
           OPS Pension Calculator
+        </Link>
+        {' · '}
+        <Link href="/calculators/gratuity" className="underline hover:text-maroon">
+          Gratuity Calculator
         </Link>
       </p>
     </div>

@@ -50,25 +50,16 @@ export const PAY_FIXATION_TOOL: CalculatorTool = {
   icon: 'scale',
 };
 
-export const RETIREMENT_SUMMARY_TOOL: CalculatorTool = {
-  href: '/calculators/retirement-summary',
-  title: 'Retirement Benefits Summary (OPS)',
+export const RETIREMENT_BENEFITS_TOOL: CalculatorTool = {
+  href: '/calculators/retirement-benefits',
+  title: 'Retirement Benefits: Employees Appointed Before 01.01.2004 (OPS)',
   description:
-    'One printable page for employees under the Old Pension Scheme: monthly pension, gratuity, leave encashment, commutation of pension and other dues, with the total amount you can expect at retirement. Central Government and Railway employees.',
-  short: 'Pension, gratuity, leave encashment and commutation on one printable page.',
+    'For employees and pensioners under the Old Pension Scheme: estimate your monthly pension, gratuity, leave encashment and commutation on one printable page, and check the figures on your Pension Payment Order (PPO). Central Government and Railway employees.',
+  short: 'Estimate pension, gratuity, leave encashment and commutation, and check your PPO.',
   icon: 'clipboard',
-};
-
-export const PPO_CHECKER_TOOL: CalculatorTool = {
-  href: '/calculators/ppo-checker',
-  title: 'PPO Checker (Pension Payment Order)',
-  description:
-    'Check the figures on your Pension Payment Order against the rules: the commuted share, reduced pension, commuted value, restoration date, basic pension and gratuity. See what matches and what to ask your Accounts Office about. Nothing is stored.',
-  short: 'Check your PPO: commutation, reduced pension, restoration date and gratuity.',
-  icon: 'check',
 };
 
 // Add future calculators (Commutation, ...) here as they ship.
 export const SECTION_TOOLS: Record<string, CalculatorTool[]> = {
-  calculators: [PENSION_OPS_TOOL, GRATUITY_TOOL, NPS_TOOL, PAY_FIXATION_TOOL, RETIREMENT_SUMMARY_TOOL, PPO_CHECKER_TOOL],
+  calculators: [PENSION_OPS_TOOL, GRATUITY_TOOL, NPS_TOOL, PAY_FIXATION_TOOL, RETIREMENT_BENEFITS_TOOL],
 };

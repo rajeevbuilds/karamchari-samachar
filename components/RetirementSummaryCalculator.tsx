@@ -377,7 +377,7 @@ export default function RetirementSummaryCalculator({
           </ul>
 
           <PrintBrandFooter
-            qrSrc="/qr/retirement-summary.svg"
+            qrSrc="/qr/retirement-benefits.svg"
             disclaimer="This is an estimate for planning only, not an official calculation. Your pension sanctioning authority makes the actual calculation."
           />
         </>

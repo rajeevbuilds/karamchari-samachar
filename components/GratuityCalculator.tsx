@@ -268,6 +268,10 @@ export default function GratuityCalculator({
           OPS Pension Calculator
         </Link>
         {' · '}
+        <Link href="/calculators/retirement-benefits" className="underline hover:text-maroon">
+          Retirement Benefits (OPS)
+        </Link>
+        {' · '}
         <Link href="/da-cpc-tracker" className="underline hover:text-maroon">
           DA &amp; Pay Commission Tracker
         </Link>
