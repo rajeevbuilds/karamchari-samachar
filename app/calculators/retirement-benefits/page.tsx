@@ -1,4 +1,4 @@
-import { getAllSettings, getLatestDa } from '@/lib/data';
+import { getAllSettings, getDaHistory, getLatestDa } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
 import { RETIREMENT_BENEFITS_TOOL } from '@/lib/calculators';
@@ -19,7 +19,12 @@ export default async function RetirementBenefitsPage({
 }: {
   searchParams: Promise<{ tab?: string }>;
 }) {
-  const [{ tab }, settings, latestDa] = await Promise.all([searchParams, getAllSettings(), getLatestDa()]);
+  const [{ tab }, settings, latestDa, daHistory] = await Promise.all([
+    searchParams,
+    getAllSettings(),
+    getLatestDa(),
+    getDaHistory(),
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -39,6 +44,7 @@ export default async function RetirementBenefitsPage({
       <p className="text-sm text-ink/60 mb-8 max-w-prose print:hidden">{RETIREMENT_BENEFITS_TOOL.description}</p>
       <RetirementBenefits
         initialTab={tab === 'check' ? 'check' : 'estimate'}
+        daHistory={daHistory.map((d) => ({ effectiveFrom: d.effectiveFrom, percentage: d.percentage }))}
         defaultDaPercent={latestDa.percentage}
         ceiling={Number(settings.gratuity_ceiling) || 0}
         minFloor={Number(settings.pension_min_floor) || 0}

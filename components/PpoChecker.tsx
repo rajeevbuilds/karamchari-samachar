@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import DateInput from '@/components/DateInput';
 import { DownloadPdfButton, PrintBrandFooter, PrintMasthead, usePrintSupport } from '@/components/PrintTools';
+import type { SharedProps } from '@/components/RetirementBenefits';
 import { checkPpo, type PpoCheck } from '@/lib/ppocheck';
 
 const FIELD = 'w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon';
@@ -24,15 +25,29 @@ type Submitted = {
 };
 
 export default function PpoChecker({
-  defaultDaPercent,
+  shared,
+  onShared,
   ceiling,
   minFloor,
-}: {
-  defaultDaPercent: number;
+}: SharedProps & {
   ceiling: number;
   minFloor: number;
 }) {
   const printedOn = usePrintSupport();
+  const lastDrawnPay = shared.lastDrawnPay;
+  const setLastDrawnPay = (v: string) => onShared({ lastDrawnPay: v });
+  const avg10 = shared.avg10;
+  const setAvg10 = (v: string) => onShared({ avg10: v });
+  const years = shared.years;
+  const setYears = (v: string) => onShared({ years: v });
+  const months = shared.months;
+  const setMonths = (v: string) => onShared({ months: v });
+  const da = shared.da;
+  const setDa = (v: string) => onShared({ da: v });
+  const dob = shared.dob;
+  const setDob = (v: string) => onShared({ dob: v });
+  const retirementDate = shared.retirementDate;
+  const setRetirementDate = (v: string) => onShared({ retirementDate: v });
   // From the PPO
   const [basicPension, setBasicPension] = useState('');
   const [commutedPension, setCommutedPension] = useState('');
@@ -41,13 +56,6 @@ export default function PpoChecker({
   const [restorationDate, setRestorationDate] = useState('');
   const [gratuity, setGratuity] = useState('');
   // From the service record
-  const [dob, setDob] = useState('');
-  const [retirementDate, setRetirementDate] = useState('');
-  const [lastDrawnPay, setLastDrawnPay] = useState('');
-  const [avg10, setAvg10] = useState('');
-  const [years, setYears] = useState('');
-  const [months, setMonths] = useState('');
-  const [da, setDa] = useState(String(defaultDaPercent));
 
   const [submitted, setSubmitted] = useState<Submitted | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -150,6 +158,7 @@ export default function PpoChecker({
         <div>
           <label className={LABEL}>Date of retirement</label>
           <DateInput value={retirementDate} onChange={(v) => edit(setRetirementDate)(v)} className={FIELD} />
+          <p className="text-xs text-ink/50 mt-1">Filled from your date of birth (age 60). You can change it.</p>
         </div>
         <div>
           <label className={LABEL}>Last drawn Basic Pay (₹)</label>
@@ -170,7 +179,7 @@ export default function PpoChecker({
         <div>
           <label className={LABEL}>DA rate at retirement (%)</label>
           <input type="number" min="0" step="0.1" value={da} onChange={(e) => edit(setDa)(e.target.value)} className={FIELD} />
-          <p className="text-xs text-ink/50 mt-1">Filled with the latest DA. Use the rate in force on your retirement date.</p>
+          <p className="text-xs text-ink/50 mt-1">Taken from the DA rates on this site for your date of retirement. You can change it.</p>
         </div>
 
         <div className="sm:col-span-2 flex items-center gap-4">

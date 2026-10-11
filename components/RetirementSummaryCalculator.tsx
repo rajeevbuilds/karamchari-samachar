@@ -5,6 +5,7 @@ import Link from 'next/link';
 import DateInput from '@/components/DateInput';
 import { DownloadPdfButton, PrintBrandFooter, PrintMasthead, usePrintSupport } from '@/components/PrintTools';
 import { ageNextBirthday, COMMUTATION_MAX_AGE, COMMUTATION_MIN_AGE } from '@/lib/commutation';
+import type { SharedProps } from '@/components/RetirementBenefits';
 import { buildRetirementSummary, LEAVE_CEILING_DAYS, type RetirementSummary } from '@/lib/retirement';
 
 const rupees = (n: number) => `₹${Math.round(n).toLocaleString('en-IN')}`;
@@ -36,25 +37,31 @@ type Submitted = {
 };
 
 export default function RetirementSummaryCalculator({
-  defaultDaPercent,
+  shared,
+  onShared,
   ceiling,
   minFloor,
-}: {
-  defaultDaPercent: number;
+}: SharedProps & {
   ceiling: number;
   minFloor: number;
 }) {
   const printedOn = usePrintSupport();
-  const [lastDrawnPay, setLastDrawnPay] = useState('');
-  const [avg10, setAvg10] = useState('');
-  const [years, setYears] = useState('');
-  const [months, setMonths] = useState('');
-  const [da, setDa] = useState(String(defaultDaPercent));
-  const [dr, setDr] = useState(String(defaultDaPercent));
+  const lastDrawnPay = shared.lastDrawnPay;
+  const setLastDrawnPay = (v: string) => onShared({ lastDrawnPay: v });
+  const avg10 = shared.avg10;
+  const setAvg10 = (v: string) => onShared({ avg10: v });
+  const years = shared.years;
+  const setYears = (v: string) => onShared({ years: v });
+  const months = shared.months;
+  const setMonths = (v: string) => onShared({ months: v });
+  const da = shared.da;
+  const setDa = (v: string) => onShared({ da: v });
+  const dob = shared.dob;
+  const setDob = (v: string) => onShared({ dob: v });
+  const retirementDate = shared.retirementDate;
+  const setRetirementDate = (v: string) => onShared({ retirementDate: v });
   const [lap, setLap] = useState('');
   const [hpl, setHpl] = useState('');
-  const [dob, setDob] = useState('');
-  const [retirementDate, setRetirementDate] = useState('');
   const [ageOverride, setAgeOverride] = useState('');
   const [commutePercent, setCommutePercent] = useState('40');
   const [gpf, setGpf] = useState('');
@@ -97,7 +104,7 @@ export default function RetirementSummaryCalculator({
       qualifyingYears: y,
       qualifyingMonths: m,
       daPercent: Number(da) || 0,
-      drPercent: Number(dr) || 0,
+      drPercent: Number(da) || 0,
       lapDays: Number(lap) || 0,
       hplDays: Number(hpl) || 0,
       commutePercent: pct,
@@ -162,14 +169,12 @@ export default function RetirementSummaryCalculator({
           <input type="number" min="0" max="11" value={months} onChange={(e) => edit(setMonths)(e.target.value)} className={FIELD} />
         </div>
         <div>
-          <label className={LABEL}>Dearness Allowance rate (%)</label>
+          <label className={LABEL}>Dearness Allowance / Relief rate (%)</label>
           <input type="number" min="0" step="0.1" value={da} onChange={(e) => edit(setDa)(e.target.value)} className={FIELD} />
-          <p className="text-xs text-ink/50 mt-1">Used for gratuity and leave encashment.</p>
-        </div>
-        <div>
-          <label className={LABEL}>Dearness Relief rate (%)</label>
-          <input type="number" min="0" step="0.1" value={dr} onChange={(e) => edit(setDr)(e.target.value)} className={FIELD} />
-          <p className="text-xs text-ink/50 mt-1">Used for the monthly pension.</p>
+          <p className="text-xs text-ink/50 mt-1">
+            Taken from the DA rates on this site for your date of retirement. DA and DR are the same rate. Used for
+            gratuity, leave encashment and pension.
+          </p>
         </div>
 
         <div>
@@ -189,6 +194,7 @@ export default function RetirementSummaryCalculator({
         <div>
           <label className={LABEL}>Date of retirement</label>
           <DateInput value={retirementDate} onChange={(v) => edit(setRetirementDate)(v)} className={FIELD} />
+          <p className="text-xs text-ink/50 mt-1">Filled from your date of birth (age 60). You can change it.</p>
         </div>
 
         <div>
