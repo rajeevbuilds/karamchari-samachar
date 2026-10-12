@@ -1,0 +1,62 @@
+name: Watch official circular pages
+
+# Checks the pages listed in scripts/watch/sources.json every hour and sends a
+# Telegram message when one of them lists something new. What it has already
+# seen is kept on the "watch-state" branch.
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: watch-circulars
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Load what was seen last time
+        run: |
+          mkdir -p .watch
+          if git ls-remote --exit-code --heads origin watch-state >/dev/null 2>&1; then
+            git fetch --depth=1 origin watch-state
+            git show origin/watch-state:state.json > .watch/state.json || echo '{}' > .watch/state.json
+          else
+            echo '{}' > .watch/state.json
+          fi
+
+      - name: Check the pages
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node scripts/watch/check.mjs
+
+      - name: Save what was seen
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -f .watch/changed ]; then
+            dir=$(mktemp -d)
+            cp .watch/state.json "$dir/state.json"
+            cd "$dir"
+            git init -q
+            git config user.name "circular-watch"
+            git config user.email "circular-watch@users.noreply.github.com"
+            git checkout -q -b watch-state
+            git add state.json
+            git commit -q -m "Update watch state"
+            git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" watch-state
+          fi

@@ -1,0 +1,12 @@
+[
+  { "id": "doe-orders", "label": "Dept of Expenditure · Orders & Circulars", "url": "https://doe.gov.in/en/orders-circulars" },
+  { "id": "doe-pay", "label": "Dept of Expenditure · Pay & Allowances", "url": "https://doe.gov.in/en/annual-report-pay-and-allowances" },
+  { "id": "mohfw-orders", "label": "Health Ministry · Orders & Notices", "url": "https://www.mohfw-dohfw.gov.in/documents/orders-and-notices?page=1" },
+  { "id": "cgda", "label": "CGDA · Circulars", "url": "https://cgda.nic.in/index.php?page=allcircular" },
+  { "id": "dopt-om", "label": "DoPT · Office Memoranda", "url": "https://doptcirculars.nic.in/OM/SearchOMNew.aspx?headid=4" },
+  { "id": "rb-390", "label": "Railway Board · section 390", "url": "https://indianrailways.gov.in/railwayboard/view_section.jsp?id=0,1,304,366,390" },
+  { "id": "rb-531", "label": "Railway Board · section 531", "url": "https://indianrailways.gov.in/railwayboard/view_section.jsp?id=0,1,304,366,531" },
+  { "id": "rb-519-759", "label": "Railway Board · section 519/759", "url": "https://indianrailways.gov.in/railwayboard//view_section.jsp?id=0,1,304,366,519,759" },
+  { "id": "rb-528", "label": "Railway Board · section 528", "url": "https://indianrailways.gov.in/railwayboard/view_section.jsp?id=0,1,304,366,528" },
+  { "id": "rb-555", "label": "Railway Board · section 555", "url": "https://indianrailways.gov.in/railwayboard/view_section.jsp?id=0,1,304,366,555" }
+]
