@@ -1,6 +1,15 @@
 import Link from 'next/link';
 import type { AdminCircular } from '@/lib/data';
 
+// "2026-10-11 14:30:00" (IST wall-clock) or "2026-10-11" -> DD/MM/YYYY and an
+// optional HH:MM, read as text so the browser's timezone cannot shift the day.
+function postedParts(c: AdminCircular): { date: string; time: string } {
+  const raw = c.postedAt || c.issueDate || '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(raw);
+  if (!m) return { date: '—', time: '' };
+  return { date: `${m[3]}/${m[2]}/${m[1]}`, time: c.postedAt && m[4] ? `${m[4]}:${m[5]}` : '' };
+}
+
 export default function ViewsOverview({
   totalSiteViews,
   topViewed,
@@ -26,6 +35,7 @@ export default function ViewsOverview({
               <tr className="border-b border-rule text-left">
                 <th className="px-4 py-2 font-mono text-xs uppercase text-ink/50 w-10">#</th>
                 <th className="px-4 py-2 font-mono text-xs uppercase text-ink/50">Circular</th>
+                <th className="px-4 py-2 font-mono text-xs uppercase text-ink/50 whitespace-nowrap">Posted</th>
                 <th className="px-4 py-2 font-mono text-xs uppercase text-ink/50 text-right">Views</th>
               </tr>
             </thead>
@@ -41,6 +51,17 @@ export default function ViewsOverview({
                     >
                       {circular.title}
                     </Link>
+                  </td>
+                  <td className="px-4 py-2 text-ink/70 whitespace-nowrap font-mono text-xs">
+                    {(() => {
+                      const { date, time } = postedParts(circular);
+                      return (
+                        <>
+                          {date}
+                          {time && <span className="block text-ink/40">{time}</span>}
+                        </>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-2 text-ink text-right font-mono">
                     {circular.viewCount.toLocaleString('en-IN')}
