@@ -94,8 +94,8 @@ export const EIGHTH_CPC_TOOL: CalculatorTool = {
   href: '/calculators/8th-pay-commission',
   title: '8th Pay Commission Salary Calculator',
   description:
-    'See what your salary could look like under the 8th Pay Commission. Enter your present Basic Pay, Pay Level and city, pick a fitment factor from 1.50 to 3.00, and compare your present and 8th CPC Basic Pay, DA, HRA and Transport Allowance. An estimate only: the Commission has not reported.',
-  short: 'Present salary against 8th CPC salary, for any fitment factor from 1.50 to 3.00.',
+    'See what your salary could look like under the 8th Pay Commission. Enter your present Basic Pay, Pay Level and city, pick a fitment factor from 1.50 to 3.00, compare your present and 8th CPC Basic Pay, DA, HRA and Transport Allowance, and estimate your arrears from 1 January 2026 to the date of notification. An estimate only: the Commission has not reported.',
+  short: 'Present salary against 8th CPC salary and arrears, for any fitment factor from 1.50 to 3.00.',
   icon: 'trending',
   shareImage: '/share/8th-pay-commission.jpg',
 };
