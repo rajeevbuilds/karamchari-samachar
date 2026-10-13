@@ -53,11 +53,6 @@ function todayISO(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const monthYear = (iso: string) => {
-  const m = /^(\d{4})-(\d{2})-\d{2}$/.exec(iso);
-  return m ? `${MONTH_NAMES[Number(m[2]) - 1]} ${m[1]}` : '';
-};
 const longDate = (iso: string) => {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
   return m ? `${m[3]}/${m[2]}/${m[1]}` : iso;
@@ -317,7 +312,7 @@ export default function EighthCpcCalculator({
           {arrearsOn && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className={LABEL} htmlFor="e8-notify">In case the 8th CPC is notified on</label>
+                <label className={LABEL} htmlFor="e8-notify">Date of notification</label>
                 <DateInput value={notifyISO} onChange={(v) => edit(setNotifyISO)(v)} className={FIELD} />
                 <p className="text-xs text-ink/50 mt-1">Arrears are worked out from January 2026 up to and including the month of notification. Change it to see other dates.</p>
               </div>
@@ -330,9 +325,7 @@ export default function EighthCpcCalculator({
                 <label className={LABEL} htmlFor="e8-allow">Revised HRA and Transport Allowance apply from</label>
                 <select id="e8-allow" value={allowChoice} onChange={(e) => edit(setAllowChoice)(e.target.value as AllowanceChoice)} className={FIELD}>
                   {(Object.keys(ALLOWANCE_CHOICES) as AllowanceChoice[]).map((k) => (
-                    <option key={k} value={k}>
-                      {k === 'notify' && notifyISO ? `The date of notification (${monthYear(notifyISO)})` : ALLOWANCE_CHOICES[k]}
-                    </option>
+                    <option key={k} value={k}>{ALLOWANCE_CHOICES[k]}</option>
                   ))}
                 </select>
                 <p className="text-xs text-ink/50 mt-1">
