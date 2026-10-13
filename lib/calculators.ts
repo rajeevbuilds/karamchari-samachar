@@ -14,7 +14,7 @@ export type CalculatorTool = {
   description: string;
   // Used on the Calculators listing page only.
   short: string; // one line for the tool's card
-  icon: 'wallet' | 'calculator' | 'piggy' | 'scale' | 'clipboard' | 'check';
+  icon: 'wallet' | 'calculator' | 'piggy' | 'scale' | 'clipboard' | 'check' | 'trending';
   // 1200 x 630 picture shown when the link is shared on Facebook, WhatsApp, X.
   shareImage: string;
 };
@@ -90,7 +90,17 @@ export function calculatorMetadata(tool: CalculatorTool): Metadata {
   };
 }
 
+export const EIGHTH_CPC_TOOL: CalculatorTool = {
+  href: '/calculators/8th-pay-commission',
+  title: '8th Pay Commission Salary Calculator',
+  description:
+    'See what your salary could look like under the 8th Pay Commission. Enter your present Basic Pay, Pay Level and city, pick a fitment factor from 1.50 to 3.00, and compare your present and 8th CPC Basic Pay, DA, HRA and Transport Allowance. An estimate only: the Commission has not reported.',
+  short: 'Present salary against 8th CPC salary, for any fitment factor from 1.50 to 3.00.',
+  icon: 'trending',
+  shareImage: '/share/8th-pay-commission.jpg',
+};
+
 // Add future calculators (Commutation, ...) here as they ship.
 export const SECTION_TOOLS: Record<string, CalculatorTool[]> = {
-  calculators: [PENSION_OPS_TOOL, GRATUITY_TOOL, NPS_TOOL, PAY_FIXATION_TOOL, RETIREMENT_BENEFITS_TOOL],
+  calculators: [EIGHTH_CPC_TOOL, PENSION_OPS_TOOL, GRATUITY_TOOL, NPS_TOOL, PAY_FIXATION_TOOL, RETIREMENT_BENEFITS_TOOL],
 };

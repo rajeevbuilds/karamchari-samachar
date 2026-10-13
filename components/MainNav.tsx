@@ -24,6 +24,7 @@ export const MORE_NAV = [
   { href: '/section/ups', label: 'UPS' },
   { href: '/section/analysis', label: 'Analysis' },
   { href: '/section/pay-commission', label: 'Pay Commission Circulars' },
+  { href: '/calculators/8th-pay-commission', label: '8th CPC Salary Calculator' },
   { href: '/calculators/pension-ops', label: 'Pension Calculator' },
   { href: '/calculators/gratuity', label: 'Gratuity Calculator' },
   { href: '/calculators/nps', label: 'NPS & UPS Calculator' },
