@@ -43,9 +43,9 @@ type Submitted = {
 };
 
 const ALLOWANCE_CHOICES = {
-  notify: 'The date of notification',
+  notify: 'The date of notification (as for the 7th CPC allowances)',
   jan2026: '1 January 2026, together with the pay',
-  custom: 'A later date I choose (the 7th CPC allowances came about a year after its notification)',
+  custom: 'A date I choose',
 } as const;
 type AllowanceChoice = keyof typeof ALLOWANCE_CHOICES;
 
@@ -329,8 +329,8 @@ export default function EighthCpcCalculator({
                   ))}
                 </select>
                 <p className="text-xs text-ink/50 mt-1">
-                  For the 7th CPC (notified in July 2016) the pay rules ran from 1 January 2016, but the HRA and Transport Allowance orders only from 1 July 2017.
-                  Until the revised allowances start, the present allowances continue. Nothing is known yet about the 8th CPC.
+                  For the 7th CPC the pay rules ran from 1 January 2016, but the HRA and Transport Allowance orders only from 1 July 2017. Until then the present
+                  allowances continue.
                 </p>
                 {allowChoice === 'custom' && (
                   <div className="mt-2 max-w-xs">
