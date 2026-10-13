@@ -43,7 +43,7 @@ type Submitted = {
 };
 
 const ALLOWANCE_CHOICES = {
-  notify: 'The date of notification (as for the 7th CPC allowances)',
+  notify: 'The date of notification',
   jan2026: '1 January 2026, together with the pay',
   custom: 'A date I choose',
 } as const;
