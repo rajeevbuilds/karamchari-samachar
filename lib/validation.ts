@@ -3,7 +3,7 @@
 // and respond 400 with that message.
 
 import type { Circular, CircularWriteInput, DaWriteInput } from './data';
-import { SECTION_OPTIONS, IMAGE_URL_PATTERN } from './constants';
+import { SECTION_OPTIONS, IMAGE_URL_PATTERN, MAX_TITLE_LENGTH } from './constants';
 import { sanitizeSummaryForStorage, summaryText } from './sanitize';
 
 const VALID_CATEGORIES: Circular['category'][] = [
@@ -23,6 +23,10 @@ function asRecord(body: unknown): Record<string, unknown> {
   }
   return body as Record<string, unknown>;
 }
+
+// Column sizes in the circulars table (schema.sql). Checked here so the admin
+// gets a plain message instead of "Data too long for column".
+const MAX_URL_LENGTH = 1000;
 
 export function parseCircularInput(body: unknown): CircularWriteInput {
   const b = asRecord(body);
@@ -54,6 +58,9 @@ export function parseCircularInput(body: unknown): CircularWriteInput {
   const status = (b.status === undefined ? 'published' : String(b.status)) as Circular['status'];
 
   if (!title) throw new Error('Title is required');
+  if (title.length > MAX_TITLE_LENGTH)
+    throw new Error(`Title is too long: ${title.length} characters (the limit is ${MAX_TITLE_LENGTH}). Shorten it, and put the rest in the summary.`);
+  if (pdfUrl.length > MAX_URL_LENGTH) throw new Error(`The PDF link is too long (max ${MAX_URL_LENGTH} characters)`);
   if (slug.length > 120) throw new Error('Web address is too long (max 120 characters)');
   if (!summaryText(summary)) throw new Error('Summary is required');
   if (imageUrl && !IMAGE_URL_PATTERN.test(imageUrl))

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { AdminCircular, Circular } from '@/lib/data';
-import { STATE_OPTIONS, SECTION_OPTIONS, CATEGORY_OPTIONS } from '@/lib/constants';
+import { STATE_OPTIONS, SECTION_OPTIONS, CATEGORY_OPTIONS, MAX_TITLE_LENGTH } from '@/lib/constants';
 import { summaryToEditorHtml } from '@/lib/summary';
 import { apiFetch } from './apiFetch';
 import MediaLibrary from './MediaLibrary';
@@ -185,6 +185,10 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               className="w-full border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon"
             />
+            <p className={`text-xs mt-1 ${form.title.trim().length > MAX_TITLE_LENGTH ? 'text-red-600 font-medium' : 'text-ink/50'}`}>
+              {form.title.trim().length} of {MAX_TITLE_LENGTH} characters
+              {form.title.trim().length > MAX_TITLE_LENGTH ? ': too long to save, please shorten the title' : ''}
+            </p>
           </div>
 
           <div className="sm:col-span-2">

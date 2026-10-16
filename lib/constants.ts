@@ -54,3 +54,6 @@ export const CATEGORY_LABEL: Record<Circular['category'], string> = Object.fromE
 // own uploads and AIRF images are allowed.
 export const IMAGE_URL_PATTERN =
   /^(\/assets\/uploads\/[a-z0-9-]+\.(jpg|png|webp)|https?:\/\/(www\.)?airfindia\.org\/\S+)$/i;
+
+// Size of the `title` column in the circulars table (schema.sql).
+export const MAX_TITLE_LENGTH = 500;
