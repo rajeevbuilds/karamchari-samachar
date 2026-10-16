@@ -1,5 +1,6 @@
 import type { Circular } from '@/lib/data';
 import CircularsShowcase, { HOME_LATEST_COUNT } from './CircularsShowcase';
+import EighthCpcPromo from './EighthCpcPromo';
 import HomeSectionBlock from './HomeSectionBlock';
 import SidebarWidgets from './SidebarWidgets';
 
@@ -19,9 +20,9 @@ function sectionPicks(circulars: Circular[], sectionSlug: string, alreadyShown: 
 
 // Section blocks shown under "Latest Circulars", in order. To add another,
 // add a line here: `slug` is the section's value in lib/constants.ts and
-// `href` is where its "More" link goes.
+// `href` is where its "More" link goes. (The 8th Pay Commission block is the
+// calculator promo below, not a block of posts.)
 const SECTION_BLOCKS = [
-  { heading: '8th Pay Commission', slug: 'pay-commission', href: '/section/pay-commission' },
   { heading: 'Indian Railways', slug: 'railway-board', href: '/section/railway-board' },
 ];
 
@@ -39,6 +40,7 @@ export default function HomeGrid({ circulars }: { circulars: Circular[] }) {
     <div className="mx-auto max-w-[1200px] px-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
       <div>
         <CircularsShowcase circulars={circulars} heading="Latest Circulars" viewAllHref="/circulars" />
+        <EighthCpcPromo />
         {blocks.map((block) => (
           <HomeSectionBlock key={block.slug} heading={block.heading} href={block.href} circulars={block.picks} />
         ))}
