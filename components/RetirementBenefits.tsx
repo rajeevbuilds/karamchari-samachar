@@ -31,12 +31,14 @@ export default function RetirementBenefits({
   initialTab,
   daHistory,
   defaultDaPercent,
+  daOnFile,
   ceiling,
   minFloor,
 }: {
   initialTab: Tab;
   daHistory: DaStep[];
   defaultDaPercent: number;
+  daOnFile: boolean;
   ceiling: number;
   minFloor: number;
 }) {
@@ -48,7 +50,7 @@ export default function RetirementBenefits({
     avg10: '',
     years: '',
     months: '',
-    da: daHistory.length > 0 ? String(defaultDaPercent) : '',
+    da: daOnFile ? String(defaultDaPercent) : '',
   });
   // Once the person types a DA rate themselves, stop replacing it.
   const [daTyped, setDaTyped] = useState(false);
@@ -91,9 +93,9 @@ export default function RetirementBenefits({
       </div>
 
       {tab === 'estimate' ? (
-        <RetirementSummaryCalculator shared={shared} onShared={onShared} daOnFile={daHistory.length > 0} ceiling={ceiling} minFloor={minFloor} />
+        <RetirementSummaryCalculator shared={shared} onShared={onShared} daOnFile={daOnFile} ceiling={ceiling} minFloor={minFloor} />
       ) : (
-        <PpoChecker shared={shared} onShared={onShared} daOnFile={daHistory.length > 0} ceiling={ceiling} minFloor={minFloor} />
+        <PpoChecker shared={shared} onShared={onShared} daOnFile={daOnFile} ceiling={ceiling} minFloor={minFloor} />
       )}
     </div>
   );

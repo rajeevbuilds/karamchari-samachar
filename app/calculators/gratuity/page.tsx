@@ -1,4 +1,4 @@
-import { getAllSettings, getLatestDa } from '@/lib/data';
+import { getAllSettings, getDefaultDa } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
 import { GRATUITY_TOOL, calculatorMetadata } from '@/lib/calculators';
@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = calculatorMetadata(GRATUITY_TOOL);
 
 export default async function GratuityPage() {
-  const [settings, latestDa] = await Promise.all([getAllSettings(), getLatestDa()]);
+  const [settings, defaultDa] = await Promise.all([getAllSettings(), getDefaultDa()]);
   const ceiling = Number(settings.gratuity_ceiling) || 0;
 
   return (
@@ -31,7 +31,7 @@ export default async function GratuityPage() {
       />
       <h1 className="font-serif text-3xl font-semibold text-ink mb-2 print:hidden">{GRATUITY_TOOL.title}</h1>
       <p className="text-sm text-ink/60 mb-8 max-w-prose print:hidden">{GRATUITY_TOOL.description}</p>
-      <GratuityCalculator defaultDaPercent={latestDa.percentage} ceiling={ceiling} />
+      <GratuityCalculator defaultDaPercent={defaultDa.percentage} ceiling={ceiling} />
     </div>
   );
 }

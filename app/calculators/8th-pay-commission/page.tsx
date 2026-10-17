@@ -1,4 +1,4 @@
-import { getDaHistory } from '@/lib/data';
+import { getDaHistory, getDefaultDa } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
 import { EIGHTH_CPC_TOOL, calculatorMetadata } from '@/lib/calculators';
@@ -10,8 +10,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = calculatorMetadata(EIGHTH_CPC_TOOL);
 
 export default async function EighthCpcPage() {
-  const daHistory = await getDaHistory();
-  const latestDa = daHistory[0];
+  const [daHistory, defaultDa] = await Promise.all([getDaHistory(), getDefaultDa()]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -30,8 +29,8 @@ export default async function EighthCpcPage() {
       <h1 className="font-serif text-3xl font-semibold text-ink mb-2 print:hidden">{EIGHTH_CPC_TOOL.title}</h1>
       <p className="text-sm text-ink/60 mb-8 max-w-prose print:hidden">{EIGHTH_CPC_TOOL.description}</p>
       <EighthCpcCalculator
-        defaultDaPercent={latestDa?.percentage ?? 0}
-        daOnFile={Boolean(latestDa)}
+        defaultDaPercent={defaultDa.percentage}
+        daOnFile={defaultDa.found}
         daHistory={daHistory.map((d) => ({ effectiveFrom: d.effectiveFrom, percentage: d.percentage }))}
       />
     </div>

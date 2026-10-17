@@ -337,6 +337,17 @@ export async function getLatestDa(): Promise<DaRecord> {
   return history[0] ?? FALLBACK_DA;
 }
 
+// The DA rate the calculators start from: the latest rate in the DA history
+// if there is one, otherwise the "Default DR rate" saved in admin Settings (DA
+// and DR are the same rate). `found` is false only when neither is set.
+export async function getDefaultDa(): Promise<{ percentage: number; found: boolean }> {
+  const history = await getDaHistory();
+  if (history[0]) return { percentage: history[0].percentage, found: true };
+  const settings = await getAllSettings();
+  const p = Number(settings.pension_default_dr_percent);
+  return Number.isFinite(p) && p > 0 ? { percentage: p, found: true } : { percentage: 0, found: false };
+}
+
 // ---- Admin reads (include id; used only behind the admin auth check) -
 
 export async function getAllCircularsAdmin(): Promise<AdminCircular[]> {

@@ -1,4 +1,4 @@
-import { getLatestDa } from '@/lib/data';
+import { getDefaultDa } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
 import { NPS_TOOL, calculatorMetadata } from '@/lib/calculators';
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = calculatorMetadata(NPS_TOOL);
 
 export default async function NpsPage() {
-  const latestDa = await getLatestDa();
+  const defaultDa = await getDefaultDa();
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -29,7 +29,7 @@ export default async function NpsPage() {
       />
       <h1 className="font-serif text-3xl font-semibold text-ink mb-2 print:hidden">{NPS_TOOL.title}</h1>
       <p className="text-sm text-ink/60 mb-8 max-w-prose print:hidden">{NPS_TOOL.description}</p>
-      <NpsCalculator defaultDaPercent={latestDa.percentage} />
+      <NpsCalculator defaultDaPercent={defaultDa.percentage} />
     </div>
   );
 }
