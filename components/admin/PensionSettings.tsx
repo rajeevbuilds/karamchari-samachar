@@ -12,8 +12,8 @@ const FIELDS: { key: SettingKey; label: string; hint: string }[] = [
   },
   {
     key: 'pension_default_dr_percent',
-    label: 'Default DR rate (%)',
-    hint: 'The DA/DR rate the calculators start from (OPS Pension, Gratuity, NPS & UPS, Retirement Benefits, 8th CPC). The latest rate in the DA history above is used first if there is one. Change it twice yearly (Jan/Jul), no redeploy needed.',
+    label: 'Default DA / DR rate (%)',
+    hint: 'DA and DR are always the same rate, so this one number is the DA and the DR for every calculator (OPS Pension, Gratuity, NPS & UPS, Retirement Benefits, 8th CPC). The latest rate in the DA history above is used first if there is one. Change it twice yearly (Jan/Jul), no redeploy needed.',
   },
   {
     key: 'gratuity_ceiling',
@@ -55,7 +55,7 @@ export default function PensionSettings({ initialSettings }: { initialSettings: 
     <section>
       <h2 className="font-serif text-xl font-semibold text-ink mb-1">Pension &amp; Gratuity Calculators</h2>
       <p className="text-sm text-ink/60 mb-4">
-        Constants used by the calculators. The default DA/DR rate is the latest entry in the DA history above; if that list is empty, the Default DR rate below is used.
+        Constants used by the calculators. The default DA/DR rate is the latest entry in the DA history above; if that list is empty, the Default DA / DR rate below is used.
       </p>
       <div className="flex flex-col gap-5">
         {FIELDS.map(({ key, label, hint }) => (
