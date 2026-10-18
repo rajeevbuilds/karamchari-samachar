@@ -248,6 +248,20 @@ export async function getTopViewedCirculars(limit = 10): Promise<AdminCircular[]
   }
 }
 
+// The newest published circulars (by date and time of posting), with their
+// view counts, for the admin "Post Views" page.
+export async function getRecentCirculars(limit = 3): Promise<AdminCircular[]> {
+  try {
+    const rows = await query<CircularRow[]>(
+      `SELECT * FROM circulars WHERE status = 'published' ORDER BY COALESCE(posted_at, issue_date) DESC, id DESC LIMIT ${Number(limit) || 3}`
+    );
+    return rows.map(mapCircular);
+  } catch (err) {
+    console.error('getRecentCirculars: database query failed —', describeDbError(err));
+    return [];
+  }
+}
+
 // ---- Settings (ad slot embed codes + pension-calculator constants; read
 // by public pages, written only via the admin settings API) ---------------
 
