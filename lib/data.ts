@@ -280,6 +280,61 @@ export type DayViews = {
   last7: { date: string; views: number }[]; // the 7 days up to and including `date`
 };
 
+export type ViewsRange = '7d' | '1m' | '3m' | '6m' | '1y';
+
+// First day of a period of `range` that ends on `toISO` (inclusive): 7 days,
+// or 1, 3, 6, 12 calendar months back, so "1 month" ending 20 Oct starts 21 Sep.
+export function rangeStart(toISO: string, range: ViewsRange): string {
+  const d = new Date(`${toISO}T00:00:00Z`);
+  if (range === '7d') {
+    d.setUTCDate(d.getUTCDate() - 6);
+    return d.toISOString().slice(0, 10);
+  }
+  const months = range === '1m' ? 1 : range === '3m' ? 3 : range === '6m' ? 6 : 12;
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() - months);
+  const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  d.setUTCDate(Math.min(day, last));
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+export type RangeViews = {
+  from: string;
+  to: string;
+  total: number;
+  posts: { id: number; title: string; slug: string; views: number }[];
+  firstDate: string | null;
+};
+
+// Views of every post from `fromISO` to `toISO`, both included.
+export async function getViewsInRange(fromISO: string, toISO: string): Promise<RangeViews> {
+  const empty: RangeViews = { from: fromISO, to: toISO, total: 0, posts: [], firstDate: null };
+  try {
+    await ensureDailyViewsTable();
+    const posts = await query<{ id: number; title: string; slug: string; views: number }[]>(
+      `SELECT c.id, c.title, c.slug, SUM(d.views) AS views
+         FROM daily_views d JOIN circulars c ON c.id = d.circular_id
+        WHERE d.view_date BETWEEN ? AND ?
+        GROUP BY c.id, c.title, c.slug
+        ORDER BY views DESC, c.id DESC`,
+      [fromISO, toISO]
+    );
+    const first = await query<{ first: string | null }[]>('SELECT MIN(view_date) AS first FROM daily_views');
+    return {
+      from: fromISO,
+      to: toISO,
+      total: posts.reduce((s, p) => s + Number(p.views), 0),
+      posts: posts.map((p) => ({ ...p, views: Number(p.views) })),
+      firstDate: first[0]?.first ? String(first[0].first).slice(0, 10) : null,
+    };
+  } catch (err) {
+    console.error('getViewsInRange: database query failed —', describeDbError(err));
+    return empty;
+  }
+}
+
 export async function getViewsOnDate(dateISO: string): Promise<DayViews> {
   const empty: DayViews = { date: dateISO, total: 0, posts: [], firstDate: null, last7: [] };
   try {
