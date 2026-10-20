@@ -230,6 +230,92 @@ export async function incrementViewCount(slug: string): Promise<void> {
   } catch (err) {
     console.error('incrementViewCount: database query failed —', describeDbError(err));
   }
+  // Views by day, kept separately so the totals above never depend on it.
+  try {
+    await ensureDailyViewsTable();
+    await query(
+      `INSERT INTO daily_views (view_date, circular_id, views)
+       SELECT ?, id, 1 FROM circulars WHERE slug = ?
+       ON DUPLICATE KEY UPDATE views = views + 1`,
+      [todayIst(), slug]
+    );
+  } catch (err) {
+    console.error('incrementViewCount (daily): database query failed —', describeDbError(err));
+  }
+}
+
+// ---- Views by date --------------------------------------------------------
+
+// Today's date in India (IST, UTC+5:30) as YYYY-MM-DD, whatever the server's own timezone is.
+export function todayIst(): string {
+  return new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+let dailyViewsReady: Promise<void> | null = null;
+// Creates the per-day table the first time it is needed, so no SQL has to be run by hand.
+function ensureDailyViewsTable(): Promise<void> {
+  if (!dailyViewsReady) {
+    dailyViewsReady = query(
+      `CREATE TABLE IF NOT EXISTS daily_views (
+         view_date DATE NOT NULL,
+         circular_id INT NOT NULL,
+         views INT NOT NULL DEFAULT 0,
+         PRIMARY KEY (view_date, circular_id)
+       )`
+    )
+      .then(() => undefined)
+      .catch((err) => {
+        dailyViewsReady = null; // try again next time
+        throw err;
+      });
+  }
+  return dailyViewsReady;
+}
+
+export type DayViews = {
+  date: string;
+  total: number;
+  posts: { id: number; title: string; slug: string; views: number }[];
+  firstDate: string | null; // the first day that has any record
+  last7: { date: string; views: number }[]; // the 7 days up to and including `date`
+};
+
+export async function getViewsOnDate(dateISO: string): Promise<DayViews> {
+  const empty: DayViews = { date: dateISO, total: 0, posts: [], firstDate: null, last7: [] };
+  try {
+    await ensureDailyViewsTable();
+    const posts = await query<{ id: number; title: string; slug: string; views: number }[]>(
+      `SELECT c.id, c.title, c.slug, d.views
+         FROM daily_views d JOIN circulars c ON c.id = d.circular_id
+        WHERE d.view_date = ?
+        ORDER BY d.views DESC, c.id DESC`,
+      [dateISO]
+    );
+    const first = await query<{ first: string | null }[]>('SELECT MIN(view_date) AS first FROM daily_views');
+    const days = await query<{ day: string; views: number }[]>(
+      `SELECT view_date AS day, SUM(views) AS views FROM daily_views
+        WHERE view_date BETWEEN DATE_SUB(?, INTERVAL 6 DAY) AND ? GROUP BY view_date`,
+      [dateISO, dateISO]
+    );
+    const byDay = new Map(days.map((d) => [String(d.day).slice(0, 10), Number(d.views)]));
+    const last7: DayViews['last7'] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(`${dateISO}T00:00:00Z`);
+      d.setUTCDate(d.getUTCDate() - i);
+      const iso = d.toISOString().slice(0, 10);
+      last7.push({ date: iso, views: byDay.get(iso) ?? 0 });
+    }
+    return {
+      date: dateISO,
+      total: posts.reduce((s, p) => s + Number(p.views), 0),
+      posts: posts.map((p) => ({ ...p, views: Number(p.views) })),
+      firstDate: first[0]?.first ? String(first[0].first).slice(0, 10) : null,
+      last7,
+    };
+  } catch (err) {
+    console.error('getViewsOnDate: database query failed —', describeDbError(err));
+    return empty;
+  }
 }
 
 // Top N most-viewed circulars, for the admin "Overview" panel.
