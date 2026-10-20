@@ -277,6 +277,8 @@ export type DayViews = {
   total: number;
   posts: { id: number; title: string; slug: string; views: number }[];
   firstDate: string | null; // the first day that has any record
+  allTime: number; // the site's all-time counter
+  counted: number; // views recorded by date so far, over all days
   last7: { date: string; views: number }[]; // the 7 days up to and including `date`
 };
 
@@ -306,11 +308,19 @@ export type RangeViews = {
   total: number;
   posts: { id: number; title: string; slug: string; views: number }[];
   firstDate: string | null;
+  allTime: number;
+  counted: number;
 };
+
+// All-time counter against what has been recorded by date, so the two can be reconciled.
+async function getViewTotals(): Promise<{ allTime: number; counted: number }> {
+  const sum = await query<{ n: number | null }[]>('SELECT COALESCE(SUM(views), 0) AS n FROM daily_views');
+  return { allTime: await getTotalSiteViews(), counted: Number(sum[0]?.n ?? 0) };
+}
 
 // Views of every post from `fromISO` to `toISO`, both included.
 export async function getViewsInRange(fromISO: string, toISO: string): Promise<RangeViews> {
-  const empty: RangeViews = { from: fromISO, to: toISO, total: 0, posts: [], firstDate: null };
+  const empty: RangeViews = { from: fromISO, to: toISO, total: 0, posts: [], firstDate: null, allTime: 0, counted: 0 };
   try {
     await ensureDailyViewsTable();
     const posts = await query<{ id: number; title: string; slug: string; views: number }[]>(
@@ -322,7 +332,9 @@ export async function getViewsInRange(fromISO: string, toISO: string): Promise<R
       [fromISO, toISO]
     );
     const first = await query<{ first: string | null }[]>('SELECT MIN(view_date) AS first FROM daily_views');
+    const totals = await getViewTotals();
     return {
+      ...totals,
       from: fromISO,
       to: toISO,
       total: posts.reduce((s, p) => s + Number(p.views), 0),
@@ -336,7 +348,7 @@ export async function getViewsInRange(fromISO: string, toISO: string): Promise<R
 }
 
 export async function getViewsOnDate(dateISO: string): Promise<DayViews> {
-  const empty: DayViews = { date: dateISO, total: 0, posts: [], firstDate: null, last7: [] };
+  const empty: DayViews = { date: dateISO, total: 0, posts: [], firstDate: null, allTime: 0, counted: 0, last7: [] };
   try {
     await ensureDailyViewsTable();
     const posts = await query<{ id: number; title: string; slug: string; views: number }[]>(
@@ -360,7 +372,9 @@ export async function getViewsOnDate(dateISO: string): Promise<DayViews> {
       const iso = d.toISOString().slice(0, 10);
       last7.push({ date: iso, views: byDay.get(iso) ?? 0 });
     }
+    const totals = await getViewTotals();
     return {
+      ...totals,
       date: dateISO,
       total: posts.reduce((s, p) => s + Number(p.views), 0),
       posts: posts.map((p) => ({ ...p, views: Number(p.views) })),

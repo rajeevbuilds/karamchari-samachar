@@ -11,6 +11,8 @@ type RangeViews = {
   total: number;
   posts: { id: number; title: string; slug: string; views: number }[];
   firstDate: string | null;
+  allTime: number;
+  counted: number;
 };
 
 const RANGES = [
@@ -27,6 +29,8 @@ type DayViews = {
   total: number;
   posts: { id: number; title: string; slug: string; views: number }[];
   firstDate: string | null;
+  allTime: number;
+  counted: number;
   last7: { date: string; views: number }[];
 };
 
@@ -34,7 +38,18 @@ const ddmm = (iso: string) => {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
   return m ? `${m[3]}/${m[2]}/${m[1]}` : iso;
 };
+const n = (v: number) => v.toLocaleString('en-IN');
 const short = (iso: string) => ddmm(iso).slice(0, 5);
+
+
+function Reconcile({ allTime, counted, firstDate }: { allTime: number; counted: number; firstDate: string | null }) {
+  return (
+    <p className="text-xs text-ink/60 mt-4 max-w-prose border-t border-rule pt-3">
+      Why this differs from the all-time total: all-time views {n(allTime)} = {n(Math.max(allTime - counted, 0))} before counting by date began
+      {firstDate ? ` (${ddmm(firstDate)})` : ''} + {n(counted)} counted by date since. Views before that cannot be split by day; Google Analytics has that history.
+    </p>
+  );
+}
 
 // Pick a date and see how many views each post had on it. Counting by date
 // starts on the day this was added, so earlier dates show nothing.
@@ -154,6 +169,7 @@ export default function ViewsByDate({ today }: { today: string }) {
           ) : (
             rangeData.firstDate && <p className="text-sm text-ink/60">No views were recorded in this period.</p>
           )}
+          <Reconcile allTime={rangeData.allTime} counted={rangeData.counted} firstDate={rangeData.firstDate} />
         </>
       )}
 
@@ -215,6 +231,7 @@ export default function ViewsByDate({ today }: { today: string }) {
                 : 'Counting by date has just started, so figures appear from the first view after this was added.'}
             </p>
           )}
+          <Reconcile allTime={data.allTime} counted={data.counted} firstDate={data.firstDate} />
         </>
       )}
     </section>
