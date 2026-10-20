@@ -24,6 +24,13 @@ export default function PostsList({ initialCirculars }: { initialCirculars: Admi
     return new Map(oldestFirst.map((c, i) => [c.id, i + 1]));
   }, [circulars]);
 
+  const allShown = circulars.length > 0 && circulars.every((c) => shownViews.has(c.id));
+
+  // The eye in the header shows (or hides) the views of every post at once.
+  function toggleAllViews() {
+    setShownViews(allShown ? new Set() : new Set(circulars.map((c) => c.id)));
+  }
+
   function toggleViews(id: number) {
     setShownViews((prev) => {
       const next = new Set(prev);
@@ -57,7 +64,7 @@ export default function PostsList({ initialCirculars }: { initialCirculars: Admi
         {circulars.some((c) => c.status === 'draft') && (
           <> ({circulars.filter((c) => c.status === 'published').length} published, {circulars.filter((c) => c.status === 'draft').length} drafts)</>
         )}
-        . Click the eye on a row to see that post&apos;s views.
+        . Click the eye on a row to see that post&apos;s views, or the eye at the top to see the views of all posts.
       </p>
       <table className="w-full text-sm border-t border-rule">
         <thead>
@@ -66,7 +73,19 @@ export default function PostsList({ initialCirculars }: { initialCirculars: Admi
             <th className="py-2 font-medium">Title</th>
             <th className="py-2 font-medium">Category</th>
             <th className="py-2 font-medium">Posted</th>
-            <th className="py-2 font-medium" />
+            <th className="py-2 font-medium whitespace-nowrap">
+              <button
+                type="button"
+                onClick={toggleAllViews}
+                aria-pressed={allShown}
+                aria-label={allShown ? 'Hide views of all posts' : 'Show views of all posts'}
+                title={allShown ? 'Hide views of all posts' : 'Show views of all posts'}
+                className={`inline-flex items-center gap-1 normal-case ${allShown ? 'text-maroon' : 'text-ink/50 hover:text-maroon'}`}
+              >
+                <Eye size={16} aria-hidden="true" />
+                <span className="font-mono text-xs uppercase">{allShown ? 'Hide all views' : 'Show all views'}</span>
+              </button>
+            </th>
           </tr>
         </thead>
         <tbody>
