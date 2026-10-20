@@ -24,16 +24,6 @@ export default function PostsList({ initialCirculars }: { initialCirculars: Admi
     return new Map(oldestFirst.map((c, i) => [c.id, i + 1]));
   }, [circulars]);
 
-  // Ids are handed out one by one as posts are created, so a number below the
-  // highest id that no post carries is a post that was deleted or never saved.
-  const missingIds = useMemo(() => {
-    const have = new Set(circulars.map((c) => c.id));
-    const top = circulars.reduce((m, c) => Math.max(m, c.id), 0);
-    const out: number[] = [];
-    for (let i = 1; i <= top; i++) if (!have.has(i)) out.push(i);
-    return { top, out };
-  }, [circulars]);
-
   const allShown = circulars.length > 0 && circulars.every((c) => shownViews.has(c.id));
 
   // The eye in the header shows (or hides) the views of every post at once.
@@ -76,12 +66,6 @@ export default function PostsList({ initialCirculars }: { initialCirculars: Admi
         )}
         . Click the eye on a row to see that post&apos;s views, or the eye at the top to see the views of all posts.
       </p>
-      {missingIds.out.length > 0 && (
-        <p className="text-xs text-ink/60 mb-3 max-w-prose">
-          Post ids go up to {missingIds.top}. {missingIds.out.length} {missingIds.out.length === 1 ? 'id has' : 'ids have'} no post: {missingIds.out.join(', ')}.
-          Those posts were deleted or never saved. Each row&apos;s id is shown when you hover over its number.
-        </p>
-      )}
       <table className="w-full text-sm border-t border-rule">
         <thead>
           <tr className="border-b border-rule text-left text-ink/50 font-mono text-xs uppercase">
@@ -107,7 +91,7 @@ export default function PostsList({ initialCirculars }: { initialCirculars: Admi
         <tbody>
           {circulars.map((c) => (
             <tr key={c.id} className="border-b border-rule/60">
-              <td className="py-2.5 pr-3 font-mono text-xs text-ink/50" title={`Post id ${c.id}`}>{serial.get(c.id)}</td>
+              <td className="py-2.5 pr-3 font-mono text-xs text-ink/50">{serial.get(c.id)}</td>
               <td className="py-2.5 pr-4">
                 {c.status === 'draft' && (
                   <span className="mr-2 font-mono text-[10px] uppercase tracking-wide text-brass border border-brass px-1.5 py-0.5 align-middle">
