@@ -58,6 +58,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* AdSense site verification. A plain tag in the page source, so Google's crawler sees it on every page. */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7664888119648637"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className="font-sans antialiased pb-16 md:pb-0">
         <RegisterServiceWorker />
         <Analytics />
