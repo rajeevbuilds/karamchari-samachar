@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { Eye } from 'lucide-react';
 import type { AdminCircular } from '@/lib/data';
 import { CATEGORY_LABEL } from '@/lib/constants';
 import { apiFetch } from './apiFetch';
@@ -11,6 +12,26 @@ import { apiFetch } from './apiFetch';
 export default function PostsList({ initialCirculars }: { initialCirculars: AdminCircular[] }) {
   const [circulars, setCirculars] = useState(initialCirculars);
   const [error, setError] = useState<string | null>(null);
+  // Posts whose view count is showing (opened with the eye button).
+  const [shownViews, setShownViews] = useState<Set<number>>(new Set());
+
+  // Post number: the oldest post is 1, so a post keeps its number as new ones
+  // are added and the newest post carries the total.
+  const serial = useMemo(() => {
+    const oldestFirst = [...circulars].sort((a, b) =>
+      (a.postedAt || a.issueDate).localeCompare(b.postedAt || b.issueDate) || a.id - b.id
+    );
+    return new Map(oldestFirst.map((c, i) => [c.id, i + 1]));
+  }, [circulars]);
+
+  function toggleViews(id: number) {
+    setShownViews((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   async function deleteCircularRow(id: number) {
     if (!confirm('Delete this circular? This cannot be undone.')) return;
@@ -31,9 +52,17 @@ export default function PostsList({ initialCirculars }: { initialCirculars: Admi
   return (
     <section>
       {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      <p className="text-sm text-ink/70 mb-3">
+        <strong className="text-ink">{circulars.length}</strong> {circulars.length === 1 ? 'post' : 'posts'} in all
+        {circulars.some((c) => c.status === 'draft') && (
+          <> ({circulars.filter((c) => c.status === 'published').length} published, {circulars.filter((c) => c.status === 'draft').length} drafts)</>
+        )}
+        . Click the eye on a row to see that post&apos;s views.
+      </p>
       <table className="w-full text-sm border-t border-rule">
         <thead>
           <tr className="border-b border-rule text-left text-ink/50 font-mono text-xs uppercase">
+            <th className="py-2 pr-3 font-medium w-12">#</th>
             <th className="py-2 font-medium">Title</th>
             <th className="py-2 font-medium">Category</th>
             <th className="py-2 font-medium">Posted</th>
@@ -43,6 +72,7 @@ export default function PostsList({ initialCirculars }: { initialCirculars: Admi
         <tbody>
           {circulars.map((c) => (
             <tr key={c.id} className="border-b border-rule/60">
+              <td className="py-2.5 pr-3 font-mono text-xs text-ink/50">{serial.get(c.id)}</td>
               <td className="py-2.5 pr-4">
                 {c.status === 'draft' && (
                   <span className="mr-2 font-mono text-[10px] uppercase tracking-wide text-brass border border-brass px-1.5 py-0.5 align-middle">
@@ -54,6 +84,19 @@ export default function PostsList({ initialCirculars }: { initialCirculars: Admi
               <td className="py-2.5 pr-4 font-mono text-xs text-ink/60">{CATEGORY_LABEL[c.category]}</td>
               <td className="py-2.5 pr-4 font-mono text-xs text-ink/60">{c.issueDate}</td>
               <td className="py-2.5 whitespace-nowrap">
+                <button
+                  type="button"
+                  onClick={() => toggleViews(c.id)}
+                  aria-expanded={shownViews.has(c.id)}
+                  aria-label={`Show views for post ${serial.get(c.id)}`}
+                  title="Show views"
+                  className="inline-flex items-center gap-1 align-middle mr-3 text-ink/50 hover:text-maroon"
+                >
+                  <Eye size={16} aria-hidden="true" />
+                  {shownViews.has(c.id) && (
+                    <span className="font-mono text-xs text-ink">{c.viewCount.toLocaleString('en-IN')} views</span>
+                  )}
+                </button>
                 <Link href={`/admin/new?edit=${c.id}`} className="text-maroon hover:underline mr-3">
                   Edit
                 </Link>
@@ -65,7 +108,7 @@ export default function PostsList({ initialCirculars }: { initialCirculars: Admi
           ))}
           {circulars.length === 0 && (
             <tr>
-              <td colSpan={4} className="py-4 text-ink/50">
+              <td colSpan={5} className="py-4 text-ink/50">
                 No circulars yet.
               </td>
             </tr>
