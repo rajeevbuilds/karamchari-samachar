@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import MainNav from './MainNav';
 import HamburgerMenu from './mobile/HamburgerMenu';
+import TelegramJoin from './TelegramJoin';
 
 // The two information pages readers look for most; all five are in the footer.
 const TOP_BAR_LINKS = [
@@ -22,15 +23,16 @@ export default function Header() {
   return (
     <header className="border-b border-rule bg-paper">
       <div className="bg-ink text-paper/80 text-xs">
-        <div className="mx-auto max-w-[1200px] px-4 py-1.5 flex items-center justify-between">
-          <span className="font-mono">{todayFormatted()}</span>
+        <div className="mx-auto max-w-[1200px] px-4 py-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+          <span className="font-mono whitespace-nowrap">{todayFormatted()}</span>
           <span className="font-mono hidden lg:inline">Central &amp; State Government Employee News</span>
-          <nav aria-label="About and contact" className="flex items-center gap-4 font-mono">
+          <nav aria-label="About and contact" className="flex items-center gap-4 font-mono whitespace-nowrap">
             {TOP_BAR_LINKS.map((link) => (
               <Link key={link.href} href={link.href} className="hover:text-paper hover:underline">
                 {link.label}
               </Link>
             ))}
+            <TelegramJoin variant="bar" />
           </nav>
         </div>
       </div>
