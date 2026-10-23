@@ -82,19 +82,24 @@ function legacyOgName(name: string): string {
   return name.replace(/\.(jpg|png|webp)$/, '-og.$1');
 }
 
-// Center-crops `buf` to the 1200x630 og:image ratio and re-encodes it as a
-// light JPEG (typically 80-150 KB). Link previews need this: WhatsApp drops
-// preview images much over ~300 KB and Facebook can time out on heavy ones,
-// and a raw PNG screenshot at this size is easily 1-2 MB. A source smaller
-// than 1200x630 is scaled up, so every share image has the declared size.
+// Fits `buf` whole inside the 1200x630 og:image frame (no part of it is cut
+// off, so headlines near the edges survive) on a blurred copy of itself, and
+// re-encodes it as a light JPEG (typically 80-150 KB). Link previews need
+// this: WhatsApp drops preview images much over ~300 KB and Facebook can time
+// out on heavy ones, and a raw PNG screenshot at this size is easily 1-2 MB.
+// A source smaller than 1200x630 is scaled up, so every share image has the
+// declared size.
 async function makeOgVariant(buf: Buffer): Promise<Buffer | null> {
   const image = sharp(buf).rotate();
   const metadata = await image.metadata();
   if (!metadata.width || !metadata.height) return null;
 
-  return image
-    .resize(OG_WIDTH, OG_HEIGHT, { fit: 'cover', position: 'centre' })
-    .flatten({ background: '#ffffff' })
+  const flat = await image.flatten({ background: '#ffffff' }).toBuffer();
+  const backdrop = await sharp(flat).resize(OG_WIDTH, OG_HEIGHT, { fit: 'cover' }).blur(24).toBuffer();
+  const whole = await sharp(flat).resize(OG_WIDTH, OG_HEIGHT, { fit: 'inside' }).toBuffer();
+
+  return sharp(backdrop)
+    .composite([{ input: whole, gravity: 'centre' }])
     .jpeg({ quality: 80, mozjpeg: true })
     .toBuffer();
 }
