@@ -39,6 +39,7 @@ export default function FeaturedCircularCard({ circular }: { circular: Circular 
             className="object-cover"
             sizes="(max-width: 1024px) 100vw, 780px"
             priority
+            fetchPriority="high"
           />
         </div>
       )}

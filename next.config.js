@@ -34,6 +34,18 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // Brand pictures, share images, icons and QR codes in public/ change
+        // rarely. Without this they are served with max-age=0, so every visit
+        // downloads them again. 30 days (not "immutable") because their file
+        // names are not content-hashed, so a replaced picture still shows up.
+        source: '/:folder(brand|share|icons|qr)/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=2592000, stale-while-revalidate=86400' }],
+      },
+      {
+        source: '/header-banner.png',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=2592000, stale-while-revalidate=86400' }],
+      },
+      {
         // GoDaddy's hosting layer applies a blanket long-lived cache to
         // static-looking file extensions, which caught sw.js along with
         // regular content-hashed JS chunks. Unlike those, the service
