@@ -60,6 +60,17 @@ type Computed = {
 
 type Tab = 'nps' | 'ups';
 
+// Growth (annual return) choices for the NPS corpus. 8% is our suggestion: a little
+// under what the Central Government scheme has returned over the last 5 and 10
+// years (about 8.2-8.9% a year, NPS Trust, 30 Sep 2025), because future returns
+// are not guaranteed and the corpus has to last through market dips.
+const RETURN_PRESETS = [
+  { value: '6', label: 'Cautious', note: 'Bond-like, a weak market' },
+  { value: '8', label: 'Suggested', note: 'Close to the recent 5 and 10-year average' },
+  { value: '9.5', label: 'Past average', note: 'Since the scheme began' },
+  { value: '11', label: 'Optimistic', note: 'A strong market' },
+] as const;
+
 export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: number }) {
   const [tab, setTab] = useState<Tab>('nps');
   const [printedOn, setPrintedOn] = useState('');
@@ -331,16 +342,47 @@ export default function NpsCalculator({ defaultDaPercent }: { defaultDaPercent: 
           </span>
         </label>
 
+        <div className="sm:col-span-2 border border-rule p-4">
+          <label className={labelClass}>Expected growth of your NPS corpus (% a year)</label>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            {RETURN_PRESETS.map((p) => (
+              <button
+                key={p.value}
+                type="button"
+                onClick={() => edit(setAnnualReturn)(p.value)}
+                aria-pressed={annualReturn === p.value}
+                title={p.note}
+                className={tabClass(annualReturn === p.value)}
+              >
+                {p.label} {p.value}%
+              </button>
+            ))}
+            <input
+              type="number"
+              min="0"
+              max="40"
+              step="0.1"
+              value={annualReturn}
+              onChange={(e) => edit(setAnnualReturn)(e.target.value)}
+              aria-label="Expected annual growth, your own figure"
+              className="w-24 border border-rule px-3 py-2 text-sm focus:outline-none focus:border-maroon"
+            />
+            <span className="text-xs text-ink/50">or type your own</span>
+          </div>
+          <p className="text-xs text-ink/60 leading-relaxed max-w-prose">
+            We suggest <strong className="text-ink">8%</strong>. The Central Government NPS scheme returned about 8.2% to
+            8.9% a year over the last 5 and 10 years and about 9.4% a year since it began (to 30 September 2025, from
+            NPS Trust). Returns are not guaranteed, so we start a little below that. The results below also show
+            what 2 points lower and higher would give.
+          </p>
+        </div>
+
         <details className="sm:col-span-2 border border-rule p-4">
           <summary className="cursor-pointer text-sm font-medium text-ink">
-            Assumptions (editable) — return {annualReturn}%, increment {increment}%, DA +{daRise} pts every
+            Other assumptions (editable) — increment {increment}%, DA +{daRise} pts every
             Jan &amp; Jul, pay commission +{uplift}% every 10 years
           </summary>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <div>
-              <label className={labelClass}>Expected annual return (%)</label>
-              <input type="number" min="0" step="0.1" value={annualReturn} onChange={(e) => edit(setAnnualReturn)(e.target.value)} className={inputClass} />
-            </div>
             <div>
               <label className={labelClass}>Inflation (% a year, for today&apos;s-rupees figures)</label>
               <input type="number" min="0" step="0.1" value={inflation} onChange={(e) => edit(setInflation)(e.target.value)} className={inputClass} />
