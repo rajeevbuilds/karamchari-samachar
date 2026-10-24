@@ -26,9 +26,9 @@ export default function Header() {
         <div className="mx-auto max-w-[1200px] px-4 py-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
           <span className="font-mono whitespace-nowrap">{todayFormatted()}</span>
           <span className="font-mono hidden lg:inline">Central &amp; State Government Employee News</span>
-          <nav aria-label="About and contact" className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono whitespace-nowrap">
+          <nav aria-label="About and contact" className="flex flex-wrap items-center gap-x-3 gap-y-1.5 font-mono whitespace-nowrap">
             {TOP_BAR_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className="hover:text-paper hover:underline">
+              <Link key={link.href} href={link.href} className="hidden sm:inline hover:text-paper hover:underline">
                 {link.label}
               </Link>
             ))}

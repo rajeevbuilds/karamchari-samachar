@@ -19,7 +19,7 @@ function Icon({ path, size }: { path: string; size: number }) {
 }
 
 // Links to the site's Telegram and WhatsApp channels. `bar` is the slim version
-// for the dark top bar; the default is a row of buttons, and `card` adds a short
+// for the dark top bar, as small coloured buttons; the default is a row of buttons, and `card` adds a short
 // invitation for the end of a post.
 export default function ChannelJoin({ variant = 'button' }: { variant?: 'bar' | 'button' | 'card' }) {
   const link = { target: '_blank', rel: 'noopener noreferrer' } as const;
@@ -28,7 +28,12 @@ export default function ChannelJoin({ variant = 'button' }: { variant?: 'bar' | 
     return (
       <>
         {CHANNELS.map((c) => (
-          <a key={c.name} href={c.href} {...link} className="inline-flex items-center gap-1.5 hover:text-paper hover:underline">
+          <a
+            key={c.name}
+            href={c.href}
+            {...link}
+            className={`inline-flex items-center gap-1.5 rounded-full ${c.colour} px-3 py-1 font-medium text-white transition-opacity hover:opacity-85 focus:outline-none focus-visible:ring-2 focus-visible:ring-white`}
+          >
             <Icon path={c.icon} size={14} />
             <span>
               <span className="hidden sm:inline">Join on </span>
