@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { INFO_LINKS } from '@/lib/site';
-import TelegramJoin from './TelegramJoin';
+import ChannelJoin from './ChannelJoin';
 
 export default function Footer() {
   return (
@@ -18,7 +18,7 @@ export default function Footer() {
           </ul>
         </nav>
         <div className="mb-5">
-          <TelegramJoin />
+          <ChannelJoin />
         </div>
         <p>
           Karamchari Samachar publishes circulars and notifications sourced from

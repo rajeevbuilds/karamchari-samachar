@@ -14,7 +14,7 @@ import { resolveOgImageUrl } from '@/lib/uploads';
 import AdSlot from '@/components/AdSlot';
 import JsonLd from '@/components/JsonLd';
 import ShareButtons from '@/components/ShareButtons';
-import TelegramJoin from '@/components/TelegramJoin';
+import ChannelJoin from '@/components/ChannelJoin';
 import RelatedPosts from '@/components/RelatedPosts';
 import { SECTION_OPTIONS } from '@/lib/constants';
 import { SITE_LOGO_URL, SITE_NAME, SITE_URL } from '@/lib/site';
@@ -225,7 +225,7 @@ export default async function CircularDetailPage({
           <ShareButtons url={`${SITE_URL}/circulars/${circular.slug}`} title={circular.title} label="Share this post at the end" />
         </div>
 
-        <TelegramJoin variant="card" />
+        <ChannelJoin variant="card" />
 
         <RelatedPosts posts={related} />
 

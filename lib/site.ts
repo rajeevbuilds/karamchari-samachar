@@ -8,6 +8,8 @@ export const GA_MEASUREMENT_ID = 'G-3L3WCSQZEN';
 
 // Public Telegram channel readers can join for new posts.
 export const TELEGRAM_URL = 'https://t.me/sarkarikaramchari_news';
+// Public WhatsApp channel (followers never see the owner's phone number).
+export const WHATSAPP_CHANNEL_URL = 'https://whatsapp.com/channel/0029VbDjrnuHLHQQ8RRtqN1p';
 
 export const SITE_URL = `https://${SITE_DOMAIN}`;
 export const SITE_TITLE = `${SITE_NAME} — DA, Circulars & Pay Updates for Government Employees`;
