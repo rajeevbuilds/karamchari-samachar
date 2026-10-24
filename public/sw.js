@@ -1,7 +1,7 @@
 // Minimal service worker: cache-first for static assets (JS/CSS/fonts/icons),
 // network-only for everything else so circular lists, detail pages, and API
 // routes are never served stale.
-const CACHE_NAME = 'ks-static-v1';
+const CACHE_NAME = 'ks-static-v2';
 const STATIC_PATTERN = /\.(?:js|css|woff2?|ttf|otf|png|jpe?g|svg|ico|gif|webp)$/;
 
 self.addEventListener('install', () => {
