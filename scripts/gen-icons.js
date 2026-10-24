@@ -1,11 +1,10 @@
 // One-off script to generate the site icons from the brand logo
-// (public/brand/logo.webp). Run with: node scripts/gen-icons.js
+// (public/brand/logo.webp, a round logo on a transparent square).
+// Run with: node scripts/gen-icons.js
 //
-// The logo is wide, so for the large icons (home screen, PWA) it is trimmed of
-// its empty margin and fitted whole inside a square on white. For the tiny tab
-// icons that would leave it small, so they use a square crop of the round
-// emblem instead (the ends of the name banner are cut off, which is fine at
-// 16-48 px) and the building, figures and tricolour ring fill the icon.
+// The 16-48 px tab icons keep the transparent corners so the round logo shows
+// as a circle. The home-screen icons (180, 192, 512 px) sit on white, because
+// phones fill transparent areas with black or a theme colour.
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
@@ -14,23 +13,12 @@ const root = path.join(__dirname, '..');
 const logo = path.join(root, 'public', 'brand', 'logo.webp');
 const iconsDir = path.join(root, 'public', 'icons');
 const WHITE = { r: 255, g: 255, b: 255, alpha: 1 };
+const CLEAR = { r: 0, g: 0, b: 0, alpha: 0 };
 
-async function emblem(size) {
-  const crop = await sharp(logo).extract({ left: 238, top: 0, width: 1060, height: 1024 }).toBuffer();
-  const fitted = await sharp(crop).resize(size, size, { fit: 'fill' }).toBuffer();
-  return sharp({ create: { width: size, height: size, channels: 4, background: WHITE } })
-    .composite([{ input: fitted }])
-    .png()
-    .toBuffer();
-}
-
-async function square(size, padding) {
+async function icon(size, padding, background) {
   const inner = size - padding * 2;
-  const trimmed = await sharp(logo).trim().toBuffer();
-  const fitted = await sharp(trimmed)
-    .resize(inner, inner, { fit: 'inside', background: { r: 0, g: 0, b: 0, alpha: 0 } })
-    .toBuffer();
-  return sharp({ create: { width: size, height: size, channels: 4, background: WHITE } })
+  const fitted = await sharp(logo).resize(inner, inner, { fit: 'inside', background: CLEAR }).toBuffer();
+  return sharp({ create: { width: size, height: size, channels: 4, background } })
     .composite([{ input: fitted, gravity: 'centre' }])
     .png()
     .toBuffer();
@@ -58,17 +46,17 @@ function ico(images) {
 
 async function run() {
   const out = (name, buf) => fs.writeFileSync(path.join(iconsDir, name), buf);
-  out('icon-512.png', await square(512, 24));
-  out('icon-192.png', await square(192, 10));
-  out('apple-touch-icon.png', await square(180, 10));
-  out('icon-48.png', await emblem(48));
-  out('icon-32.png', await emblem(32));
+  out('icon-512.png', await icon(512, 16, WHITE));
+  out('icon-192.png', await icon(192, 6, WHITE));
+  out('apple-touch-icon.png', await icon(180, 6, WHITE));
+  out('icon-48.png', await icon(48, 0, CLEAR));
+  out('icon-32.png', await icon(32, 0, CLEAR));
   fs.writeFileSync(
     path.join(root, 'public', 'favicon.ico'),
     ico([
-      { size: 48, data: await emblem(48) },
-      { size: 32, data: await emblem(32) },
-      { size: 16, data: await emblem(16) },
+      { size: 48, data: await icon(48, 0, CLEAR) },
+      { size: 32, data: await icon(32, 0, CLEAR) },
+      { size: 16, data: await icon(16, 0, CLEAR) },
     ])
   );
   console.log('Icons written to', iconsDir, 'and public/favicon.ico');

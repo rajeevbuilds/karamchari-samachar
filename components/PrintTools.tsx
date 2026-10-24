@@ -95,7 +95,7 @@ export function PrintMasthead({
     <div className="hidden print:block mb-3">
       <div className="flex items-center justify-between gap-6 border-b-4 border-ink pb-2 mb-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/logo.webp" alt="SarkariKaramchari.com" className="h-16 w-auto" />
+        <img src="/brand/logo.webp" alt="SarkariKaramchari.com" className="h-20 w-auto" />
         <div className="text-right">
           <p className="font-sans text-4xl font-extrabold text-ink leading-none tracking-tight">
             sarkarikaramchari.com
