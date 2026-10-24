@@ -1,9 +1,11 @@
 // One-off script to generate the site icons from the brand logo
 // (public/brand/logo.webp). Run with: node scripts/gen-icons.js
 //
-// The logo is wide, so it is trimmed of its empty margin and fitted whole inside
-// a square on white. At tab-icon sizes the tricolour ring, building and red/blue
-// name banner still read as the brand.
+// The logo is wide, so for the large icons (home screen, PWA) it is trimmed of
+// its empty margin and fitted whole inside a square on white. For the tiny tab
+// icons that would leave it small, so they use a square crop of the round
+// emblem instead (the ends of the name banner are cut off, which is fine at
+// 16-48 px) and the building, figures and tricolour ring fill the icon.
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
@@ -12,6 +14,15 @@ const root = path.join(__dirname, '..');
 const logo = path.join(root, 'public', 'brand', 'logo.webp');
 const iconsDir = path.join(root, 'public', 'icons');
 const WHITE = { r: 255, g: 255, b: 255, alpha: 1 };
+
+async function emblem(size) {
+  const crop = await sharp(logo).extract({ left: 238, top: 0, width: 1060, height: 1024 }).toBuffer();
+  const fitted = await sharp(crop).resize(size, size, { fit: 'fill' }).toBuffer();
+  return sharp({ create: { width: size, height: size, channels: 4, background: WHITE } })
+    .composite([{ input: fitted }])
+    .png()
+    .toBuffer();
+}
 
 async function square(size, padding) {
   const inner = size - padding * 2;
@@ -50,14 +61,14 @@ async function run() {
   out('icon-512.png', await square(512, 24));
   out('icon-192.png', await square(192, 10));
   out('apple-touch-icon.png', await square(180, 10));
-  out('icon-48.png', await square(48, 2));
-  out('icon-32.png', await square(32, 1));
+  out('icon-48.png', await emblem(48));
+  out('icon-32.png', await emblem(32));
   fs.writeFileSync(
     path.join(root, 'public', 'favicon.ico'),
     ico([
-      { size: 48, data: await square(48, 2) },
-      { size: 32, data: await square(32, 1) },
-      { size: 16, data: await square(16, 0) },
+      { size: 48, data: await emblem(48) },
+      { size: 32, data: await emblem(32) },
+      { size: 16, data: await emblem(16) },
     ])
   );
   console.log('Icons written to', iconsDir, 'and public/favicon.ico');
