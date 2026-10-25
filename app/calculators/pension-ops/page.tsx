@@ -1,3 +1,5 @@
+import FaqSection from '@/components/FaqSection';
+import { FAQS } from '@/lib/faqs';
 import { getAllSettings } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
@@ -33,6 +35,7 @@ export default async function PensionOpsPage() {
       <h1 className="font-serif text-3xl font-semibold text-ink mb-2 print:hidden">{PENSION_OPS_TOOL.title}</h1>
       <p className="text-sm text-ink/60 mb-8 max-w-prose print:hidden">{PENSION_OPS_TOOL.description}</p>
       <PensionOpsCalculator defaultDrPercent={defaultDrPercent} minFloor={minFloor} />
+      <FaqSection faqs={FAQS['/calculators/pension-ops']} />
     </div>
   );
 }

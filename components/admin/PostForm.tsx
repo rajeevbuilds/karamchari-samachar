@@ -84,6 +84,15 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  // Whether this post is the one pinned at the top of the 8th Pay Commission page.
+  const [pinCpc8, setPinCpc8] = useState(false);
+  useEffect(() => {
+    if (!editingId) return;
+    apiFetch('/api/admin/settings')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setPinCpc8(Number(data.settings?.cpc8_pinned_id) === editingId))
+      .catch(() => undefined);
+  }, [editingId]);
   // Reader alerts: shown only once the site's notification key is set up.
   const [alerts, setAlerts] = useState<{ configured: boolean; subscribers: number } | null>(null);
 
@@ -101,6 +110,7 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
   }, [successMessage]);
 
   function resetForm() {
+    setPinCpc8(false);
     setForm(makeEmptyForm());
     setEditorKey((k) => k + 1);
     setError(null);
@@ -150,6 +160,7 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
       states: form.others ? ['others'] : form.allStates ? ['all'] : form.states,
       status: form.status,
       notify: form.notify && isPublished,
+      pinCpc8: pinCpc8 && form.sections.includes('pay-commission') && isPublished,
     };
 
     try {
@@ -295,6 +306,16 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
                 </label>
               ))}
             </div>
+            <p className="text-xs text-ink/50 mt-2">
+              A post shows on a section&rsquo;s page only when that section is ticked. For example, tick &ldquo;8th Pay
+              Commission&rdquo; to show it on the 8th Pay Commission page.
+            </p>
+            {form.sections.includes('pay-commission') && (
+              <label className="flex items-center gap-2 text-sm mt-3">
+                <input type="checkbox" checked={pinCpc8} onChange={(e) => setPinCpc8(e.target.checked)} />
+                Pin this post at the top of the 8th Pay Commission page (replaces any post pinned there now)
+              </label>
+            )}
           </div>
 
           <div>

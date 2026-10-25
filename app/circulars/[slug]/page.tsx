@@ -225,6 +225,28 @@ export default async function CircularDetailPage({
           <ShareButtons url={`${SITE_URL}/circulars/${circular.slug}`} title={circular.title} label="Share this post at the end" />
         </div>
 
+        {(circular.sections.includes('pay-commission') || circular.category === 'da') && (
+          <nav aria-label="More on this topic" className="mt-8 border border-rule p-5 print:hidden">
+            <p className="font-mono text-xs uppercase text-ink/50 mb-2">More on this topic</p>
+            <ul className="flex flex-col gap-1.5 text-sm">
+              {circular.sections.includes('pay-commission') && (
+                <li>
+                  <Link href="/da-cpc-tracker" className="text-maroon hover:underline">
+                    8th Pay Commission: latest news and status →
+                  </Link>
+                </li>
+              )}
+              {circular.category === 'da' && (
+                <li>
+                  <Link href="/dearness-allowance" className="text-maroon hover:underline">
+                    Dearness Allowance: current rate and history →
+                  </Link>
+                </li>
+              )}
+            </ul>
+          </nav>
+        )}
+
         <ChannelJoin variant="card" />
 
         <RelatedPosts posts={related} />

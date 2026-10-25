@@ -11,6 +11,9 @@ import { SITE_NAME } from '@/lib/site';
 export type CalculatorTool = {
   href: string;
   title: string;
+  // The title Google shows for the page: starts with the words people search for.
+  // `title` stays short for cards, menus and the page heading.
+  seoTitle?: string;
   description: string;
   // Used on the Calculators listing page only.
   short: string; // one line for the tool's card
@@ -22,6 +25,7 @@ export type CalculatorTool = {
 export const PENSION_OPS_TOOL: CalculatorTool = {
   href: '/calculators/pension-ops',
   title: 'OPS Pension Calculator',
+  seoTitle: 'OPS Pension Calculator for Central Government Employees',
   description:
     'Estimate your monthly pension under the Old Pension Scheme (CCS Pension Rules, 1972). Enter your last drawn Basic Pay and qualifying service to get an instant estimate.',
   short: 'Estimate your monthly pension under the Old Pension Scheme.',
@@ -32,6 +36,7 @@ export const PENSION_OPS_TOOL: CalculatorTool = {
 export const GRATUITY_TOOL: CalculatorTool = {
   href: '/calculators/gratuity',
   title: 'Gratuity Calculator',
+  seoTitle: 'Gratuity Calculator for Central Government Employees',
   description:
     'Estimate your retirement gratuity or death gratuity for central government service (CCS Pension Rules, 2021). Enter Basic Pay, DA and qualifying service to get an instant estimate, including the ₹25 lakh ceiling.',
   short: 'Retirement or death gratuity under the CCS Pension Rules, 2021, with the ₹25 lakh ceiling.',
@@ -42,6 +47,7 @@ export const GRATUITY_TOOL: CalculatorTool = {
 export const NPS_TOOL: CalculatorTool = {
   href: '/calculators/nps',
   title: 'NPS & UPS Pension Calculator',
+  seoTitle: 'NPS vs UPS Pension Calculator for Central Govt Employees',
   description:
     'Project your NPS corpus and pension at retirement, or your UPS assured payout, and compare the two. Enter your date of birth, date of joining, Basic Pay and present corpus — the estimate builds in yearly increments, DA rises and a pay commission every 10 years.',
   short: 'Project your NPS corpus and pension, and compare it with the UPS assured payout.',
@@ -52,6 +58,7 @@ export const NPS_TOOL: CalculatorTool = {
 export const PAY_FIXATION_TOOL: CalculatorTool = {
   href: '/calculators/pay-fixation',
   title: 'Pay Fixation Calculator (Promotion & MACP)',
+  seoTitle: 'Pay Fixation Calculator: Promotion & MACP (7th CPC)',
   description:
     'Work out your new Basic Pay on promotion or MACP upgradation under the 7th CPC Pay Matrix, for Central Government and Railway employees. Choose your Level and pay to see the fixed pay step by step, with your next increments.',
   short: 'Your new Basic Pay on promotion or MACP, under the 7th CPC Pay Matrix.',
@@ -62,6 +69,7 @@ export const PAY_FIXATION_TOOL: CalculatorTool = {
 export const RETIREMENT_BENEFITS_TOOL: CalculatorTool = {
   href: '/calculators/retirement-benefits',
   title: 'Retirement Benefits: Employees Appointed Before 01.01.2004 (OPS)',
+  seoTitle: 'Retirement Benefits Calculator for OPS Employees',
   description:
     'For employees and pensioners under the Old Pension Scheme: estimate your monthly pension, gratuity, leave encashment and commutation on one printable page, and check the figures on your Pension Payment Order (PPO). Central Government and Railway employees.',
   short: 'Estimate pension, gratuity, leave encashment and commutation, and check your PPO.',
@@ -72,9 +80,10 @@ export const RETIREMENT_BENEFITS_TOOL: CalculatorTool = {
 // Page metadata for a calculator, with its own share picture. A page that sets
 // openGraph replaces the site-wide one, so the site fields are repeated here.
 export function calculatorMetadata(tool: CalculatorTool): Metadata {
-  const image = { url: tool.shareImage, width: 1200, height: 630, alt: tool.title };
+  const title = tool.seoTitle ?? tool.title;
+  const image = { url: tool.shareImage, width: 1200, height: 630, alt: title };
   return {
-    title: tool.title,
+    title,
     description: tool.description,
     alternates: { canonical: tool.href },
     openGraph: {
@@ -82,17 +91,18 @@ export function calculatorMetadata(tool: CalculatorTool): Metadata {
       siteName: SITE_NAME,
       locale: 'en_IN',
       url: tool.href,
-      title: tool.title,
+      title,
       description: tool.description,
       images: [image],
     },
-    twitter: { card: 'summary_large_image', title: tool.title, description: tool.description, images: [tool.shareImage] },
+    twitter: { card: 'summary_large_image', title, description: tool.description, images: [tool.shareImage] },
   };
 }
 
 export const EIGHTH_CPC_TOOL: CalculatorTool = {
   href: '/calculators/8th-pay-commission',
   title: '8th Pay Commission Salary Calculator',
+  seoTitle: '8th Pay Commission Salary Calculator 2026 with Arrears',
   description:
     'See what your salary could look like under the 8th Pay Commission. Enter your present Basic Pay, Pay Level and city, pick a fitment factor from 1.50 to 3.00, compare your present and 8th CPC Basic Pay, DA, HRA and Transport Allowance, and estimate your arrears from 1 January 2026 to the date of notification. An estimate only: the Commission has not reported.',
   short: 'Present salary against 8th CPC salary and arrears, for any fitment factor from 1.50 to 3.00.',

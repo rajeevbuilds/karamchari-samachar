@@ -19,6 +19,7 @@ export const PRIMARY_NAV = [
 // Less-trafficked sections and tools, tucked under "More" so the primary
 // bar doesn't get cluttered.
 export const MORE_NAV = [
+  { href: '/dearness-allowance', label: 'Dearness Allowance (DA)' },
   { href: '/section/nps', label: 'NPS' },
   { href: '/section/cghs', label: 'CGHS' },
   { href: '/section/ups', label: 'UPS' },

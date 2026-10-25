@@ -1,3 +1,5 @@
+import FaqSection from '@/components/FaqSection';
+import { FAQS } from '@/lib/faqs';
 import { getAllSettings, getDefaultDa } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
@@ -32,6 +34,7 @@ export default async function GratuityPage() {
       <h1 className="font-serif text-3xl font-semibold text-ink mb-2 print:hidden">{GRATUITY_TOOL.title}</h1>
       <p className="text-sm text-ink/60 mb-8 max-w-prose print:hidden">{GRATUITY_TOOL.description}</p>
       <GratuityCalculator defaultDaPercent={defaultDa.percentage} ceiling={ceiling} />
+      <FaqSection faqs={FAQS['/calculators/gratuity']} />
     </div>
   );
 }

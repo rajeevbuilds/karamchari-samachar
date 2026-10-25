@@ -2,6 +2,14 @@ import Link from 'next/link';
 import { INFO_LINKS } from '@/lib/site';
 import ChannelJoin from './ChannelJoin';
 
+// Popular topics, linked from every page so readers and search engines find them.
+const TOPIC_LINKS = [
+  { href: '/dearness-allowance', label: 'Dearness Allowance (DA)' },
+  { href: '/da-cpc-tracker', label: '8th Pay Commission' },
+  { href: '/calculators/8th-pay-commission', label: '8th CPC Salary Calculator' },
+  { href: '/section/calculators', label: 'All Calculators' },
+] as const;
+
 export default function Footer() {
   return (
     <footer className="border-t border-rule mt-16">
@@ -11,6 +19,17 @@ export default function Footer() {
             {INFO_LINKS.map((link) => (
               <li key={link.href}>
                 <Link href={link.href} className="font-medium text-ink/80 hover:text-maroon hover:underline">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <nav aria-label="Popular topics" className="mb-5">
+          <ul className="flex flex-wrap gap-x-5 gap-y-2">
+            {TOPIC_LINKS.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="text-ink/70 hover:text-maroon hover:underline">
                   {link.label}
                 </Link>
               </li>

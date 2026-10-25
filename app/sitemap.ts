@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getAllCirculars } from '@/lib/data';
-import { SECTION_OPTIONS, STATE_OPTIONS } from '@/lib/constants';
+import { SECTION_OPTIONS } from '@/lib/constants';
 import { SECTION_TOOLS } from '@/lib/calculators';
 import { INFO_LINKS, SITE_URL } from '@/lib/site';
 
@@ -33,10 +33,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     entry('/', 'hourly', 1, latest),
     entry('/circulars', 'daily', 0.8, latest),
-    entry('/da-cpc-tracker', 'daily', 0.8, latest),
+    entry('/da-cpc-tracker', 'daily', 0.9, latest),
+    entry('/dearness-allowance', 'daily', 0.9, latest),
     ...SECTION_OPTIONS.map((s) => entry(`/section/${s.value}`, 'daily', 0.8, latest)),
     ...toolPaths.map((p) => entry(p, 'monthly', 0.7)),
-    ...STATE_OPTIONS.map((s) => entry(`/states/${s}`, 'daily', 0.5, latest)),
+    // State pages are left out on purpose: they mostly repeat the central circulars, and
+    // listing them made Google spend its visits on near-copies. They still work and are
+    // linked from the site.
     ...INFO_LINKS.map((l) => entry(l.href, 'yearly', 0.3)),
     ...circulars.map((c) => entry(`/circulars/${c.slug}`, 'weekly', 0.7, toDate(c.postedAt ?? c.issueDate))),
   ];

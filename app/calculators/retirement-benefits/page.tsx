@@ -1,3 +1,5 @@
+import FaqSection from '@/components/FaqSection';
+import { FAQS } from '@/lib/faqs';
 import { getAllSettings, getDaHistory, getDefaultDa } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
@@ -46,6 +48,7 @@ export default async function RetirementBenefitsPage({
         ceiling={Number(settings.gratuity_ceiling) || 0}
         minFloor={Number(settings.pension_min_floor) || 0}
       />
+      <FaqSection faqs={FAQS['/calculators/retirement-benefits']} />
     </div>
   );
 }

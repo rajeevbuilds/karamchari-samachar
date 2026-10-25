@@ -178,6 +178,25 @@ export async function getCircularIdBySlug(slug: string): Promise<number | null> 
   }
 }
 
+// The post pinned at the top of the 8th Pay Commission page (chosen in the post form).
+// Returns undefined when nothing is pinned or the pinned post is no longer published
+// in that section.
+export async function getPinnedCpc8Circular(): Promise<Circular | undefined> {
+  try {
+    const settings = await getAllSettings();
+    const id = Number(settings.cpc8_pinned_id);
+    if (!Number.isInteger(id) || id <= 0) return undefined;
+    const rows = await query<CircularRow[]>(
+      "SELECT * FROM circulars WHERE id = ? AND status = 'published' AND FIND_IN_SET('pay-commission', sections)",
+      [id]
+    );
+    return rows[0] ? mapCircular(rows[0]) : undefined;
+  } catch (err) {
+    console.error('getPinnedCpc8Circular: database query failed —', describeDbError(err));
+    return undefined;
+  }
+}
+
 export async function getCircularsBySection(section: string): Promise<Circular[]> {
   try {
     const rows = await query<CircularRow[]>(
@@ -436,6 +455,12 @@ export const SETTINGS_KEYS = [
   // fills them in under Settings).
   'contact_email',
   'contact_whatsapp',
+  // 8th Pay Commission page: short summary, milestone table (JSON, see lib/cpc8.ts),
+  // the date they were last saved, and the id of the post pinned at the top.
+  'cpc8_summary',
+  'cpc8_timeline',
+  'cpc8_updated',
+  'cpc8_pinned_id',
 ] as const;
 export type SettingKey = (typeof SETTINGS_KEYS)[number];
 
@@ -448,6 +473,10 @@ const SETTINGS_DEFAULTS: Record<SettingKey, string> = {
   gratuity_ceiling: '2500000',
   contact_email: '',
   contact_whatsapp: '',
+  cpc8_summary: '',
+  cpc8_timeline: '',
+  cpc8_updated: '',
+  cpc8_pinned_id: '',
 };
 
 export async function getAllSettings(): Promise<Record<SettingKey, string>> {

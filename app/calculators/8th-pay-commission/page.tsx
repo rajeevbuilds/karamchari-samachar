@@ -1,3 +1,5 @@
+import FaqSection from '@/components/FaqSection';
+import { FAQS } from '@/lib/faqs';
 import { getDaHistory, getDefaultDa } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
@@ -33,6 +35,7 @@ export default async function EighthCpcPage() {
         daOnFile={defaultDa.found}
         daHistory={daHistory.map((d) => ({ effectiveFrom: d.effectiveFrom, percentage: d.percentage }))}
       />
+      <FaqSection faqs={FAQS['/calculators/8th-pay-commission']} />
     </div>
   );
 }

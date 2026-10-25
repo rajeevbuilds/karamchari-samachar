@@ -1,3 +1,5 @@
+import FaqSection from '@/components/FaqSection';
+import { FAQS } from '@/lib/faqs';
 import { getDefaultDa } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
@@ -30,6 +32,7 @@ export default async function NpsPage() {
       <h1 className="font-serif text-3xl font-semibold text-ink mb-2 print:hidden">{NPS_TOOL.title}</h1>
       <p className="text-sm text-ink/60 mb-8 max-w-prose print:hidden">{NPS_TOOL.description}</p>
       <NpsCalculator defaultDaPercent={defaultDa.percentage} />
+      <FaqSection faqs={FAQS['/calculators/nps']} />
     </div>
   );
 }
