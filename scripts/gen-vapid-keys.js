@@ -1,9 +1,10 @@
-// Makes the key pair that browser notifications need. Run once with:
+// Optional. The site makes its own notification keys the first time they are
+// needed and keeps them in the settings table, so you normally never run this.
+// Use it only if you prefer to set the keys yourself as environment variables
+// (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT):
 //   node scripts/gen-vapid-keys.js
-// Then add the three printed values as secrets / environment variables on the
-// hosting (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT). Keep the private
-// key secret and do not commit it. Never generate a new pair later unless you
-// are happy for every existing subscriber to need to sign up again.
+// Keep the private key secret. A new pair later means every existing subscriber
+// would need to sign up again.
 const webpush = require('web-push');
 const keys = webpush.generateVAPIDKeys();
 console.log('VAPID_PUBLIC_KEY=' + keys.publicKey);

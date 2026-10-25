@@ -5,7 +5,7 @@ import { describeDbError } from '@/lib/data';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
-  if (!pushConfigured()) return NextResponse.json({ error: 'Notifications are not set up' }, { status: 404 });
+  if (!(await pushConfigured())) return NextResponse.json({ error: 'Notifications are not set up' }, { status: 404 });
   let body: unknown;
   try {
     body = await request.json();

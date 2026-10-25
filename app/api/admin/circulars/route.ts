@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     // Optional "alert my subscribers" step. It runs in the background so saving
     // the post is never slowed down or failed by it.
     let notified = 0;
-    if (notify && input.status === 'published' && pushConfigured()) {
+    if (notify && input.status === 'published' && (await pushConfigured())) {
       notified = await countSubscriptions();
       void notifyAboutCircular(id).catch((err) => console.error('notifyAboutCircular failed', err));
     }

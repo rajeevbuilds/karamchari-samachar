@@ -33,7 +33,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     await updateCircular(circularId, input);
     let notified = 0;
-    if (notify && input.status === 'published' && pushConfigured()) {
+    if (notify && input.status === 'published' && (await pushConfigured())) {
       notified = await countSubscriptions();
       void notifyAboutCircular(circularId).catch((err) => console.error('notifyAboutCircular failed', err));
     }

@@ -9,6 +9,6 @@ export async function GET() {
   if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const configured = pushConfigured();
+  const configured = await pushConfigured();
   return NextResponse.json({ configured, subscribers: configured ? await countSubscriptions() : 0 });
 }

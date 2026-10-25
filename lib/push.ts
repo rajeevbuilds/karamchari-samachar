@@ -3,10 +3,11 @@
 // (a "subscription"), and when a post is published we send a short message to
 // each address through the browser vendor's push service.
 //
-// Needs three environment values (see scripts/gen-vapid-keys.js to make them):
-//   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (a mailto: or https: address).
-// Without them the whole feature switches itself off: no button is shown and
-// nothing is sent.
+// The signing keys ("VAPID" keys) are made automatically the first time they are
+// needed and kept in the settings table, so nothing has to be set up by hand. If
+// VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT are set in the hosting
+// environment they are used instead. The private key is never sent to browsers
+// or shown in the admin.
 
 import { createHash } from 'crypto';
 import webpush from 'web-push';
@@ -23,12 +24,63 @@ export type PushSubscriptionInput = {
 
 const MAX_SUBSCRIPTIONS = 100000;
 
-export function pushConfigured(): boolean {
-  return Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
+const PUBLIC_KEY_NAME = 'push_vapid_public';
+const PRIVATE_KEY_NAME = 'push_vapid_private';
+
+type Vapid = { publicKey: string; privateKey: string; subject: string };
+let vapidPromise: Promise<Vapid | null> | null = null;
+
+async function readStoredKeys(): Promise<{ publicKey: string; privateKey: string } | null> {
+  const rows = await query<{ key_name: string; value: string }[]>(
+    'SELECT key_name, value FROM settings WHERE key_name IN (?, ?)',
+    [PUBLIC_KEY_NAME, PRIVATE_KEY_NAME]
+  );
+  const byKey = new Map(rows.map((r) => [r.key_name, r.value]));
+  const publicKey = byKey.get(PUBLIC_KEY_NAME);
+  const privateKey = byKey.get(PRIVATE_KEY_NAME);
+  return publicKey && privateKey ? { publicKey, privateKey } : null;
 }
 
-export function vapidPublicKey(): string | null {
-  return pushConfigured() ? (process.env.VAPID_PUBLIC_KEY as string) : null;
+async function loadVapid(): Promise<Vapid | null> {
+  const subject = process.env.VAPID_SUBJECT || SITE_URL;
+  if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    return { publicKey: process.env.VAPID_PUBLIC_KEY, privateKey: process.env.VAPID_PRIVATE_KEY, subject };
+  }
+  try {
+    let keys = await readStoredKeys();
+    if (!keys) {
+      // First use: make a pair and keep it. INSERT IGNORE means that if two
+      // requests race, only the first pair is kept and both then read it back.
+      const fresh = webpush.generateVAPIDKeys();
+      await query('INSERT IGNORE INTO settings (key_name, value) VALUES (?, ?)', [PUBLIC_KEY_NAME, fresh.publicKey]);
+      await query('INSERT IGNORE INTO settings (key_name, value) VALUES (?, ?)', [PRIVATE_KEY_NAME, fresh.privateKey]);
+      keys = await readStoredKeys();
+    }
+    return keys ? { ...keys, subject } : null;
+  } catch (err) {
+    console.error('Push keys unavailable —', describeDbError(err));
+    return null;
+  }
+}
+
+// Resolves to the signing keys, or null when the database is unreachable (the
+// feature then simply stays off).
+function getVapid(): Promise<Vapid | null> {
+  if (!vapidPromise) {
+    vapidPromise = loadVapid().then((v) => {
+      if (!v) vapidPromise = null; // try again next time
+      return v;
+    });
+  }
+  return vapidPromise;
+}
+
+export async function pushConfigured(): Promise<boolean> {
+  return (await getVapid()) !== null;
+}
+
+export async function vapidPublicKey(): Promise<string | null> {
+  return (await getVapid())?.publicKey ?? null;
 }
 
 let tableReady: Promise<void> | null = null;
@@ -106,12 +158,9 @@ export async function sendToAll(message: {
   tag?: string;
 }): Promise<{ sent: number; failed: number; removed: number }> {
   const result = { sent: 0, failed: 0, removed: 0 };
-  if (!pushConfigured()) return result;
-  webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || SITE_URL,
-    process.env.VAPID_PUBLIC_KEY as string,
-    process.env.VAPID_PRIVATE_KEY as string
-  );
+  const vapid = await getVapid();
+  if (!vapid) return result;
+  webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey);
   await ensureTable();
   const payload = JSON.stringify(message);
   const BATCH = 200;
@@ -149,7 +198,7 @@ export async function sendToAll(message: {
 
 // Sends the "new post" notification for a published circular.
 export async function notifyAboutCircular(id: number): Promise<{ sent: number; failed: number; removed: number } | null> {
-  if (!pushConfigured()) return null;
+  if (!(await pushConfigured())) return null;
   const rows = await query<{ slug: string; title: string; summary: string; image_url: string | null; status: string }[]>(
     'SELECT slug, title, summary, image_url, status FROM circulars WHERE id = ?',
     [id]
