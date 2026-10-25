@@ -1,4 +1,5 @@
 import { TELEGRAM_URL, WHATSAPP_CHANNEL_URL } from '@/lib/site';
+import NotifyButton from './NotifyButton';
 
 const TELEGRAM_ICON =
   'M9.78 15.17l-.4 5.6c.58 0 .83-.25 1.13-.55l2.7-2.58 5.6 4.1c1.03.57 1.76.27 2.04-.95l3.7-17.35c.33-1.52-.55-2.12-1.56-1.74L1.3 9.5c-1.48.58-1.46 1.4-.26 1.77l5.55 1.73L19.5 5c.6-.4 1.15-.18.7.22L9.78 15.17Z';
@@ -41,6 +42,7 @@ export default function ChannelJoin({ variant = 'button' }: { variant?: 'bar' | 
             </span>
           </a>
         ))}
+        <NotifyButton variant="bar" />
       </>
     );
   }
@@ -58,6 +60,7 @@ export default function ChannelJoin({ variant = 'button' }: { variant?: 'bar' | 
           Join us on {c.name}
         </a>
       ))}
+      <NotifyButton variant="button" />
     </div>
   );
   if (variant === 'button') return buttons;
@@ -67,7 +70,7 @@ export default function ChannelJoin({ variant = 'button' }: { variant?: 'bar' | 
       <div className="flex-1">
         <p className="font-serif text-lg font-semibold text-ink">नई खबरें सीधे अपने फोन पर</p>
         <p className="text-sm text-ink/70">
-          DA, वेतन आयोग, पेंशन और नए सर्कुलर की जानकारी पाने के लिए हमारा Telegram या WhatsApp चैनल जॉइन करें। Get new
+          DA, वेतन आयोग, पेंशन और नए सर्कुलर की जानकारी पाने के लिए हमारा Telegram या WhatsApp चैनल जॉइन करें, या अलर्ट चालू करें। Get new
           circulars and updates on your phone.
         </p>
       </div>

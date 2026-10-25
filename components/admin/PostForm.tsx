@@ -37,6 +37,8 @@ function makeEmptyForm() {
     // "Others": not tied to any state or Central (news reports, analysis, calculators…).
     others: false,
     status: 'published' as Circular['status'],
+    // Send readers who turned on alerts a notification when this is published.
+    notify: true,
   };
 }
 
@@ -57,6 +59,8 @@ function formFromCircular(c: AdminCircular) {
     allStates: c.states.includes('all'),
     others: c.states.includes('others'),
     status: c.status,
+    // Editing an old post should not re-alert everyone unless the admin ticks this.
+    notify: false,
   };
 }
 
@@ -80,6 +84,15 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  // Reader alerts: shown only once the site's notification key is set up.
+  const [alerts, setAlerts] = useState<{ configured: boolean; subscribers: number } | null>(null);
+
+  useEffect(() => {
+    apiFetch('/api/admin/push')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setAlerts(data))
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     if (!successMessage) return;
@@ -136,6 +149,7 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
       isFeatured: form.isFeatured,
       states: form.others ? ['others'] : form.allStates ? ['all'] : form.states,
       status: form.status,
+      notify: form.notify && isPublished,
     };
 
     try {
@@ -157,7 +171,13 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
         return;
       }
       resetForm();
-      setSuccessMessage(isPublished ? 'Circular published successfully' : 'Saved as draft');
+      setSuccessMessage(
+        isPublished
+          ? data.notified > 0
+            ? `Circular published. Alert sent to ${data.notified} subscriber${data.notified === 1 ? '' : 's'}.`
+            : 'Circular published successfully'
+          : 'Saved as draft'
+      );
     } catch {
       setError('Network error — please try again');
     } finally {
@@ -367,6 +387,24 @@ export default function PostForm({ initialCircular }: { initialCircular?: AdminC
               Feature this circular (Must Read)
             </label>
           </div>
+
+          {alerts?.configured && (
+            <div className="sm:col-span-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.notify}
+                  disabled={form.status !== 'published'}
+                  onChange={(e) => setForm((f) => ({ ...f, notify: e.target.checked }))}
+                />
+                Send an alert to readers who turned on notifications ({alerts.subscribers} subscriber
+                {alerts.subscribers === 1 ? '' : 's'})
+              </label>
+              <p className="text-xs text-ink/50 mt-1 ml-6">
+                Sent when the post is saved as Published. Leave it off when you only fix a typo in an old post.
+              </p>
+            </div>
+          )}
 
           <div className="sm:col-span-2">
             <label className="block text-xs font-mono uppercase text-ink/50 mb-2">

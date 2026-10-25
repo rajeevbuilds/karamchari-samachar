@@ -45,3 +45,38 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// Browser notifications ("Get alerts"): show the message the server sends when a
+// post is published, and open that post when it is tapped.
+self.addEventListener('push', (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (e) {
+    data = { body: event.data ? event.data.text() : '' };
+  }
+  const title = data.title || 'Sarkari Karamchari Samachar';
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || '',
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-48.png',
+      image: data.image || undefined,
+      tag: data.tag || undefined,
+      data: { url: data.url || '/' },
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = new URL((event.notification.data && event.notification.data.url) || '/', self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+      for (const w of windows) {
+        if (w.url === target && 'focus' in w) return w.focus();
+      }
+      return self.clients.openWindow(target);
+    })
+  );
+});

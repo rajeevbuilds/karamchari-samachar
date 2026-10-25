@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAdminAuthenticated } from '@/lib/auth';
 import { updateCircular, deleteCircular, describeDbError } from '@/lib/data';
 import { parseCircularInput } from '@/lib/validation';
+import { notifyAboutCircular, pushConfigured, countSubscriptions } from '@/lib/push';
 
 function parseId(id: string): number | null {
   const n = Number(id);
@@ -20,15 +21,23 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   let input;
+  let notify = false;
   try {
-    input = parseCircularInput(await request.json());
+    const body = await request.json();
+    input = parseCircularInput(body);
+    notify = body?.notify === true;
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });
   }
 
   try {
     await updateCircular(circularId, input);
-    return NextResponse.json({ ok: true });
+    let notified = 0;
+    if (notify && input.status === 'published' && pushConfigured()) {
+      notified = await countSubscriptions();
+      void notifyAboutCircular(circularId).catch((err) => console.error('notifyAboutCircular failed', err));
+    }
+    return NextResponse.json({ ok: true, notified });
   } catch (err) {
     console.error('PUT /api/admin/circulars/[id] failed', err);
     return NextResponse.json(
