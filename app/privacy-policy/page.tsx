@@ -43,6 +43,16 @@ export default function PrivacyPolicyPage() {
         </li>
       </ul>
 
+      <h2>Browser notifications (optional)</h2>
+      <p>
+        If you tap &ldquo;Get alerts&rdquo; and allow notifications in your browser, we store an anonymous address for
+        that browser (supplied by your browser&apos;s push service, such as Google, Mozilla or Apple) so we can send you a
+        notification when a new post is published. This does not include your name, phone number or email address, and
+        you do not need an account. You can turn alerts off at any time with the same button on the site, or in your
+        browser&apos;s notification settings, and we then delete the address. Addresses your browser reports as no longer
+        valid are deleted automatically.
+      </p>
+
       <h2>Analytics</h2>
       <p>
         We use Google Analytics to understand how visitors use the site, for example which pages are read and which

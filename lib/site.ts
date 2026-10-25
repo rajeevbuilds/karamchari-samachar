@@ -18,7 +18,7 @@ export const SITE_DESCRIPTION =
 export const SITE_LOGO_URL = `${SITE_URL}/brand/logo.webp`;
 
 // Shown on the legal pages. Bump when their wording changes.
-export const LEGAL_LAST_UPDATED = '2 October 2026';
+export const LEGAL_LAST_UPDATED = '25 October 2026';
 
 export const INFO_LINKS = [
   { href: '/about', label: 'About Us' },
