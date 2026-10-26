@@ -139,7 +139,7 @@ export const DA_FAQS: Faq[] = [
 export const CPC8_FAQS: Faq[] = [
   {
     q: 'What is the 8th Pay Commission?',
-    a: 'It is the Central Pay Commission that reviews the pay, allowances and pensions of central government employees and pensioners. Its terms of reference were notified in August 2026, and it has 18 months to give its recommendations.',
+    a: 'It is the Central Pay Commission that reviews the pay, allowances and pensions of central government employees and pensioners. It was notified on 3 November 2025 and has 18 months to give its recommendations, which means about May 2027.',
   },
   {
     q: 'What is the fitment factor?',

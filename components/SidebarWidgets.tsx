@@ -79,7 +79,7 @@ export default function SidebarWidgets({ circulars }: { circulars: Circular[] })
           8th Pay Commission
         </p>
         <p className="text-[13px] text-ink/70 leading-relaxed">
-          Terms of reference notified Aug 2026. 18-month window for recommendations.
+          Commission notified 3 Nov 2025. Report due within 18 months, about May 2027.
         </p>
       </div>
     </aside>

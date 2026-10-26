@@ -15,11 +15,11 @@ export const MAX_MILESTONES = 10;
 export const MAX_SUMMARY_LENGTH = 800;
 
 export const DEFAULT_CPC8_SUMMARY =
-  "Terms of reference were notified in August 2026, with an 18-month window for recommendations. This page tracks milestones as they're announced: panel formation, submission of the report, and cabinet approval.";
+  "The 8th Pay Commission was notified on 3 November 2025 and has 18 months to give its recommendations, which means about May 2027. This page tracks milestones as they're announced: submission of the report and the government's decision.";
 
 export const DEFAULT_CPC8_TIMELINE: Milestone[] = [
-  { milestone: 'Terms of reference notified', date: 'August 2026', status: 'done' },
-  { milestone: "Commission's recommendations due", date: 'Within 18 months of the terms of reference', status: 'awaited' },
+  { milestone: '8th Pay Commission notified', date: '3 November 2025', status: 'done' },
+  { milestone: "Commission's recommendations due", date: 'Within 18 months, about May 2027', status: 'awaited' },
   { milestone: 'Government decision on the report', date: '', status: 'awaited' },
 ];
 
