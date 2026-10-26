@@ -35,6 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/circulars', 'daily', 0.8, latest),
     entry('/da-cpc-tracker', 'daily', 0.9, latest),
     entry('/dearness-allowance', 'daily', 0.9, latest),
+    entry('/guides/railway-transfer', 'monthly', 0.8),
     ...SECTION_OPTIONS.map((s) => entry(`/section/${s.value}`, 'daily', 0.8, latest)),
     ...toolPaths.map((p) => entry(p, 'monthly', 0.7)),
     // State pages are left out on purpose: they mostly repeat the central circulars, and

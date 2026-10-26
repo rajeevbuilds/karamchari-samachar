@@ -7,6 +7,7 @@ const TOPIC_LINKS = [
   { href: '/dearness-allowance', label: 'Dearness Allowance (DA)' },
   { href: '/da-cpc-tracker', label: '8th Pay Commission' },
   { href: '/calculators/8th-pay-commission', label: '8th CPC Salary Calculator' },
+  { href: '/guides/railway-transfer', label: 'Railway Transfer Guide' },
   { href: '/section/calculators', label: 'All Calculators' },
 ] as const;
 
