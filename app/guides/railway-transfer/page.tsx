@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import CompactCircularRow from '@/components/CompactCircularRow';
 import FaqSection from '@/components/FaqSection';
@@ -18,12 +19,22 @@ const DESCRIPTION =
 // Update this date whenever the page text is changed or re-checked.
 const UPDATED = '2026-10-26';
 const UPDATED_LABEL = '26 अक्टूबर 2026';
+const IMAGE = '/share/railway-transfer.jpg';
 
 export const metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: PATH },
-  openGraph: { type: 'article', siteName: SITE_NAME, locale: 'hi_IN', url: PATH, title: TITLE, description: DESCRIPTION },
+  openGraph: {
+    type: 'article',
+    siteName: SITE_NAME,
+    locale: 'hi_IN',
+    url: PATH,
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [{ url: IMAGE, width: 1200, height: 630, alt: 'रेल कर्मचारियों का ट्रांसफर: कितने तरह के होते हैं और क्या नियम हैं' }],
+  },
+  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION, images: [IMAGE] },
 };
 
 const TYPES: { kind: string; meaning: string; note: string }[] = [
@@ -58,6 +69,7 @@ export default async function RailwayTransferGuidePage() {
             '@type': 'Article',
             headline: 'रेल कर्मचारियों का ट्रांसफर: कितने तरह के होते हैं और क्या नियम हैं',
             description: DESCRIPTION,
+            image: `${SITE_URL}${IMAGE}`,
             inLanguage: 'hi-IN',
             dateModified: UPDATED,
             mainEntityOfPage: `${SITE_URL}${PATH}`,
@@ -75,6 +87,16 @@ export default async function RailwayTransferGuidePage() {
         ]}
       />
       <article className="py-10 min-w-0">
+        <Image
+          src={IMAGE}
+          alt="रेल कर्मचारियों का ट्रांसफर: कितने तरह के होते हैं और क्या नियम हैं"
+          width={1200}
+          height={630}
+          priority
+          fetchPriority="high"
+          sizes="(max-width: 1024px) 100vw, 880px"
+          className="w-full h-auto mb-6 border border-rule"
+        />
         <h1 className="font-serif text-3xl font-semibold text-ink mb-1">रेल कर्मचारियों का ट्रांसफर: कितने तरह के होते हैं और क्या नियम हैं</h1>
         <p className="text-sm text-ink/60 mb-1">Railway Employee Transfer Rules: आसान भाषा में गाइड</p>
         <p className="font-mono text-xs text-ink/50 mb-6">अंतिम अपडेट: {UPDATED_LABEL}</p>
