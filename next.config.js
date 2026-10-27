@@ -31,6 +31,20 @@ const nextConfig = {
       },
     ],
   },
+  // The site answers on both sarkarikaramchari.com and www.sarkarikaramchari.com,
+  // so search engines saw every page twice. Send the www address to the main one
+  // permanently (path and query string are kept). Only the exact www host matches,
+  // so the main address, GoDaddy's preview address and local testing are untouched.
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.sarkarikaramchari.com' }],
+        destination: 'https://sarkarikaramchari.com/:path*',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
