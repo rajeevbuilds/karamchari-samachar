@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import CompactCircularRow from '@/components/CompactCircularRow';
 import DaArrearsCalc from '@/components/DaArrearsCalc';
@@ -8,16 +9,32 @@ import SidebarWidgets from '@/components/SidebarWidgets';
 import { getAllCirculars, getDaHistory, getDefaultDa } from '@/lib/data';
 import { DA_FAQS } from '@/lib/faqs';
 import { summaryPreviewText } from '@/lib/sanitize';
-import { SITE_URL } from '@/lib/site';
+import { SITE_NAME, SITE_URL } from '@/lib/site';
 
 // The DA figures come from the admin's DA history, so read them on every request.
 export const dynamic = 'force-dynamic';
 
+const TITLE = 'Dearness Allowance (DA) for Central Government Employees: Rate & History';
+const DESCRIPTION =
+  'Current Dearness Allowance (DA) and Dearness Relief (DR) rate for central government employees and pensioners, past DA changes, how DA is calculated, and the latest DA news.';
+// Replace this file to change the picture shown at the top and when the page is shared.
+const IMAGE = '/share/dearness-allowance.jpg';
+const IMAGE_ALT = 'DA arrears calculator on sarkarikaramchari.com';
+
 export const metadata = {
-  title: 'Dearness Allowance (DA) for Central Government Employees: Rate & History',
-  description:
-    'Current Dearness Allowance (DA) and Dearness Relief (DR) rate for central government employees and pensioners, past DA changes, how DA is calculated, and the latest DA news.',
+  title: TITLE,
+  description: DESCRIPTION,
   alternates: { canonical: '/dearness-allowance' },
+  openGraph: {
+    type: 'website',
+    siteName: SITE_NAME,
+    locale: 'en_IN',
+    url: '/dearness-allowance',
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [{ url: IMAGE, width: 1200, height: 630, alt: IMAGE_ALT }],
+  },
+  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION, images: [IMAGE] },
 };
 
 function formatDate(iso: string): string {
@@ -53,6 +70,16 @@ export default async function DearnessAllowancePage() {
         }}
       />
       <div className="py-10">
+        <Image
+          src={IMAGE}
+          alt={IMAGE_ALT}
+          width={1200}
+          height={630}
+          priority
+          fetchPriority="high"
+          sizes="(max-width: 1024px) 100vw, 880px"
+          className="w-full h-auto mb-6 border border-rule"
+        />
         <h1 className="font-serif text-3xl font-semibold text-ink mb-1">
           Dearness Allowance (DA) for Central Government Employees
         </h1>
