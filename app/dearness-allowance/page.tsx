@@ -78,7 +78,7 @@ export default async function DearnessAllowancePage() {
           newRate={rate ?? 0}
           oldRate={history[1] ? history[1].percentage : null}
           from={current ? current.effectiveFrom.slice(0, 7) : '2026-07'}
-          to="2026-10"
+          to="2026-11"
         />
 
         <section className="mb-8 text-sm text-ink/80 leading-relaxed max-w-prose">
