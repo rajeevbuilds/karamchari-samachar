@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import CompactCircularRow from '@/components/CompactCircularRow';
+import DaArrearsCalc from '@/components/DaArrearsCalc';
 import DaQuickCalc from '@/components/DaQuickCalc';
 import FaqSection from '@/components/FaqSection';
 import JsonLd from '@/components/JsonLd';
@@ -73,6 +74,12 @@ export default async function DearnessAllowancePage() {
         </div>
 
         <DaQuickCalc defaultRate={rate ?? 0} />
+        <DaArrearsCalc
+          newRate={rate ?? 0}
+          oldRate={history[1] ? history[1].percentage : null}
+          from={current ? current.effectiveFrom.slice(0, 7) : '2026-07'}
+          to="2026-10"
+        />
 
         <section className="mb-8 text-sm text-ink/80 leading-relaxed max-w-prose">
           <h2 className="font-serif text-lg font-semibold text-ink mb-2">How DA works</h2>
