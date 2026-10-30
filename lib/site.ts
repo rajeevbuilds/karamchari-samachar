@@ -22,6 +22,7 @@ export const LEGAL_LAST_UPDATED = '25 October 2026';
 
 export const INFO_LINKS = [
   { href: '/about', label: 'About Us' },
+  { href: '/editorial-policy', label: 'Editorial Policy' },
   { href: '/contact', label: 'Contact Us' },
   { href: '/privacy-policy', label: 'Privacy Policy' },
   { href: '/disclaimer', label: 'Disclaimer' },

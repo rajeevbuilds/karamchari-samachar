@@ -44,7 +44,8 @@ export default function AboutPage() {
       <p>
         We publish circulars and notifications sourced from official government offices and from organisations that
         represent employees. We link to the original document wherever we can. Please always verify any order against
-        the official gazette or the issuing office before acting on it.
+        the official gazette or the issuing office before acting on it. Our <Link href="/editorial-policy">Editorial
+        Policy</Link> explains how we check what we publish.
       </p>
 
       <h2>Independent, not official</h2>
