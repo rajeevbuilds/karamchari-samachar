@@ -1,3 +1,9 @@
+const MERGED_FITMENT_POSTS = [
+  '8th-pay-commission-fitment-factor-2-00-3-00',
+  '8-18-000-minimum-pay-34-973-fitment-factor',
+  '8th-cpc-1-94-fitment-factor-explained-how-18-000-basic-pay-could-become-34-973',
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Shared hosting (cPanel/CloudLinux) enforces a low per-account process
@@ -43,6 +49,14 @@ const nextConfig = {
         destination: 'https://sarkarikaramchari.com/:path*',
         permanent: true,
       },
+      // Three older 8th CPC fitment-factor posts were merged into one fuller
+      // post. Their addresses go to it permanently so old links, shares and
+      // search results keep working.
+      ...MERGED_FITMENT_POSTS.map((slug) => ({
+        source: `/circulars/${slug}`,
+        destination: '/circulars/8-fitment-factor-basic-pay',
+        permanent: true,
+      })),
     ];
   },
   async headers() {
