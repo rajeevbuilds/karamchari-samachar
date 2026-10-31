@@ -4,6 +4,12 @@ const MERGED_FITMENT_POSTS = [
   '8th-cpc-1-94-fitment-factor-explained-how-18-000-basic-pay-could-become-34-973',
 ];
 
+// Posts whose web address was corrected after publishing: old slug -> new slug.
+const RENAMED_POSTS = {
+  'railway-board-ordered-da-effective-from-ist-july-2006-know-rule-1303':
+    'railway-da-63-percent-rule-1303-pay-level-wise-table-rbe-91-2026',
+};
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Shared hosting (cPanel/CloudLinux) enforces a low per-account process
@@ -55,6 +61,12 @@ const nextConfig = {
       ...MERGED_FITMENT_POSTS.map((slug) => ({
         source: `/circulars/${slug}`,
         destination: '/circulars/8-fitment-factor-basic-pay',
+        permanent: true,
+      })),
+      // Posts whose address was corrected: old link goes to the new one.
+      ...Object.entries(RENAMED_POSTS).map(([from, to]) => ({
+        source: `/circulars/${from}`,
+        destination: `/circulars/${to}`,
         permanent: true,
       })),
     ];
