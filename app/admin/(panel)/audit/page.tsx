@@ -11,6 +11,19 @@ export const metadata = {
 const VERY_SHORT = 150;
 const SHORT = 300;
 const SIMILAR = 0.7;
+// Two posts sharing this much of their wording (4-word runs) read as copies.
+const SIMILAR_TEXT = 0.3;
+// Pieces of other tools' output or of our own notes that must never reach a live post.
+const LEAKED: [string, RegExp][] = [
+  ['<Cite tag', /<Cite\b/i],
+  ['refs=', /\brefs=/i],
+  ['turn…search code', /turn\d+(?:search|view)\d*/i],
+  ['oaicite', /oaicite/i],
+  ['contentReference', /contentReference/i],
+  ['Department of Education', /Department of Education/],
+  ['[यहाँ placeholder', /\[यहाँ/],
+  ['paste-note text', /पीले डिब्बे|कैसे इस्तेमाल करें/],
+];
 
 const wordsIn = (text: string) => (text ? text.split(/\s+/).filter(Boolean).length : 0);
 const tokens = (title: string) =>
@@ -22,6 +35,18 @@ const tokens = (title: string) =>
       .filter((t) => t.length > 1)
   );
 
+// Sets of 4-word runs, so two posts copied from each other overlap heavily.
+function shingles(text: string): Set<string> {
+  const w = text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+  const out = new Set<string>();
+  for (let i = 0; i + 4 <= w.length; i++) out.add(w.slice(i, i + 4).join(' '));
+  return out;
+}
+
 function similarity(a: Set<string>, b: Set<string>): number {
   if (a.size === 0 || b.size === 0) return 0;
   let shared = 0;
@@ -29,19 +54,22 @@ function similarity(a: Set<string>, b: Set<string>): number {
   return shared / (a.size + b.size - shared);
 }
 
-type Row = { post: AdminCircular; words: number; flags: string[]; similarTo: string[] };
+type Row = { post: AdminCircular; words: number; flags: string[]; similarTo: string[]; copyOf: string[]; leaked: string[] };
 
 // Read-only check of the published posts for the things that read as "low value
-// content": very short posts, near-duplicate titles, missing images, no readers.
+// content": very short posts, near-duplicate titles or wording, leaked tool text, missing images, no readers.
 export default async function AdminAuditPage() {
   await requireAdmin();
   const posts = (await getAllCircularsAdmin()).filter((p) => p.status === 'published');
 
-  const rows: Row[] = posts.map((post) => ({
+  const texts = posts.map((post) => summaryPreviewText(post.summary, 1_000_000));
+  const rows: Row[] = posts.map((post, i) => ({
     post,
-    words: wordsIn(summaryPreviewText(post.summary, 1_000_000)),
+    words: wordsIn(texts[i]),
     flags: [],
     similarTo: [],
+    copyOf: [],
+    leaked: LEAKED.filter(([, re]) => re.test(post.summary) || re.test(texts[i])).map(([label]) => label),
   }));
 
   const titleTokens = rows.map((r) => tokens(r.post.title));
@@ -53,7 +81,18 @@ export default async function AdminAuditPage() {
       }
     }
   }
+  const grams = texts.map((t, i) => (rows[i].words >= 100 ? shingles(t) : new Set<string>()));
+  for (let i = 0; i < rows.length; i++) {
+    for (let j = i + 1; j < rows.length; j++) {
+      if (similarity(grams[i], grams[j]) >= SIMILAR_TEXT) {
+        rows[i].copyOf.push(rows[j].post.title);
+        rows[j].copyOf.push(rows[i].post.title);
+      }
+    }
+  }
   for (const r of rows) {
+    if (r.leaked.length) r.flags.push('Leaked text');
+    if (r.copyOf.length) r.flags.push('Similar text');
     if (r.words < VERY_SHORT) r.flags.push('Very short');
     else if (r.words < SHORT) r.flags.push('Short');
     if (r.similarTo.length) r.flags.push('Similar title');
@@ -64,6 +103,8 @@ export default async function AdminAuditPage() {
   const veryShort = rows.filter((r) => r.words < VERY_SHORT).length;
   const short = rows.filter((r) => r.words >= VERY_SHORT && r.words < SHORT).length;
   const similar = rows.filter((r) => r.similarTo.length).length;
+  const similarText = rows.filter((r) => r.copyOf.length).length;
+  const leakedCount = rows.filter((r) => r.leaked.length).length;
   const flagged = rows.filter((r) => r.flags.length).sort((a, b) => a.words - b.words);
 
   return (
@@ -74,7 +115,7 @@ export default async function AdminAuditPage() {
         merging it into a stronger one, or asking us to hide it from search.
       </p>
 
-      <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8 max-w-2xl text-sm">
+      <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8 max-w-2xl text-sm">
         <div className="border border-rule p-3">
           <dt className="text-ink/50 mb-1">Published posts</dt>
           <dd className="font-serif text-2xl text-ink">{rows.length}</dd>
@@ -90,6 +131,14 @@ export default async function AdminAuditPage() {
         <div className="border border-rule p-3">
           <dt className="text-ink/50 mb-1">Similar titles</dt>
           <dd className="font-serif text-2xl text-ink">{similar}</dd>
+        </div>
+        <div className="border border-rule p-3">
+          <dt className="text-ink/50 mb-1">Similar text</dt>
+          <dd className="font-serif text-2xl text-ink">{similarText}</dd>
+        </div>
+        <div className="border border-rule p-3">
+          <dt className="text-ink/50 mb-1">Leaked text</dt>
+          <dd className="font-serif text-2xl text-maroon">{leakedCount}</dd>
         </div>
       </dl>
 
@@ -116,6 +165,12 @@ export default async function AdminAuditPage() {
                     <div className="text-xs text-ink/50 mt-0.5">{r.post.issueDate}</div>
                     {r.similarTo.length > 0 && (
                       <div className="text-xs text-ink/60 mt-1">Close to: {r.similarTo.slice(0, 2).join(' | ')}</div>
+                    )}
+                    {r.copyOf.length > 0 && (
+                      <div className="text-xs text-ink/60 mt-1">Wording close to: {r.copyOf.slice(0, 2).join(' | ')}</div>
+                    )}
+                    {r.leaked.length > 0 && (
+                      <div className="text-xs text-maroon mt-1">Found: {r.leaked.join(', ')}</div>
                     )}
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap">{r.words}</td>
