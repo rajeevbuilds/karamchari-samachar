@@ -1,4 +1,6 @@
+import CalculatorGuide from '@/components/CalculatorGuide';
 import FaqSection from '@/components/FaqSection';
+import { CALCULATOR_GUIDES } from '@/lib/calculatorGuides';
 import { FAQS } from '@/lib/faqs';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL } from '@/lib/site';
@@ -25,6 +27,7 @@ export default function PayFixationPage() {
       <h1 className="font-serif text-3xl font-semibold text-ink mb-2 print:hidden">{PAY_FIXATION_TOOL.title}</h1>
       <p className="text-sm text-ink/60 mb-8 max-w-prose print:hidden">{PAY_FIXATION_TOOL.description}</p>
       <PayFixationCalculator />
+      <CalculatorGuide guide={CALCULATOR_GUIDES['/calculators/pay-fixation']} />
       <FaqSection faqs={FAQS['/calculators/pay-fixation']} />
     </div>
   );

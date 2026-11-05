@@ -1,4 +1,6 @@
+import CalculatorGuide from '@/components/CalculatorGuide';
 import FaqSection from '@/components/FaqSection';
+import { CALCULATOR_GUIDES } from '@/lib/calculatorGuides';
 import { FAQS } from '@/lib/faqs';
 import { getAllSettings, getDaHistory, getDefaultDa } from '@/lib/data';
 import JsonLd from '@/components/JsonLd';
@@ -48,6 +50,7 @@ export default async function RetirementBenefitsPage({
         ceiling={Number(settings.gratuity_ceiling) || 0}
         minFloor={Number(settings.pension_min_floor) || 0}
       />
+      <CalculatorGuide guide={CALCULATOR_GUIDES['/calculators/retirement-benefits']} />
       <FaqSection faqs={FAQS['/calculators/retirement-benefits']} />
     </div>
   );
