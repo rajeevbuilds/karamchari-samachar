@@ -1,7 +1,7 @@
 import type { Circular } from '@/lib/data';
 import CircularsShowcase, { HOME_LATEST_COUNT } from './CircularsShowcase';
 import HomeCalculatorsBlock from './HomeCalculatorsBlock';
-import HomeCensusCardPreview from './HomeCensusCardPreview';
+import HomeCensusCard from './HomeCensusCard';
 import HomeSectionBlock from './HomeSectionBlock';
 import SidebarWidgets from './SidebarWidgets';
 
@@ -43,7 +43,7 @@ export default function HomeGrid({ circulars }: { circulars: Circular[] }) {
       <div>
         <CircularsShowcase circulars={circulars} heading="Latest Circulars" viewAllHref="/circulars" />
         <HomeCalculatorsBlock />
-        <HomeCensusCardPreview />
+        <HomeCensusCard />
         {blocks.map((block) => (
           <HomeSectionBlock key={block.slug} heading={block.heading} href={block.href} circulars={block.picks} />
         ))}

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import CensusSubNav from '@/components/CensusSubNav';
 import JsonLd from '@/components/JsonLd';
@@ -10,6 +11,7 @@ const DESCRIPTION =
 // Update this date whenever the page text is changed or re-checked.
 const UPDATED = '2026-11-19';
 const UPDATED_LABEL = '19 नवंबर 2026';
+const IMAGE = '/share/census-2027.jpg';
 
 export const metadata = {
   title: TITLE,
@@ -22,8 +24,9 @@ export const metadata = {
     url: PATH,
     title: TITLE,
     description: DESCRIPTION,
+    images: [{ url: IMAGE, width: 1200, height: 630, alt: 'Census 2027: Enumerator Guide' }],
   },
-  twitter: { card: 'summary', title: TITLE, description: DESCRIPTION },
+  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION, images: [IMAGE] },
 };
 
 const h2 = 'font-serif text-xl font-semibold text-ink mt-8 mb-3';
@@ -40,12 +43,23 @@ export default function CensusHomePage() {
           inLanguage: 'hi-IN',
           dateModified: UPDATED,
           mainEntityOfPage: `${SITE_URL}${PATH}`,
+          image: `${SITE_URL}${IMAGE}`,
           author: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
           publisher: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
         }}
       />
       <article className="py-10">
         <CensusSubNav active="/census-2027" />
+        <Image
+          src={IMAGE}
+          alt="Census 2027: Enumerator Guide"
+          width={1200}
+          height={630}
+          priority
+          fetchPriority="high"
+          sizes="(max-width: 1024px) 100vw, 820px"
+          className="w-full h-auto mb-6 border border-rule rounded-lg"
+        />
         <h1 className="font-serif text-3xl font-semibold text-ink mb-1">Census 2027: Enumerator Guide</h1>
         <p className="font-mono text-xs text-ink/50 mb-6">अंतिम अपडेट: {UPDATED_LABEL}</p>
 
