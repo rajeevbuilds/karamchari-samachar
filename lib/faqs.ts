@@ -190,3 +190,126 @@ export const TRANSFER_FAQS: Faq[] = [
     a: 'नहीं। रेलवे कर्मचारियों के लिए ज्वाइनिंग टाइम के नियम इंडियन रेलवे एस्टैब्लिशमेंट कोड के अध्याय 11 में हैं। 180 दिन तक के अस्थायी ट्रांसफर में सिर्फ रास्ते का समय मिलता है, ज्वाइनिंग टाइम नहीं।',
   },
 ];
+
+// Questions for the Census 2027 enumerator guide (/census-2027). This is our own
+// summary of the Enumerator Instruction Manual and public announcements, not an
+// official document — each page says so and points readers to their trainer or
+// Charge Officer for anything that must be exact.
+export const CENSUS_FAQS: Faq[] = [
+  {
+    q: 'Census 2027 का Phase 2 (Population Enumeration) क्या है?',
+    a: 'Phase 1 (Houselisting, अप्रैल से सितंबर 2026) में हर building, मकान और household की list बनी थी। Phase 2 में हर household के हर member की जानकारी 40 questions वाले schedule में भरी जाती है। इसी को Population Enumeration (PE) कहते हैं।',
+  },
+  {
+    q: 'Enumerator का मुख्य काम क्या है?',
+    a: 'अपने Enumeration Block (EB) के हर household में जाना, सभी members की जानकारी पूछकर mobile app "Census 2027 – PE" में भरना, आखिर में respondent को summary दिखाकर पढ़कर सुनाना, और समय पर data Sync करके काम पूरा करना।',
+  },
+  {
+    q: 'EB कितना बड़ा होता है?',
+    a: 'एक EB में लगभग 800 लोग आते हैं। आपको EB का map और छपी हुई Abridged Houselist (AHL) मिलती है। सिर्फ अपने ही EB में काम करें। दूसरे EB में जाना या अपना कोई इलाका छोड़ देना, दोनों गलत हैं।',
+  },
+  {
+    q: 'Schedule में कितने questions हैं?',
+    a: 'कुल 40। ये हर member के लिए पूछे जाते हैं: नाम, रिश्ता, लिंग, उम्र या जन्म तारीख, शादी की स्थिति, पढ़ाई, काम, एक जगह से दूसरी जगह जाना (migration) वगैरह। कुछ questions सिर्फ उन्हीं members के लिए होते हैं जिन पर वे लागू हों। App खुद अगला question दिखाता है।',
+  },
+  {
+    q: 'जरूरी तारीखें क्या हैं?',
+    a: 'सार्वजनिक सूचनाओं के हिसाब से: Self-Enumeration (SE) 16 से 30 नवंबर 2026। पंजाब, गोवा, उत्तर प्रदेश और उत्तराखंड में घर-घर enumeration 1 दिसंबर 2026 से 4 जनवरी 2027। Revisional round 5 से 9 जनवरी 2027। बाकी राज्यों में 9 से 28 फरवरी 2027। अपने district की पक्की तारीखें Charge Officer से जरूर confirm करें।',
+  },
+  {
+    q: 'Revisional round क्या होता है?',
+    a: 'Enumeration के बाद के 5 दिन, जिनमें छूटे हुए या गलत भरे households को ठीक किया जाता है। इसलिए अपना काम समय पर पूरा रखें।',
+  },
+  {
+    q: 'Self-Enumeration (SE) क्या है?',
+    a: 'परिवार खुद online अपनी जानकारी भरता है और उसे 11 अंकों की SE ID मिलती है, जो "P" से शुरू होती है। जब आप जाते हैं तो वह ID लेकर परिवार का भरा हुआ data app में खोलते हैं, verify करते हैं और जरूरत हो तो सुधारते हैं।',
+  },
+  {
+    q: 'परिवार जो जानकारी देता है, वह कितनी गोपनीय है?',
+    a: 'पूरी तरह गोपनीय। किसी से share न करें, photo या screenshot न लें, और अपने personal WhatsApp या social media में न डालें। जानकारी सिर्फ duty के काम के लिए इस्तेमाल करें।',
+  },
+  {
+    q: 'मदद या शिकायत के लिए किससे बात करें?',
+    a: 'पहले अपने Supervisor से, फिर Charge Officer से। Census helpline का toll-free नंबर 1855 बताया गया है। इसे अपने training material से एक बार मिला लें।',
+  },
+  {
+    q: 'कौन-सा app download करना है और फोन कैसा चाहिए?',
+    a: '"Census 2027 – PE" (package name: com.census.peproduction)। कोई दूसरा या नकली app install न करें, download कहाँ से करना है यह trainer से पक्का करें। Manual के हिसाब से फोन में Android 13 या ऊपर (या iOS 15 या ऊपर) और लगभग 8 GB RAM चाहिए, स्टोरेज खाली और battery full रखें।',
+  },
+  {
+    q: 'Registration कैसे होता है?',
+    a: 'User ID और captcha डालें → Register दबाएँ → पंजीकृत मोबाइल नंबर पर OTP आएगा, उसे Verify करें → password बनाएँ (पहली बार login पर बदलना पड़ता है) → फोन का PIN set करें।',
+  },
+  {
+    q: 'OTP नहीं आ रहा, क्या करें?',
+    a: 'Network और signal देखें, वही SIM फोन में हो जो registration में दी थी, बार-बार तुरंत न दबाएँ। फिर भी न आए तो Supervisor से बात करें।',
+  },
+  {
+    q: 'App की भाषा बाद में बदल सकते हैं?',
+    a: 'नहीं। एक बार जो भाषा चुन ली, वह बदली नहीं जा सकती। इसलिए वही भाषा चुनें जिसमें आप आराम से काम कर सकें।',
+  },
+  {
+    q: 'एक फोन पर दो लोग काम कर सकते हैं या app का clone चला सकते हैं?',
+    a: 'नहीं। एक user के लिए एक ही device। नए फोन पर login करने से पुराना फोन अपने आप बंद (deregister) हो जाता है। App का clone या दोहरा (dual) app कभी न चलाएँ, और काम के बीच app uninstall न करें।',
+  },
+  {
+    q: 'Sync कब करना चाहिए?',
+    a: 'Manual के हिसाब से लगभग हर 5–6 households के बाद, और दिन के आखिर में भी। इससे फोन खो जाए या खराब हो जाए तो भी ज्यादा data नहीं जाता।',
+  },
+  {
+    q: 'फोन खो गया या खराब हो गया तो?',
+    a: 'तुरंत Supervisor और Charge Officer को बताएँ। जो data पहले Sync हो चुका है, वह server पर सुरक्षित रहता है — इसीलिए नियमित Sync जरूरी है।',
+  },
+  {
+    q: 'घर जाने से पहले क्या साथ रखें, और परिवार से बात कैसे शुरू करें?',
+    a: 'ID card, छपी हुई AHL, EB का map, pen, charge किया फोन और power bank साथ रखें। परिचय दें, ID दिखाएँ, बताएँ कि यह Census का काम है और जानकारी गोपनीय रहेगी। अपने EB के क्रम से काम करें ताकि कोई घर छूटे नहीं और कोई दोबारा न गिना जाए।',
+  },
+  {
+    q: 'Reference date क्या है?',
+    a: 'सार्वजनिक घोषणा के हिसाब से reference date 1 मार्च 2027 की आधी रात (00:00) है (बर्फीले इलाकों के लिए अलग तारीख है)। सारा data इसी समय की स्थिति बताने के लिए होता है।',
+  },
+  {
+    q: 'Respondent को question समझने में दिक्कत हो या सवाल संवेदनशील लगे तो?',
+    a: 'Question को सरल भाषा में दोबारा बोलें, पर जवाब का सुझाव न दें और अंदाज़े से न भरें। धर्म/जाति जैसे सवालों पर शांति से बताएँ कि ये सरकार ने तय किए हैं और जानकारी गोपनीय रहेगी; अपनी राय या टिप्पणी न दें।',
+  },
+  {
+    q: 'घर पर कोई नहीं मिला या respondent जानकारी देने से मना कर दे तो?',
+    a: 'घर बंद मिलने पर पड़ोसियों से पूछकर अलग समय पर दोबारा जाएँ और note में लिखें। मना करने पर बहस न करें, शांति से समझाएँ कि census अनिवार्य है, फिर भी न मानें तो Supervisor को बताएँ।',
+  },
+  {
+    q: 'Houseless (बेघर) लोग कब और कैसे गिने जाते हैं?',
+    a: 'इनकी गिनती enumeration period की आखिरी रात, reference date के 00:00 बजने से पहले होती है। अपने EB में ऐसी जगहों (footpath, station, मंदिर, पुल) की पहले से list बना लें; सुरक्षा के लिए अकेले न जाएँ।',
+  },
+  {
+    q: 'किसी परिवार ने Self-Enumeration (SE) कर ली है, तो क्या करना है?',
+    a: 'परिवार से उनकी SE ID (11 अंक, "P" से शुरू) लें, app में उससे उनका भरा हुआ data खोलें, respondent को दिखाकर सब verify करें, कमी हो तो वहीं ठीक करके signature लें। पूरा form तभी दोबारा भरें जब data न मिले।',
+  },
+  {
+    q: 'एक मकान में कई households हो सकते हैं?',
+    a: 'हाँ, अलग रसोई होने पर एक मकान में कई अलग households रह सकते हैं। AHL और app में हर household अलग दर्ज होता है, इसलिए छपी list का क्रम ध्यान से मिलाएँ।',
+  },
+  {
+    q: 'Paper schedule (paper mode) कब इस्तेमाल होता है?',
+    a: 'सिर्फ exception के तौर पर, जैसे app या network की गंभीर समस्या में, और सिर्फ officers की इजाज़त से। ऐसा हो तो data तय तारीख तक web portal पर डालना होता है, और इस्तेमाल किए व न किए दोनों schedules वापस करने होते हैं।',
+  },
+  {
+    q: 'किसी household का data गलत भर दिया, अब कैसे ठीक करें?',
+    a: 'Sync से पहले record खोलकर सीधे बदल दें। Sync के बाद "Update Data" से बदलाव करें, respondent की signature दोबारा लें, फिर Sync करें।',
+  },
+  {
+    q: 'Supervisor की 20% जाँच क्या है?',
+    a: 'Supervisor अपने module में हर EB के लगभग 20% records random तरीके से देखता है। गड़बड़ी मिले तो वह साथ उस घर जाकर फिर से verify करता है।',
+  },
+  {
+    q: 'काम पूरा होने पर क्या-क्या करना है?',
+    a: 'सारा data Sync करें। "View Summary" से आबादी, आबाद मकान और households की संख्या देखकर AHL के खंड 5 में लिखें। App में काम पूरा होने का box tick करें, signature करें, Save करें। फिर AHL के खंड 6 (coverage certificate) भरें और AHL व layout map की दो copies Supervisor को दें।',
+  },
+  {
+    q: 'App में कोई problem (crash, hang, error) आए तो?',
+    a: 'App uninstall या बंद न करें। Error message का screenshot सिर्फ Supervisor या official contact को भेजें (social media पर नहीं), और निर्देश का इंतज़ार करें।',
+  },
+  {
+    q: 'इस काम के लिए मानदेय या छुट्टी की क्या व्यवस्था है?',
+    a: 'यह जानकारी हमारे पास मौजूद Manual के summary में नहीं थी, इसलिए यहाँ कोई राशि या नियम नहीं बताया जा रहा। अपने department/Charge Officer के आदेश और सरकारी notification से पुष्टि करें।',
+  },
+];
