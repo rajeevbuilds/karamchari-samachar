@@ -312,4 +312,106 @@ export const CENSUS_FAQS: Faq[] = [
     q: 'इस काम के लिए मानदेय या छुट्टी की क्या व्यवस्था है?',
     a: 'यह जानकारी हमारे पास मौजूद Manual के summary में नहीं थी, इसलिए यहाँ कोई राशि या नियम नहीं बताया जा रहा। अपने department/Charge Officer के आदेश और सरकारी notification से पुष्टि करें।',
   },
+  // Section 6: step-by-step app usage, added from a later, more detailed
+  // read of the Enumerator Instruction Manual.
+  {
+    q: 'App के home screen पर कौन-कौन से buttons हैं और हर एक का क्या काम है?',
+    a: 'Manual के हिसाब से 8 buttons हैं। Household Entry: नया household शुरू करने के लिए। Update Data: Sync न हुए record को सुधारने के लिए, और complete (synced) तथा incomplete households की list देखने के लिए (यहाँ Edit और Delete दोनों हैं)। View Summary: भरे हुए households का summary देखने के लिए। Pending Summary: इसका मतलब manual में नहीं समझाया गया, इसलिए trainer से पूछ लें। Sync: सभी पूरे (completed) records को server पर भेजने के लिए। Mark as Complete: EB का काम पूरा mark करने के लिए। Houseless Enumeration: सिर्फ enumeration के आखिरी दिन की रात houseless लोगों के लिए। Revisional Round: 5 दिन के revisional round में बदलाव के लिए।',
+  },
+  {
+    q: 'काम शुरू करने से पहले app में क्या-क्या देखना और दबाना चाहिए?',
+    a: 'Login के बाद पहले Location Particulars देखें (State, District, EB Number वगैरह) और पक्का करें कि ये आपके EB से मेल खाते हैं। फिर ऊपर दाएँ कोने में REFRESH दबाएँ, इससे आपके EB की सारी SE IDs download या update हो जाती हैं। उसके बाद नीचे "Start Population Enumeration" दबाएँ।',
+  },
+  {
+    q: 'शुरू में "Important Notice" वाली screen क्या है?',
+    a: 'इसमें Enumerator की ज़िम्मेदारियाँ लिखी हैं: जवाब सच्चाई से लिखना (ठीक से न लिखने पर कानूनी जिम्मेदारी बनती है), बहस न करना, हर household से Self-Enumeration के बारे में पूछना, data किसी को न बताना, और respondent को बताना कि data गोपनीय है और इससे किसी सरकारी योजना की पात्रता पर असर नहीं पड़ता। इसे पढ़कर "I have read and understood" दबाना होता है।',
+  },
+  {
+    q: 'Next, Previous और Jump buttons का क्या मतलब है?',
+    a: 'Next: जवाब भरकर अगली screen पर जाने के लिए। Previous: पिछली screen पर लौटने के लिए। Jump: किसी खास screen पर सीधे जाने के लिए। आगे बढ़ने से पहले screen पर भरा हुआ जवाब एक बार देख लें।',
+  },
+  {
+    q: 'Household Entry में सही household कैसे ढूँढें?',
+    a: 'Household Entry दबाने पर तीन तरीके से search हो सकता है: Head of Household (HOH) का नाम (शुरू के कुछ अक्षर डालें), Building Number, या Census House Number। मिलने पर बाकी details (Building No., Census House No., Household No., घर का उपयोग) अपने आप आ जाती हैं। AHL में जो लिखा है उससे मिलाकर देखें। फिर घर का Present Use, घर में अभी कितने members हैं, House Number और Locality/Hamlet भरें। Locality पहले भरी हो तो REPEAT चुनें, नई हो तो NEW।',
+  },
+  {
+    q: 'AHL वाला घर अब बदला हुआ मिले (खाली, टूटा, नया परिवार, नया head) तो app में क्या करें?',
+    a: 'Manual में ऐसी स्थितियाँ दी हैं। परिवार घर छोड़ गया और घर खाली है: Present Use "vacant" करके Save। मकान अब नहीं है: "demolished" करके Save। पुराना परिवार गया और नया आ गया: Present Use "Residence" चुनें और नए head का नाम भरें। सिर्फ head बदला है: नया नाम भरें। घर का उपयोग बदल गया (जैसे residence से non-residential): Present Use बदलकर Save। Institution हो तो उसका छोटा description (जैसे Old-age Home, Hostel) भी लिखें।',
+  },
+  {
+    q: 'AHL में जो मकान या घर नहीं है, वह मिल जाए तो क्या करें?',
+    a: 'नया Building हो तो NEW BN दबाकर Building Number लिखें। नया Census House हो तो NEW CH दबाएँ। नया Household हो तो NEW HH। नए Census House का नंबर 9001 से अपने आप बनता है। नए Building का नंबर पिछले Building के आधार पर देते हैं, जैसे 13 और 14 के बीच का नया मकान 13/1। यही तरीका HLO (Phase 1) में छूटे हुए मकानों पर भी लागू होता है।',
+  },
+  {
+    q: 'एक ही मकान में नया household आ गया या परिवार बँट गया हो तो?',
+    a: 'पहले उस Census House का Present Use चुनें (Residence आदि), फिर NEW HH दबाकर इस नए household की details भरें। Type of HH अपने आप भर जाता है।',
+  },
+  {
+    q: 'Members की जानकारी भरने का सही क्रम क्या है?',
+    a: 'पहले household में members की संख्या भरें, फिर हर member को Serial Number दें। सबसे पहले Head of Household का नाम आता है। पहले सब members के लिए Q1 से Q6 (नाम, रिश्ता, लिंग, जन्म तारीख और उम्र, शादी की स्थिति, शादी के समय उम्र) भरें। फिर "Enter Member details from Question 7" दबाकर हर member के बाकी सवाल एक-एक करके भरें। यह क्रम app में अपने आप चलता है।',
+  },
+  {
+    q: 'किसी member को गलती से जोड़ दिया या उसकी जानकारी गलत भर गई तो?',
+    a: 'हर member के सामने Delete और Edit icon होते हैं। गलती से जुड़ा member Delete icon से हटाएँ, गलत जानकारी Edit icon से ठीक करें। जब सही हो तो Forward दबाकर आगे बढ़ें। Revisional Round में किसी की मृत्यु होने पर भी उसकी details इसी तरह delete की जाती हैं।',
+  },
+  {
+    q: 'Self-Enumeration (SE ID) app में कैसे डालें?',
+    a: 'पूछें: "क्या आपके household ने Self-Enumeration की है?" Yes हो तो SE ID डालें और Next दबाएँ। ID 11 अंकों की होती है और शुरू में "P" लगता है। इसे बहुत ध्यान से डालें, क्योंकि manual के अनुसार गलत ID डालने पर उस household का data खो सकता है। No हो तो Next दबाकर सब members की जानकारी खुद भरें। SE वाले household में data मिलान करके summary देखें, पुष्टि कराएँ और submit करें।',
+  },
+  {
+    q: 'SE ID मेरे app में दिख नहीं रही, क्या करें?',
+    a: 'App में sign in करते समय SE IDs अपने आप download हो जाती हैं। न हुई हों तो home screen पर ऊपर दाएँ REFRESH दबाएँ। फिर भी न मिले तो Supervisor से बात करें।',
+  },
+  {
+    q: 'Respondent कौन होता है और app में किसे चुनना है?',
+    a: 'सब members की जानकारी भरने के बाद app में respondent का नाम चुनें। यह वह मुख्य व्यक्ति होता है जिससे आपने ज्यादातर जानकारी ली है और जो उस household का सामान्य निवासी (normal resident) हो। एक से ज्यादा respondent हों तो उनमें से जो बड़े हों, उनका नाम लें।',
+  },
+  {
+    q: 'Signature कब और कैसे लेना है?',
+    a: 'सब सवाल भरने के बाद respondent को app पर summary दिखाएँ और उसके बाद हस्ताक्षर करवाएँ। इससे respondent यह मानता है कि आपने उसके परिवार की जानकारी वैसे ही लिखी है जैसी उसने बताई। पढ़ा-लिखा हो तो वही अपने नाम से signature करे। न कर पाए तो उसी household का कोई दूसरा member कर सकता है (उसका नाम भी लिखा जाए)। घर में कोई और न हो तो "nobody available sign" लिखें। respondent मना कर दे तो "refused" लिखें। बहुत ही खास और असामान्य स्थिति में signature लेना ठीक न लगे तो कारण लिखें और Supervisor तथा Charge Officer को तुरंत बताकर special report दें। आखिर में आप एक confirmation box tick करके खुद भी signature करते हैं।',
+  },
+  {
+    q: 'क्या signature के बिना अगला household नहीं भर सकते? क्या incomplete household बाद में पूरा किया जा सकता है?',
+    a: 'Manual में ऐसा कोई नियम नहीं लिखा कि पिछले household का signature हुए बिना नया household शुरू नहीं हो सकता। Manual के मुताबिक Update Data में complete और incomplete दोनों तरह के households की list दिखती है, जहाँ उन्हें edit या delete कर सकते हैं। Manual में "draft" शब्द का इस्तेमाल नहीं है। आपके app version में असल व्यवहार कुछ अलग हो सकता है। इसलिए अपने field trainer से पूछकर या app में आज़माकर पक्का कर लें।',
+  },
+  {
+    q: '"Pending Summary" क्या दिखाता है?',
+    a: 'Manual में इस button का सिर्फ नाम है, इसका काम समझाया नहीं गया है। अंदाज़े से कोई मतलब न निकालें। इसे अपने trainer से पूछकर या training में app चलाकर समझें।',
+  },
+  {
+    q: 'View Summary कब देखें और इसका क्या इस्तेमाल है?',
+    a: 'हर household को Sync करने से पहले उसका summary देख लें, ताकि जानकारी सही और पूरी हो। View Summary में कुल आबादी, आबाद रहने वाले मकानों और households की गिनती भी मिलती है। काम पूरा होने पर इन्हीं संख्याओं को AHL के खंड 5 में लिखना होता है।',
+  },
+  {
+    q: 'Update Data में क्या-क्या कर सकते हैं?',
+    a: 'Sync न हुआ record खोलकर सुधार सकते हैं। यहाँ complete (synced) और incomplete दोनों households की list दिखती है और Edit या Delete का option मिलता है। Sync हो चुके record में बदलाव करने के बाद respondent को दोबारा दिखाकर signature लें और फिर Sync करें।',
+  },
+  {
+    q: 'Sync दबाने पर क्या होता है?',
+    a: 'Sync सारे पूरे (completed) records को central server पर भेज देता है। भेजने से पहले हर household का summary देख लें। Sync के समय आपसे एक declaration और signature माँगा जाता है कि आपने records जाँच लिए हैं। Manual सलाह देती है कि बार-बार Sync करें, ताकि data खोने का डर न रहे।',
+  },
+  {
+    q: 'Sync नहीं हो रहा या app में technical glitch आए तो?',
+    a: 'Manual कहता है कि धैर्य और शांति रखें और अपने Supervisor, Field Trainer या Charge Officer से मदद लें। आप अपने district के helpdesk (DCO) से भी बात कर सकते हैं। App uninstall न करें। Network मिलने पर दोबारा Sync करें। Data आपके फोन में रहता है।',
+  },
+  {
+    q: 'मुझे फोन बदलना पड़े तो unsynced data का क्या होगा?',
+    a: 'नए फोन पर register करते ही पुराना फोन अपने आप deregister हो जाता है, और उसके बाद पुराने फोन से Sync नहीं हो सकता। इसलिए फोन बदलने से पहले पूरा data Sync कर लें। Manual की सलाह है कि फोन बिना जरूरत के न बदलें।',
+  },
+  {
+    q: 'App uninstall करना ही पड़े तो unsynced data बचाने का क्या तरीका है?',
+    a: 'Manual के अनुसार uninstall से पहले जो data Sync नहीं हुआ, उसे कागज़ या writing pad पर लिख लें। बाद में उसे app में दोबारा भर सकते हैं, लेकिन तब आपको उन्हीं घरों में दोबारा जाकर respondent का signature फिर से लेना पड़ेगा। इसलिए uninstall से पहले हमेशा Supervisor से पूछ लें।',
+  },
+  {
+    q: 'Mark as Complete कब दबाना है?',
+    a: 'पहले पक्का करें कि आपके EB के हर Building, Census House और Household का काम हो चुका है और सारा data Sync हो गया है। उसके बाद ही Mark as Complete दबाएँ और Supervisor को बताएँ। जल्दबाज़ी न करें, क्योंकि काम "पूरा" mark होने के बाद बदलाव के नियम सख्त हो जाते हैं।',
+  },
+  {
+    q: 'Supervisor को मेरे record में गलती मिली तो क्या होगा?',
+    a: 'Supervisor अपने module में लगभग 20% records देखता है और गड़बड़ी लगे तो आपके साथ उस घर जाकर दोबारा पूछता है। Synced record में बदलाव जरूरी हो तो आप Update Data से वही item ठीक करते हैं, respondent की signature दोबारा लेते हैं, और Supervisor सब जाँचकर अपनी signature करके Sync करता है। Manual की सामान्य सलाह यह भी है कि अगर record गलत पाया गया तो पूरा record दोबारा भरना पड़ सकता है।',
+  },
+  {
+    q: 'Revisional Round में app में क्या-क्या करना होता है?',
+    a: 'इन 5 दिनों में आपको EB के हर household पर फिर जाना होता है। 00:00 बजे (reference date) से पहले जो नया जन्म हुआ हो, उसे दर्ज करें और माँ के Q31–33 के जवाब भी ठीक करें। जो मृत्यु हुई हो, उस व्यक्ति के Q1 से Q40 वाले जवाब delete करें। नए आए visitor या नए household को enumerate करें। हर बदलाव का कारण drop-down से चुनें, और AHL में कारण तथा दोबारा जाने की तारीख लिखें। इसके लिए home screen पर "Revisional Round" button है।',
+  },
 ];
