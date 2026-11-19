@@ -9,7 +9,6 @@ const LABELS: Record<string, string> = {
   '/census-2027/checklist': 'Census 2027 — Checklist',
   '/census-2027/app-guide': 'Census 2027 — App Guide',
   '/census-2027/faq': 'Census 2027 — FAQ',
-  '/census-2027/faq-index': 'Census 2027 — FAQ Index',
 };
 
 export default function PageViewsTable({ rows }: { rows: PageViewRow[] }) {
