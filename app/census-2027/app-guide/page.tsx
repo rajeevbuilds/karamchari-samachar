@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import CensusSubNav from '@/components/CensusSubNav';
+import { incrementPageView } from '@/lib/data';
 import { SITE_NAME } from '@/lib/site';
+
+// Renders on every request so incrementPageView below runs per visit, not once at build time.
+export const dynamic = 'force-dynamic';
 
 const PATH = '/census-2027/app-guide';
 const TITLE = 'PE App Guide – Census 2027: Registration और रोज़ का इस्तेमाल';
@@ -20,6 +24,7 @@ const ul = 'list-disc pl-5 flex flex-col gap-2 text-ink/80 leading-relaxed max-w
 const ol = 'list-decimal pl-5 flex flex-col gap-2 text-ink/80 leading-relaxed max-w-prose';
 
 export default function CensusAppGuidePage() {
+  void incrementPageView(PATH);
   return (
     <div className="mx-auto max-w-[820px] px-4">
       <article className="py-10">

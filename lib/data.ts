@@ -263,6 +263,55 @@ export async function incrementViewCount(slug: string): Promise<void> {
   }
 }
 
+// ---- Static page views (guides that aren't `circulars` rows) --------------
+
+// View counter for standalone pages like /census-2027 and its sub-pages,
+// which aren't rows in `circulars` and so can't use incrementViewCount above.
+// Keyed by path; fire-and-forget, same as incrementViewCount.
+let pageViewsTableReady: Promise<void> | null = null;
+function ensurePageViewsTable(): Promise<void> {
+  if (!pageViewsTableReady) {
+    pageViewsTableReady = query(
+      `CREATE TABLE IF NOT EXISTS page_views (
+         path VARCHAR(255) NOT NULL PRIMARY KEY,
+         views INT NOT NULL DEFAULT 0
+       )`
+    )
+      .then(() => undefined)
+      .catch((err) => {
+        pageViewsTableReady = null; // try again next time
+        throw err;
+      });
+  }
+  return pageViewsTableReady;
+}
+
+export async function incrementPageView(path: string): Promise<void> {
+  try {
+    await ensurePageViewsTable();
+    await query(
+      `INSERT INTO page_views (path, views) VALUES (?, 1)
+       ON DUPLICATE KEY UPDATE views = views + 1`,
+      [path]
+    );
+  } catch (err) {
+    console.error('incrementPageView: database query failed —', describeDbError(err));
+  }
+}
+
+export type PageViewRow = { path: string; views: number };
+
+export async function getPageViews(): Promise<PageViewRow[]> {
+  try {
+    await ensurePageViewsTable();
+    const rows = await query<{ path: string; views: number }[]>('SELECT path, views FROM page_views ORDER BY views DESC');
+    return rows.map((r) => ({ path: r.path, views: Number(r.views) || 0 }));
+  } catch (err) {
+    console.error('getPageViews: database query failed —', describeDbError(err));
+    return [];
+  }
+}
+
 // ---- Views by date --------------------------------------------------------
 
 // Today's date in India (IST, UTC+5:30) as YYYY-MM-DD, whatever the server's own timezone is.

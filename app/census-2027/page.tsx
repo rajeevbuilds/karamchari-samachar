@@ -2,7 +2,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import CensusSubNav from '@/components/CensusSubNav';
 import JsonLd from '@/components/JsonLd';
+import { incrementPageView } from '@/lib/data';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
+
+// Renders on every request so incrementPageView below runs per visit, not once at build time.
+export const dynamic = 'force-dynamic';
 
 const PATH = '/census-2027';
 const TITLE = 'Census 2027: Enumerator Guide (आसान हिंदी)';
@@ -32,6 +36,7 @@ export const metadata = {
 const h2 = 'font-serif text-xl font-semibold text-ink mt-8 mb-3';
 
 export default function CensusHomePage() {
+  void incrementPageView(PATH);
   return (
     <div className="mx-auto max-w-[820px] px-4">
       <JsonLd

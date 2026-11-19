@@ -1,7 +1,11 @@
 import Link from 'next/link';
 import CensusChecklist from '@/components/CensusChecklist';
 import CensusSubNav from '@/components/CensusSubNav';
+import { incrementPageView } from '@/lib/data';
 import { SITE_NAME } from '@/lib/site';
+
+// Renders on every request so incrementPageView below runs per visit, not once at build time.
+export const dynamic = 'force-dynamic';
 
 const PATH = '/census-2027/checklist';
 const TITLE = 'Enumerator Checklist – Census 2027 (आसान हिंदी)';
@@ -16,6 +20,7 @@ export const metadata = {
 };
 
 export default function CensusChecklistPage() {
+  void incrementPageView(PATH);
   return (
     <div className="mx-auto max-w-[820px] px-4">
       <article className="py-10">

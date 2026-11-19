@@ -1,8 +1,12 @@
 import Link from 'next/link';
 import CensusSubNav from '@/components/CensusSubNav';
 import FaqSection from '@/components/FaqSection';
+import { incrementPageView } from '@/lib/data';
 import { CENSUS_FAQS } from '@/lib/faqs';
 import { SITE_NAME } from '@/lib/site';
+
+// Renders on every request so incrementPageView below runs per visit, not once at build time.
+export const dynamic = 'force-dynamic';
 
 const PATH = '/census-2027/faq';
 const TITLE = 'Enumerator FAQ – Census 2027 (आसान हिंदी)';
@@ -17,6 +21,7 @@ export const metadata = {
 };
 
 export default function CensusFaqPage() {
+  void incrementPageView(PATH);
   return (
     <div className="mx-auto max-w-[820px] px-4">
       <article className="py-10">
