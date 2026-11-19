@@ -310,7 +310,7 @@ export const CENSUS_FAQS: Faq[] = [
   },
   {
     q: 'इस काम के लिए मानदेय या छुट्टी की क्या व्यवस्था है?',
-    a: 'यह जानकारी हमारे पास मौजूद Manual के summary में नहीं थी, इसलिए यहाँ कोई राशि या नियम नहीं बताया जा रहा। अपने department/Charge Officer के आदेश और सरकारी notification से पुष्टि करें।',
+    a: 'Manual में लिखा है कि यह काम कानूनी जिम्मेदारी है, पर Enumerator और Supervisor को भारत सरकार द्वारा तय उचित मानदेय (honorarium) दिया जाएगा। राशि और छुट्टी का नियम manual में नहीं लिखा। इसके लिए अपने department या Charge Officer के आदेश देखें।',
   },
   // Section 6: step-by-step app usage, added from a later, more detailed
   // read of the Enumerator Instruction Manual.
