@@ -36,6 +36,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/da-cpc-tracker', 'daily', 0.9, latest),
     entry('/dearness-allowance', 'daily', 0.9, latest),
     entry('/guides/railway-transfer', 'monthly', 0.8),
+    entry('/census-2027', 'weekly', 0.8),
+    entry('/census-2027/checklist', 'monthly', 0.6),
+    entry('/census-2027/app-guide', 'monthly', 0.6),
+    entry('/census-2027/faq', 'weekly', 0.7),
     ...SECTION_OPTIONS.map((s) => entry(`/section/${s.value}`, 'daily', 0.8, latest)),
     ...toolPaths.map((p) => entry(p, 'monthly', 0.7)),
     // State pages are left out on purpose: they mostly repeat the central circulars, and
