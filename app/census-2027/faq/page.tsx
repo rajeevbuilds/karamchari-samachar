@@ -22,6 +22,52 @@ export const metadata = {
 type Item = { q: string; a: string; para: string };
 type Section = { heading: string; items: Item[] };
 
+// The 40-question Household Schedule, in order, from the Gazette notification
+// itself — a different, more authoritative source than the Enumerator
+// Instruction Manual summary used for the FAQ sections above.
+const SCHEDULE_QUESTIONS: { no: number; q: string }[] = [
+  { no: 1, q: 'व्यक्ति का नाम' },
+  { no: 2, q: 'परिवार के मुखिया से रिश्ता' },
+  { no: 3, q: 'लिंग' },
+  { no: 4, q: 'जन्म तारीख और उम्र (पूरे वर्षों में)' },
+  { no: 5, q: 'वर्तमान वैवाहिक स्थिति' },
+  { no: 6, q: 'विवाह के समय आयु (पूरे वर्षों में)' },
+  { no: 7, q: 'पति/पत्नी का नाम' },
+  { no: 8, q: 'घोषित राष्ट्रीयता' },
+  { no: 9, q: 'धर्म' },
+  { no: 10, q: 'अनुसूचित जाति / अनुसूचित जनजाति / अन्य' },
+  { no: 11, q: 'पिता का विवरण' },
+  { no: 12, q: 'माता का विवरण' },
+  { no: 13, q: 'दिव्यांगता (Disability)' },
+  { no: 14, q: 'मातृभाषा और अन्य जानी जाने वाली भाषाएँ' },
+  { no: 15, q: 'साक्षरता और डिजिटल साक्षरता की स्थिति' },
+  { no: 16, q: 'किसी शिक्षण संस्थान में उपस्थिति की स्थिति' },
+  { no: 17, q: 'प्राप्त उच्चतम शैक्षणिक योग्यता: स्तर और विषय/स्ट्रीम' },
+  { no: 18, q: 'पिछले वर्ष के दौरान कभी काम किया' },
+  { no: 19, q: 'आर्थिक गतिविधि की श्रेणी' },
+  { no: 20, q: 'व्यवसाय (Occupation)' },
+  { no: 21, q: 'उद्योग, व्यापार या सेवा की प्रकृति' },
+  { no: 22, q: 'कामगार का वर्ग (Class of worker)' },
+  { no: 23, q: 'गैर-आर्थिक गतिविधि (marginal, semi-marginal और non-workers के लिए)' },
+  { no: 24, q: 'काम की तलाश या काम के लिए उपलब्धता (marginal, semi-marginal और non-workers के लिए)' },
+  { no: 25, q: 'काम की जगह तक यात्रा' },
+  { no: 26, q: 'जन्म स्थान' },
+  { no: 27, q: 'पिछले निवास का स्थान' },
+  { no: 28, q: 'प्रवासन (migration) का कारण' },
+  { no: 29, q: 'पिछले प्रवासन के बाद इस गाँव/शहर में रहने की अवधि' },
+  { no: 30, q: 'स्थायी निवास पते का विवरण' },
+  { no: 31, q: 'अभी जीवित बच्चों की संख्या (सिर्फ वर्तमान में विवाहित, विधवा, तलाकशुदा और अलग रह रही महिलाओं के लिए)' },
+  { no: 32, q: 'अब तक जन्मे जीवित बच्चों की कुल संख्या (सिर्फ वर्तमान में विवाहित, विधवा, तलाकशुदा और अलग रह रही महिलाओं के लिए)' },
+  { no: 33, q: 'पिछले एक साल के दौरान जन्मे जीवित बच्चों की संख्या (सिर्फ वर्तमान में विवाहित महिलाओं के लिए)' },
+  { no: 34, q: 'COVID-19 टीकाकरण की स्थिति' },
+  { no: 35, q: 'कुल बैंक खातों की संख्या' },
+  { no: 36, q: 'मोबाइल नंबर (अगर उपलब्ध हो)' },
+  { no: 37, q: 'आधार नंबर (अगर उपलब्ध हो)' },
+  { no: 38, q: 'वोटर ID नंबर (अगर उपलब्ध हो)' },
+  { no: 39, q: 'पासपोर्ट नंबर (अगर भारतीय पासपोर्ट धारक हों)' },
+  { no: 40, q: 'ड्राइविंग लाइसेंस की उपलब्धता' },
+];
+
 // Content and Manual Para references come from a separately-prepared index
 // (not independently read against the Manual by us) — see the yellow note on
 // the page itself.
@@ -46,7 +92,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: 'schedule में कितने questions हैं?',
-        a: 'कुल 40। ये हर member के लिए पूछे जाते हैं: नाम, रिश्ता, लिंग, उम्र या जन्म तारीख, शादी की स्थिति, पढ़ाई, काम, एक जगह से दूसरी जगह जाना (migration) वगैरह। कुछ questions सिर्फ उन्हीं members के लिए होते हैं जिन पर वे लागू हों। App खुद अगला question दिखाता है।',
+        a: 'कुल 40। ये हर member के लिए पूछे जाते हैं: नाम, रिश्ता, लिंग, उम्र या जन्म तारीख, शादी की स्थिति, पढ़ाई, काम, एक जगह से दूसरी जगह जाना (migration) वगैरह। कुछ questions सिर्फ उन्हीं members के लिए होते हैं जिन पर वे लागू हों। App खुद अगला question दिखाता है। सभी 40 सवालों की पूरी सूची इस पेज के आखिर में दी गई है।',
         para: '6.5 (Q.1 से Q.40)',
       },
       {
@@ -476,6 +522,26 @@ export default function CensusFaqPage() {
             </div>
           </div>
         ))}
+
+        <h2 className="font-serif text-xl font-semibold text-ink mt-10 mb-3 border-b border-rule pb-1">
+          40 सवालों की पूरी सूची (Household Schedule)
+        </h2>
+        <p className="text-sm text-ink/70 mb-3 max-w-prose">
+          ऊपर के FAQ हमारे Manual-summary पर आधारित हैं। यह सूची अलग और ज़्यादा पुख्ता स्रोत — खुद Household Schedule की Gazette
+          अधिसूचना — से ली गई है, और हर member के लिए पूछे जाने वाले सभी 40 सवाल क्रम में देती है।
+        </p>
+        <div className="border-t border-rule">
+          {SCHEDULE_QUESTIONS.map((item) => (
+            <div key={item.no} className="border-b border-rule py-2 flex gap-3 text-sm">
+              <span className="text-ink/40 font-mono w-8 shrink-0">{item.no}.</span>
+              <span className="text-ink/85">{item.q}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-ink/50 mt-3 max-w-prose">
+          स्रोत: Household Schedule, The Gazette of India, Extraordinary, 14 अगस्त 2026। कुछ सवाल (जैसे 23, 24, 31-33) सिर्फ
+          उन्हीं members पर लागू होते हैं जिन पर वे सवाल लागू हों; ऐसा app में सवाल भरते समय अपने आप तय हो जाता है।
+        </p>
 
         <div className="flex justify-between gap-3 flex-wrap mt-6 print:hidden">
           <Link href="/census-2027/app-guide" className="text-maroon hover:underline">← App Guide</Link>
